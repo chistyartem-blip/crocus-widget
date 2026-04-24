@@ -9,9 +9,11 @@ var css = `
 #crocus-backdrop{display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.65);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);opacity:0;transition:opacity .25s}
 #crocus-backdrop.open{display:block}
 #crocus-backdrop.visible{opacity:1}
-#crocus-modal{position:fixed;bottom:0;right:0;z-index:10000;width:420px;max-width:100vw;height:100dvh;max-height:100dvh;background:#0f0a0d;border-radius:20px 0 0 20px;box-shadow:-8px 0 60px rgba(0,0,0,.6);display:flex;flex-direction:column;overflow:hidden;transform:translateX(100%);transition:transform .32s cubic-bezier(.32,.72,0,1)}
+#crocus-modal{position:fixed;top:0;right:0;z-index:100000;width:420px;max-width:100vw;height:100dvh;max-height:100dvh;background:#0f0a0d;border-radius:20px 0 0 20px;box-shadow:-8px 0 60px rgba(0,0,0,.6);display:flex;flex-direction:column;overflow:hidden;transform:translateX(100%);transition:transform .32s cubic-bezier(.32,.72,0,1)}
 #crocus-modal.open{transform:translateX(0)}
-@media(max-width:480px){#crocus-modal{width:100vw;border-radius:20px 20px 0 0;height:96dvh;bottom:0;top:auto;transform:translateY(100%)}#crocus-modal.open{transform:translateY(0)}#crocus-fab{bottom:20px;right:16px}}
+#crocus-backdrop{z-index:99999!important}
+#crocus-fab{z-index:99998!important}
+@media(max-width:480px){#crocus-modal{width:100vw;border-radius:20px 20px 0 0;height:100dvh;bottom:0;top:0;transform:translateY(100%)}#crocus-modal.open{transform:translateY(0)}#crocus-fab{bottom:20px;right:16px}}
 #crocus-modal-header{display:flex;align-items:center;justify-content:space-between;padding:18px 20px 14px;border-bottom:1px solid rgba(201,168,124,.12);background:rgba(255,255,255,.02);flex-shrink:0}
 .crocus-modal-brand{display:flex;align-items:center;gap:10px}
 .crocus-modal-logo{width:38px;height:38px;border-radius:9px;object-fit:cover;border:1px solid rgba(201,168,124,.22)}
