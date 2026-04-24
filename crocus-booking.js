@@ -122,6 +122,12 @@ var styleEl = document.createElement('style');
 styleEl.textContent = css;
 document.head.appendChild(styleEl);
 
+// Стиль для подавления хедера Tilda когда модал открыт
+var tildeHeaderStyle = document.createElement('style');
+tildeHeaderStyle.id = 'crocus-tilda-fix';
+tildeHeaderStyle.textContent = 'body.crocus-open .t-header,body.crocus-open .t396,body.crocus-open [class*="t-header"],body.crocus-open header,body.crocus-open .tilda-logo{z-index:1!important;position:relative!important}';
+document.head.appendChild(tildeHeaderStyle);
+
 // ── Inject Fonts ──────────────────────────────────────────────
 var fontLink = document.createElement('link');
 fontLink.rel = 'stylesheet';
@@ -182,6 +188,7 @@ function crocusOpen() {
   var bd = document.getElementById('crocus-backdrop');
   var md = document.getElementById('crocus-modal');
   bd.classList.add('open');
+  document.body.classList.add('crocus-open');
   requestAnimationFrame(function(){ bd.classList.add('visible'); md.classList.add('open'); });
   document.body.style.overflow = 'hidden';
 }
@@ -189,6 +196,7 @@ function crocusClose() {
   var bd = document.getElementById('crocus-backdrop');
   var md = document.getElementById('crocus-modal');
   bd.classList.remove('visible'); md.classList.remove('open');
+  document.body.classList.remove('crocus-open');
   setTimeout(function(){ bd.classList.remove('open'); document.body.style.overflow = ''; }, 320);
 }
 document.addEventListener('keydown', function(e){ if(e.key === 'Escape') crocusClose(); });
