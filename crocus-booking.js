@@ -165,6 +165,11 @@ var css = `
 .cw-btn-confirm:hover:not(:disabled){transform:translateY(-2px);box-shadow:0 10px 30px rgba(123,45,78,.55)}
 .cw-btn-confirm:disabled{opacity:.55;cursor:default}
 .cw-form-note{font-family:'DM Sans',sans-serif;font-size:10.5px;color:rgba(253,250,248,.25);text-align:center;line-height:1.5;margin-top:-4px}
+.cw-consent{display:flex;align-items:flex-start;gap:9px;cursor:pointer}
+.cw-consent input[type=checkbox]{margin-top:3px;flex-shrink:0;width:15px;height:15px;accent-color:#7B2D4E;cursor:pointer}
+.cw-consent span{font-family:'DM Sans',sans-serif;font-size:10.5px;color:rgba(253,250,248,.40);line-height:1.55}
+.cw-consent a{color:rgba(201,168,124,.70);text-decoration:underline}
+.cw-consent a:hover{color:#c9a87c}
 /* Success */
 .cw-success{display:flex;flex-direction:column;align-items:center;text-align:center;padding:36px 16px;gap:14px}
 .cw-success-icon{width:60px;height:60px;border-radius:50%;background:rgba(201,168,124,.10);border:1px solid rgba(201,168,124,.32);display:flex;align-items:center;justify-content:center;font-size:26px;color:#c9a87c;margin-bottom:6px}
@@ -247,6 +252,8 @@ wrap.innerHTML =
         + '<form class="cw-form" id="cw-form">'
           + '<div class="cw-field"><label>Name</label><input type="text" id="cw-name" placeholder="Ihr Name" required></div>'
           + '<div class="cw-field"><label>Telefon / WhatsApp</label><input type="tel" id="cw-phone" placeholder="+49 172 …" required></div>'
+          + '<div class="cw-field"><label>E-Mail</label><input type="email" id="cw-email" placeholder="name@email.de" required></div>'
+          + '<label class="cw-consent"><input type="checkbox" id="cw-consent" required> <span>Ich stimme der <a href="https://crocus-studio.de/datenschutz" target="_blank">Datenschutzerklärung</a> zu und bin einverstanden, dass meine Daten zur Terminverarbeitung gespeichert werden.</span></label>'
           + '<button type="submit" class="cw-btn-confirm" id="cw-btn-submit">Termin bestätigen →</button>'
           + '<p class="cw-form-note">Keine Vorauszahlung · Kostenlose Stornierung bis 24h vorher.</p>'
         + '</form>'
@@ -632,7 +639,23 @@ function submitBooking(e) {
   e.preventDefault();
   var name  = document.getElementById('cw-name').value.trim();
   var phone = document.getElementById('cw-phone').value.trim();
-  if (!name || !phone) return;
+  var email = document.getElementById('cw-email').value.trim();
+  var consent = document.getElementById('cw-consent').checked;
+
+  if (!name || !phone || !email || !consent) return;
+
+  // Валидация телефона — только цифры/+/пробелы/дефисы, мин 7 цифр
+  var digits = phone.replace(/\D/g, '');
+  if (digits.length < 7 || digits.length > 15) {
+    var errEl = document.createElement('p');
+    errEl.style.cssText = 'color:#fca5a5;font-size:12px;text-align:center;margin:4px 0 0;font-family:DM Sans,sans-serif';
+    errEl.textContent = 'Bitte gültige Telefonnummer eingeben (z.B. +49 172 123456)';
+    errEl.className = 'cw-error-msg';
+    var old = document.getElementById('cw-form').querySelector('.cw-error-msg');
+    if (old) old.remove();
+    document.getElementById('cw-form').appendChild(errEl);
+    return;
+  }
 
   var btn = document.getElementById('cw-btn-submit');
   btn.disabled = true;
@@ -642,6 +665,7 @@ function submitBooking(e) {
   var body = {
     phone:    phone,
     fullname: name,
+    email:    email,
     appointments: [{
       id:       cw.service.id,
       staff_id: staffId,
