@@ -667,7 +667,8 @@ function submitBooking(e) {
     fullname: name,
     email:    email,
     appointments: [{
-      id:       cw.service.id,
+      id:       1,
+      services: [cw.service.id],
       staff_id: staffId,
       datetime: cw.datetime,
     }]
