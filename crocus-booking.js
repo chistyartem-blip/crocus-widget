@@ -373,6 +373,7 @@ wrap.innerHTML =
 
     + '</div>'
   + '</div>';
+function _crocusMount() {
 document.body.appendChild(wrap);
 
 // ── State ──────────────────────────────────────────────────────
@@ -889,5 +890,12 @@ document.addEventListener('keydown', function(e){ if(e.key==='Escape') crocusClo
   });
   nextBtn.addEventListener('click', function(){ proceedFromAddon(); });
 })();
+} // end _crocusMount
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', _crocusMount);
+} else {
+  _crocusMount();
+}
 
 })();
