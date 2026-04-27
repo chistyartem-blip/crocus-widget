@@ -3,9 +3,11 @@
 
 // ── CONFIG — заменить на реальные после получения токенов ──────
 var CONFIG = {
-  partnerToken: 'gg4k5b7uhrgbthscyfwx',
+  partnerToken: 'u8xzkdpkgfc73uektn64',
   locationId:   '1357963',
-  apiBase:      'https://crocus-booking-proxy.crocus-panel.workers.dev/api',
+  apiBase:      'https://api.alteg.io/api/v1',
+  // Прокси (CF Worker) — подставить свой когда задеплоишь
+  // apiBase:   'https://crocus-proxy.workers.dev/api',
   lang: 'de',
 
   // Маппинг уровней мастеров (из специализации в Altegio → наш UI)
@@ -165,11 +167,6 @@ var css = `
 .cw-btn-confirm:hover:not(:disabled){transform:translateY(-2px);box-shadow:0 10px 30px rgba(123,45,78,.55)}
 .cw-btn-confirm:disabled{opacity:.55;cursor:default}
 .cw-form-note{font-family:'DM Sans',sans-serif;font-size:10.5px;color:rgba(253,250,248,.25);text-align:center;line-height:1.5;margin-top:-4px}
-.cw-consent{display:flex;align-items:flex-start;gap:9px;cursor:pointer}
-.cw-consent input[type=checkbox]{margin-top:3px;flex-shrink:0;width:15px;height:15px;accent-color:#7B2D4E;cursor:pointer}
-.cw-consent span{font-family:'DM Sans',sans-serif;font-size:10.5px;color:rgba(253,250,248,.40);line-height:1.55}
-.cw-consent a{color:rgba(201,168,124,.70);text-decoration:underline}
-.cw-consent a:hover{color:#c9a87c}
 /* Success */
 .cw-success{display:flex;flex-direction:column;align-items:center;text-align:center;padding:36px 16px;gap:14px}
 .cw-success-icon{width:60px;height:60px;border-radius:50%;background:rgba(201,168,124,.10);border:1px solid rgba(201,168,124,.32);display:flex;align-items:center;justify-content:center;font-size:26px;color:#c9a87c;margin-bottom:6px}
@@ -252,8 +249,6 @@ wrap.innerHTML =
         + '<form class="cw-form" id="cw-form">'
           + '<div class="cw-field"><label>Name</label><input type="text" id="cw-name" placeholder="Ihr Name" required></div>'
           + '<div class="cw-field"><label>Telefon / WhatsApp</label><input type="tel" id="cw-phone" placeholder="+49 172 …" required></div>'
-          + '<div class="cw-field"><label>E-Mail</label><input type="email" id="cw-email" placeholder="name@email.de" required></div>'
-          + '<label class="cw-consent"><input type="checkbox" id="cw-consent" required> <span>Ich stimme der <a href="https://crocus-studio.de/datenschutz" target="_blank">Datenschutzerklärung</a> zu und bin einverstanden, dass meine Daten zur Terminverarbeitung gespeichert werden.</span></label>'
           + '<button type="submit" class="cw-btn-confirm" id="cw-btn-submit">Termin bestätigen →</button>'
           + '<p class="cw-form-note">Keine Vorauszahlung · Kostenlose Stornierung bis 24h vorher.</p>'
         + '</form>'
@@ -307,9 +302,6 @@ function crocusClose() {
   document.getElementById('crocus-backdrop').classList.remove('visible');
   document.getElementById('crocus-modal').classList.remove('open');
   document.body.classList.remove('crocus-open');
-  // Сброс кнопки при закрытии
-  var btn = document.getElementById('cw-btn-submit');
-  if (btn) { btn.disabled = false; btn.textContent = 'Termin bestätigen →'; }
   setTimeout(function () {
     document.getElementById('crocus-backdrop').classList.remove('open');
     document.body.style.overflow = '';
@@ -642,23 +634,7 @@ function submitBooking(e) {
   e.preventDefault();
   var name  = document.getElementById('cw-name').value.trim();
   var phone = document.getElementById('cw-phone').value.trim();
-  var email = document.getElementById('cw-email').value.trim();
-  var consent = document.getElementById('cw-consent').checked;
-
-  if (!name || !phone || !email || !consent) return;
-
-  // Валидация телефона — только цифры/+/пробелы/дефисы, мин 7 цифр
-  var digits = phone.replace(/\D/g, '');
-  if (digits.length < 7 || digits.length > 15) {
-    var errEl = document.createElement('p');
-    errEl.style.cssText = 'color:#fca5a5;font-size:12px;text-align:center;margin:4px 0 0;font-family:DM Sans,sans-serif';
-    errEl.textContent = 'Bitte gültige Telefonnummer eingeben (z.B. +49 172 123456)';
-    errEl.className = 'cw-error-msg';
-    var old = document.getElementById('cw-form').querySelector('.cw-error-msg');
-    if (old) old.remove();
-    document.getElementById('cw-form').appendChild(errEl);
-    return;
-  }
+  if (!name || !phone) return;
 
   var btn = document.getElementById('cw-btn-submit');
   btn.disabled = true;
@@ -668,10 +644,8 @@ function submitBooking(e) {
   var body = {
     phone:    phone,
     fullname: name,
-    email:    email,
     appointments: [{
-      id:       1,
-      services: [cw.service.id],
+      id:       cw.service.id,
       staff_id: staffId,
       datetime: cw.datetime,
     }]
@@ -722,13 +696,6 @@ function crocusReset() {
   cw = { step:1, service:null, master:null, date:null, time:null, datetime:null,
          calY: new Date().getFullYear(), calM: new Date().getMonth(),
          availDates: [], loadingDates: false, loadingTimes: false };
-  // Сброс формы
-  var form = document.getElementById('cw-form');
-  if (form) form.reset();
-  var btn = document.getElementById('cw-btn-submit');
-  if (btn) { btn.disabled = false; btn.textContent = 'Termin bestätigen →'; }
-  var errMsg = document.querySelector('.cw-error-msg');
-  if (errMsg) errMsg.remove();
   document.getElementById('crocus-progress').style.display = 'flex';
   document.querySelectorAll('.cw-step').forEach(function(el){ el.classList.remove('active'); });
   document.getElementById('cw-step1').classList.add('active');
