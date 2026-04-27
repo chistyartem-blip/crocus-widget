@@ -16,36 +16,40 @@ var MASTERS_META = {
     levelColor:  '#c9a87c',
     levelBg:     'rgba(201,168,124,0.13)',
     levelBorder: 'rgba(201,168,124,0.35)',
-    tagline: 'Dein Nagelatelier auf höchstem Niveau',
-    bio: 'Diana ist unsere meistgebuchte Meisterin — kein Wunder. Über 5 Jahre Erfahrung, unzählige zufriedene Stammkundinnen und ein Gespür für Details, das man sehen muss. Ob zarte French, strukturiertes Babyboomer-Finish oder knalliges Design — Diana macht es zu etwas Besonderem. Wer einmal bei ihr war, kommt immer wieder.',
-    skills: ['Top Maniküre & Pediküre', 'Kreative Designs', 'Nagelverlängerung'],
+    tagline: 'Maniküre & Pediküre',
+    bio: 'Unsere erfahrenste Meisterin — präzise, kreativ und immer ausgebucht.',
+    skills: ['Maniküre', 'Pediküre', 'Nagelverlängerung', 'Designs'],
+    cats: ['manikuere', 'pediküre', 'kombi'],
   },
   3020186: {
     level:  'Master',
     levelColor:  '#c9748e',
     levelBg:     'rgba(201,116,142,0.13)',
     levelBorder: 'rgba(201,116,142,0.32)',
-    tagline: 'Sorgfalt, die man an den Nägeln sieht',
-    bio: 'Nelia arbeitet präzise, ruhig und mit echter Leidenschaft. Sie liebt es, wenn ein Gellack nach Wochen noch sitzt wie am ersten Tag. Ihre Kundinnen schätzen die entspannte Atmosphäre und das sichere Handwerk — ideal, wenn du einfach perfekte Nägel ohne Stress willst.',
-    skills: ['Maniküre & Pediküre', 'Gellack', 'Nagelkorrektur'],
+    tagline: 'Maniküre & Pediküre',
+    bio: 'Sorgfältige Arbeit, bei der jeder Gellack sitzt wie am ersten Tag.',
+    skills: ['Maniküre', 'Pediküre', 'Gellack'],
+    cats: ['manikuere', 'pediküre', 'kombi'],
   },
   3020187: {
     level:  'Master',
     levelColor:  '#c9748e',
     levelBg:     'rgba(201,116,142,0.13)',
     levelBorder: 'rgba(201,116,142,0.32)',
-    tagline: 'Immer ein offenes Ohr — und perfekte Nägel',
-    bio: 'Sofia ist diejenige, bei der man nach dem Termin nicht nur mit schönen Händen rausgeht, sondern auch guter Laune. Herzlich, aufmerksam und technisch stark. Sie macht keine Kompromisse bei Hygiene und Qualität — und hat dabei immer ein Lächeln.',
-    skills: ['Maniküre & Pediküre', 'Gellack', 'Nagelkorrektur'],
+    tagline: 'Maniküre & Pediküre',
+    bio: 'Herzlich und präzise — man geht mit perfekten Nägeln und guter Laune raus.',
+    skills: ['Maniküre', 'Pediküre', 'Gellack'],
+    cats: ['manikuere', 'pediküre', 'kombi'],
   },
   3020188: {
     level:  'Lash Specialist',
     levelColor:  '#8cb4c9',
     levelBg:     'rgba(140,180,201,0.13)',
     levelBorder: 'rgba(140,180,201,0.32)',
-    tagline: 'Für Wimpern, die wirklich auffallen',
-    bio: 'Karina ist spezialisiert auf Wimpernverlängerung — und das merkt man. Ob klassisch, voluminös oder dramatischer Wispy-Look: Sie kennt jeden Stil und weiß, was zu deinem Gesicht passt. Ihre Arbeit ist so fein, dass niemand errät, was echt ist und was nicht.',
-    skills: ['Classic Lashes', 'Volumen & 4D/6D', 'Wispy · Wet-Look'],
+    tagline: 'Wimpernverlängerung',
+    bio: 'Spezialisiert auf Wimpern — ihr Ergebnis sieht so natürlich aus, dass es niemand errät.',
+    skills: ['Classic', 'Volumen 4D/6D', 'Wispy · Wet-Look'],
+    cats: ['wimpern'],
   },
 };
 
@@ -537,15 +541,9 @@ function renderCategories(masterId) {
   var hasStaffFilter = _allServices.length && _allServices[0].staff && _allServices[0].staff.length > 0;
 
   CATEGORIES.forEach(function(cat) {
-    // Проверяем: есть ли хоть одна услуга категории у мастера
-    var catServiceIds = cat.serviceIds;
-    if (hasStaffFilter) {
-      var available = catServiceIds.some(function(id){ return masterServiceIds.indexOf(id) !== -1; });
-      if (!available) return;
-    }
-    // Wimpern только для Karina
-    if (cat.key === 'wimpern' && cw.master && cw.master.id !== 3020188) return;
-    // Не Karina — не показывать Wimpern (уже выше)
+    // Показываем только категории из meta.cats мастера
+    var meta = MASTERS_META[cw.master.id];
+    if (meta && meta.cats && meta.cats.indexOf(cat.key) === -1) return;
 
     var btn = document.createElement('button');
     btn.className = 'cw-cat-card';
@@ -603,7 +601,7 @@ function selectService(s) {
   cw.service = s;
   cw.addon = null;
   // Не показываем шаг допов для ресниц и комбо
-  var skipAddons = (cw.category.key === 'wimpern' || cw.category.key === 'kombi');
+  var skipAddons = (cw.category.key === 'wimpern' || cw.category.key === 'kombi' || cw.category.key === 'pediküre');
   if (skipAddons) {
     buildStep5Sub();
     goStep(5);
@@ -858,7 +856,7 @@ document.getElementById('cw-back2').addEventListener('click', function(){ goStep
 document.getElementById('cw-back3').addEventListener('click', function(){ goStep(3); });
 document.getElementById('cw-back4').addEventListener('click', function(){
   // Назад из календаря — если пропускали допы, вернуть к услугам
-  var skipAddons = (cw.category && (cw.category.key === 'wimpern' || cw.category.key === 'kombi'));
+  var skipAddons = (cw.category && (cw.category.key === 'wimpern' || cw.category.key === 'kombi' || cw.category.key === 'pediküre'));
   goStep(skipAddons ? 3 : 4);
 });
 document.getElementById('cw-back5').addEventListener('click', function(){ goStep(5); });
