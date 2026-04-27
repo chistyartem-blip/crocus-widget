@@ -307,6 +307,9 @@ function crocusClose() {
   document.getElementById('crocus-backdrop').classList.remove('visible');
   document.getElementById('crocus-modal').classList.remove('open');
   document.body.classList.remove('crocus-open');
+  // Сброс кнопки при закрытии
+  var btn = document.getElementById('cw-btn-submit');
+  if (btn) { btn.disabled = false; btn.textContent = 'Termin bestätigen →'; }
   setTimeout(function () {
     document.getElementById('crocus-backdrop').classList.remove('open');
     document.body.style.overflow = '';
@@ -719,6 +722,13 @@ function crocusReset() {
   cw = { step:1, service:null, master:null, date:null, time:null, datetime:null,
          calY: new Date().getFullYear(), calM: new Date().getMonth(),
          availDates: [], loadingDates: false, loadingTimes: false };
+  // Сброс формы
+  var form = document.getElementById('cw-form');
+  if (form) form.reset();
+  var btn = document.getElementById('cw-btn-submit');
+  if (btn) { btn.disabled = false; btn.textContent = 'Termin bestätigen →'; }
+  var errMsg = document.querySelector('.cw-error-msg');
+  if (errMsg) errMsg.remove();
   document.getElementById('crocus-progress').style.display = 'flex';
   document.querySelectorAll('.cw-step').forEach(function(el){ el.classList.remove('active'); });
   document.getElementById('cw-step1').classList.add('active');
