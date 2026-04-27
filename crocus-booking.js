@@ -3,11 +3,9 @@
 
 // ── CONFIG — заменить на реальные после получения токенов ──────
 var CONFIG = {
-  partnerToken: 'PARTNER_TOKEN_HERE',   // из Altegio Marketplace
-  locationId:   'LOCATION_ID_HERE',     // ID салона в Altegio
-  apiBase:      'https://api.alteg.io/api/v1',
-  // Прокси (CF Worker) — подставить свой когда задеплоишь
-  // apiBase:   'https://crocus-proxy.workers.dev/api',
+  partnerToken: 'gg4k5b7uhrgbthscyfwx',
+  locationId:   '1357963',
+  apiBase:      'https://crocus-booking-proxy.crocus-panel.workers.dev/api',
   lang: 'de',
 
   // Маппинг уровней мастеров (из специализации в Altegio → наш UI)
