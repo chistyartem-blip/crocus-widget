@@ -131,14 +131,14 @@ var css = `
 @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300&family=DM+Sans:wght@300;400;500;600&display=swap');
 #crocus-modal *{box-sizing:border-box;}
 
-#crocus-fab-wrap{position:fixed;bottom:32px;right:32px;z-index:2147483638;width:58px;height:58px}
-#crocus-fab{position:absolute;top:0;right:0;display:flex;align-items:center;justify-content:center;background:linear-gradient(145deg,#1c0d16 0%,#2e1222 100%);color:#fff;border:1px solid rgba(255,255,255,.13);border-radius:50px;padding:0;width:58px;height:58px;cursor:pointer;box-shadow:0 4px 28px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.07);transition:width .5s cubic-bezier(.4,0,.2,1),right .5s cubic-bezier(.4,0,.2,1),padding .5s cubic-bezier(.4,0,.2,1),border-color .3s,box-shadow .3s;animation:fabIn .7s cubic-bezier(.34,1.56,.64,1) both;overflow:hidden;white-space:nowrap}
-#crocus-fab:hover{width:200px;right:0;padding:0 20px 0 58px;border-color:rgba(201,168,124,.5);box-shadow:0 8px 36px rgba(123,45,78,.5),inset 0 1px 0 rgba(255,255,255,.09)}
-#crocus-fab:hover .crocus-fab-text{opacity:1;transform:translateY(-50%) translateX(0)}
+#crocus-fab-wrap{position:fixed;bottom:32px;right:32px;z-index:2147483638}
+#crocus-fab{position:relative;display:flex;align-items:center;justify-content:flex-end;background:linear-gradient(145deg,#1c0d16 0%,#2e1222 100%);color:#fff;border:1px solid rgba(255,255,255,.13);border-radius:50px;width:58px;height:58px;cursor:pointer;box-shadow:0 4px 28px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.07);transition:width .5s cubic-bezier(.4,0,.2,1),border-color .3s,box-shadow .3s;animation:fabIn .7s cubic-bezier(.34,1.56,.64,1) both;overflow:hidden;padding:0}
+#crocus-fab:hover{width:196px;border-color:rgba(201,168,124,.5);box-shadow:0 8px 36px rgba(123,45,78,.5),inset 0 1px 0 rgba(255,255,255,.09)}
+#crocus-fab:hover .crocus-fab-text{opacity:1;transform:translateX(0)}
 #crocus-fab:hover + .crocus-fab-rings .crocus-fab-ring{animation-play-state:paused;opacity:0;transition:opacity .4s}
-.crocus-fab-logo{position:absolute;top:50%;right:0;width:58px;height:58px;display:flex;align-items:center;justify-content:center;pointer-events:none}
-.crocus-fab-logo img{width:26px;height:26px;object-fit:contain;filter:brightness(0) invert(1) drop-shadow(0 0 8px rgba(255,255,255,.8)) drop-shadow(0 0 18px rgba(255,255,255,.35))}
-.crocus-fab-text{position:absolute;top:50%;left:0;padding-left:58px;transform:translateY(-50%) translateX(-5px);font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;letter-spacing:.04em;color:#fdfaf8;opacity:0;white-space:nowrap;transition:opacity .28s .18s,transform .28s .18s;pointer-events:none}
+.crocus-fab-icon{width:58px;height:58px;min-width:58px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.crocus-fab-icon img{width:26px;height:26px;object-fit:contain;filter:brightness(0) invert(1) drop-shadow(0 0 8px rgba(255,255,255,.8)) drop-shadow(0 0 18px rgba(255,255,255,.35));display:block}
+.crocus-fab-text{font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;letter-spacing:.04em;color:#fdfaf8;opacity:0;transform:translateX(-8px);white-space:nowrap;transition:opacity .28s .15s,transform .28s .15s;padding-right:18px;flex-shrink:0}
 #crocus-fab::before{content:'';position:absolute;inset:0;border-radius:50px;background:radial-gradient(ellipse at 50% 110%,rgba(201,168,124,.12) 0%,transparent 65%);pointer-events:none}
 .crocus-fab-rings{position:absolute;top:0;right:0;width:58px;height:58px;pointer-events:none}
 .crocus-fab-ring{position:absolute;inset:0;border-radius:50%;animation:cwRing 3.6s ease-out infinite}
@@ -147,7 +147,7 @@ var css = `
 .crocus-fab-ring:nth-child(3){border:1px solid rgba(201,168,124,.15);animation-delay:2.4s}
 @keyframes cwRing{0%{transform:scale(1);opacity:.6}55%{opacity:.15}100%{transform:scale(2.5);opacity:0}}
 @keyframes fabIn{from{opacity:0;transform:translateY(24px) scale(.78)}to{opacity:1;transform:translateY(0) scale(1)}}
-@media(max-width:600px){#crocus-fab-wrap{bottom:24px;right:20px;width:54px;height:54px}#crocus-fab{width:54px;height:54px}.crocus-fab-logo{width:54px;height:54px}#crocus-fab:hover{width:186px;padding:0 18px 0 54px}.crocus-fab-rings{width:54px;height:54px}}
+@media(max-width:600px){#crocus-fab-wrap{bottom:24px;right:20px}#crocus-fab{width:54px;height:54px}.crocus-fab-icon{width:54px;height:54px;min-width:54px}#crocus-fab:hover{width:182px}.crocus-fab-rings{width:54px;height:54px}}
 #crocus-backdrop{display:none;position:fixed;inset:0;z-index:2147483639;background:rgba(0,0,0,.65);backdrop-filter:blur(4px);opacity:0;transition:opacity .25s}
 #crocus-backdrop.open{display:block}
 #crocus-backdrop.visible{opacity:1}
@@ -307,7 +307,7 @@ var DAYS   = ['Mo','Di','Mi','Do','Fr','Sa','So'];
 var wrap = document.createElement('div');
 wrap.innerHTML =
   '<div id="crocus-fab-wrap">'
-  + '<button id="crocus-fab"><span class="crocus-fab-text">Termin buchen</span><div class="crocus-fab-logo"><img src="https://static.tildacdn.com/tild3366-3561-4165-b437-656233636132/ChatGPT_Image_16__20.png" alt="Crocus"></div></button>'
+  + '<button id="crocus-fab"><span class="crocus-fab-text">Termin buchen</span><div class="crocus-fab-icon"><img src="https://static.tildacdn.com/tild3366-3561-4165-b437-656233636132/ChatGPT_Image_16__20.png" alt="Crocus"></div></button>'
   + '<div class="crocus-fab-rings"><span class="crocus-fab-ring"></span><span class="crocus-fab-ring"></span><span class="crocus-fab-ring"></span></div>'
   + '</div>'
   + '<div id="crocus-backdrop"></div>'
