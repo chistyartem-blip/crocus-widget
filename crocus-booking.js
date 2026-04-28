@@ -131,9 +131,18 @@ var css = `
 @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300&family=DM+Sans:wght@300;400;500;600&display=swap');
 #crocus-modal *{box-sizing:border-box;}
 
-#crocus-fab{position:fixed;bottom:28px;right:28px;z-index:2147483638;display:flex;align-items:center;gap:10px;background:linear-gradient(135deg,#7B2D4E 0%,#5a1e37 100%);color:#fff;border:none;border-radius:50px;padding:14px 22px 14px 18px;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;letter-spacing:.03em;cursor:pointer;box-shadow:0 8px 32px rgba(123,45,78,.55),0 2px 8px rgba(0,0,0,.25);transition:transform .2s,box-shadow .2s;animation:fabIn .5s cubic-bezier(.34,1.56,.64,1) both}
-#crocus-fab:hover{transform:translateY(-3px) scale(1.03);box-shadow:0 14px 40px rgba(123,45,78,.65)}
+#crocus-fab{position:fixed;bottom:28px;right:28px;z-index:2147483638;display:flex;align-items:center;gap:0;background:linear-gradient(135deg,#1a0810 0%,#2a1020 100%);color:#fff;border:1px solid rgba(201,168,124,0.28);border-radius:50px;padding:0;width:52px;height:52px;cursor:pointer;box-shadow:0 4px 24px rgba(0,0,0,.45),0 0 0 0 rgba(123,45,78,.0);transition:width .38s cubic-bezier(.34,1.2,.64,1),border-radius .38s,padding .38s,box-shadow .2s;animation:fabIn .5s cubic-bezier(.34,1.56,.64,1) both;overflow:hidden;white-space:nowrap}
+#crocus-fab:hover{width:190px;padding:0 20px 0 14px;border-color:rgba(201,168,124,0.50);box-shadow:0 8px 32px rgba(123,45,78,.45),0 2px 8px rgba(0,0,0,.3)}
+#crocus-fab:hover .crocus-fab-text{opacity:1;transform:translateX(0);max-width:120px}
+#crocus-fab:hover .crocus-fab-pulse1,#crocus-fab:hover .crocus-fab-pulse2{animation:none;opacity:0}
+.crocus-fab-logo{width:28px;height:28px;object-fit:contain;filter:brightness(0) invert(1) drop-shadow(0 0 6px rgba(255,255,255,.55));flex-shrink:0;margin:0 auto;transition:margin .38s}
+#crocus-fab:hover .crocus-fab-logo{margin:0}
+.crocus-fab-text{font-family:'DM Sans',sans-serif;font-size:13.5px;font-weight:600;letter-spacing:.03em;color:#fdfaf8;opacity:0;transform:translateX(-6px);max-width:0;transition:opacity .25s .15s,transform .25s .15s,max-width .38s;overflow:hidden;margin-left:10px}
+.crocus-fab-pulse1,.crocus-fab-pulse2{position:absolute;inset:-1px;border-radius:50px;border:1.5px solid rgba(123,45,78,.55);animation:fabPulse 2.2s ease-out infinite;pointer-events:none}
+.crocus-fab-pulse2{animation-delay:1.1s;border-color:rgba(123,45,78,.35)}
+@keyframes fabPulse{0%{transform:scale(1);opacity:.7}70%{transform:scale(1.55);opacity:0}100%{transform:scale(1.55);opacity:0}}
 @keyframes fabIn{from{opacity:0;transform:translateY(20px) scale(.85)}to{opacity:1;transform:translateY(0) scale(1)}}
+@media(max-width:480px){#crocus-fab{bottom:20px;right:16px;width:48px;height:48px}#crocus-fab:hover{width:174px;padding:0 16px 0 12px}}
 #crocus-backdrop{display:none;position:fixed;inset:0;z-index:2147483639;background:rgba(0,0,0,.65);backdrop-filter:blur(4px);opacity:0;transition:opacity .25s}
 #crocus-backdrop.open{display:block}
 #crocus-backdrop.visible{opacity:1}
@@ -292,7 +301,7 @@ var DAYS   = ['Mo','Di','Mi','Do','Fr','Sa','So'];
 // ── HTML ───────────────────────────────────────────────────────
 var wrap = document.createElement('div');
 wrap.innerHTML =
-  '<button id="crocus-fab"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2.5"/><path d="M16 2v4M8 2v4M3 10h18"/></svg> Termin buchen</button>'
+  '<button id="crocus-fab"><span class="crocus-fab-pulse1"></span><span class="crocus-fab-pulse2"></span><img class="crocus-fab-logo" src="https://static.tildacdn.com/tild3466-6662-4234-b863-376638653730/ChatGPT_Image_16__20.png" alt=""><span class="crocus-fab-text">Termin buchen</span></button>'
   + '<div id="crocus-backdrop"></div>'
   + '<div id="crocus-modal">'
     + '<div id="crocus-modal-header">'
