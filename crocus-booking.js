@@ -148,12 +148,12 @@ var css = `
 @keyframes cwRing{0%{transform:scale(1);opacity:.85}55%{opacity:.25}100%{transform:scale(2.5);opacity:0}}
 @keyframes fabIn{from{opacity:0;transform:translateY(24px) scale(.78)}to{opacity:1;transform:translateY(0) scale(1)}}
 @media(max-width:600px){
-  #crocus-fab-wrap{bottom:26px;right:16px;width:49px;height:49px}
-  #crocus-fab{width:49px;height:49px;top:0;right:0}
-  #crocus-fab:hover{width:168px}
-  .crocus-fab-icon{width:49px;height:49px;min-width:49px}
-  .crocus-fab-icon img{width:22px;height:22px}
-  .crocus-fab-rings{width:49px;height:49px;margin-top:-24.5px}
+  #crocus-fab-wrap{bottom:26px;right:16px;width:49px;height:49px;display:grid;place-items:center}
+  #crocus-fab{position:relative;top:auto;right:auto;transform:none;width:44px;height:44px}
+  #crocus-fab:hover{width:164px;transform:none}
+  .crocus-fab-icon{width:44px;height:44px;min-width:44px}
+  .crocus-fab-icon img{width:25px;height:25px}
+  .crocus-fab-rings{position:absolute;top:0;right:0;width:49px;height:49px;margin-top:0}
 }
 #crocus-backdrop{display:none;position:fixed;inset:0;z-index:2147483639;background:rgba(0,0,0,.65);backdrop-filter:blur(4px);opacity:0;transition:opacity .25s}
 #crocus-backdrop.open{display:block}
