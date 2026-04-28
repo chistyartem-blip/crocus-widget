@@ -99,21 +99,29 @@ function apiGet(path, params) {
     }).join('&');
     if (qs) url += '?' + qs;
   }
+  var ctrl = new AbortController();
+  var timer = setTimeout(function(){ ctrl.abort(); }, 10000);
   return fetch(url, {
+    signal: ctrl.signal,
     headers: { 'Authorization': 'Bearer '+CONFIG.partnerToken, 'Accept': 'application/vnd.api.v2+json' }
-  }).then(function(r){ return r.json(); });
+  }).then(function(r){ clearTimeout(timer); return r.json(); })
+    .catch(function(e){ clearTimeout(timer); throw e; });
 }
 
 function apiPost(path, body) {
+  var ctrl = new AbortController();
+  var timer = setTimeout(function(){ ctrl.abort(); }, 15000);
   return fetch(CONFIG.apiBase + path, {
     method: 'POST',
+    signal: ctrl.signal,
     headers: {
       'Authorization': 'Bearer '+CONFIG.partnerToken,
       'Accept':        'application/vnd.api.v2+json',
       'Content-Type':  'application/json',
     },
     body: JSON.stringify(body),
-  }).then(function(r){ return r.json(); });
+  }).then(function(r){ clearTimeout(timer); return r.json(); })
+    .catch(function(e){ clearTimeout(timer); throw e; });
 }
 
 // ── CSS ────────────────────────────────────────────────────────
@@ -132,8 +140,8 @@ var css = `
 
 /* Header */
 #crocus-modal-header{display:flex;align-items:center;justify-content:space-between;padding:16px 20px 13px;border-bottom:1px solid rgba(201,168,124,.10);background:rgba(255,255,255,.02);flex-shrink:0}
-.crocus-modal-brand{display:flex;align-items:center;gap:10px}
-.crocus-modal-logo{width:36px;height:36px;border-radius:8px;object-fit:cover;border:1px solid rgba(201,168,124,.22)}
+.crocus-modal-brand{display:flex;align-items:center;gap:13px}
+.crocus-modal-logo{width:40px;height:40px;border-radius:10px;object-fit:contain;background:rgba(123,45,78,.18);border:1px solid rgba(255,255,255,.12);filter:brightness(0) invert(1) drop-shadow(0 0 8px rgba(255,255,255,.70));padding:2px;box-sizing:border-box}
 .crocus-modal-title{font-family:'Cormorant Garamond',Georgia,serif;font-size:15px;font-weight:400;color:#fdfaf8;letter-spacing:.02em;display:block}
 .crocus-modal-sub{font-family:'DM Sans',Arial,sans-serif;font-size:10px;color:rgba(253,250,248,.35);letter-spacing:.08em;text-transform:uppercase;display:block}
 #crocus-close{width:32px;height:32px;border-radius:50%;border:1px solid rgba(255,255,255,.10);background:rgba(255,255,255,.05);color:rgba(253,250,248,.5);font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s}
@@ -141,7 +149,7 @@ var css = `
 
 /* Progress */
 #crocus-progress{display:flex;align-items:center;justify-content:center;padding:11px 20px 9px;gap:0;border-bottom:1px solid rgba(255,255,255,.04);flex-shrink:0}
-.cp-step{display:flex;flex-direction:column;align-items:center;gap:3px;position:relative;flex:1}
+.cp-step{display:flex;flex-direction:column;align-items:center;gap:3px;position:relative;flex:1;cursor:default}.cp-step.done{cursor:pointer}.cp-step.done:hover .cp-dot{background:rgba(201,168,124,.25);border-color:#c9a87c;box-shadow:0 0 10px rgba(201,168,124,.35)}.cp-step.done:hover .cp-label{color:rgba(253,250,248,.75)}
 .cp-dot{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:9.5px;font-weight:600;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.09);color:rgba(253,250,248,.28);transition:all .25s}
 .cp-step.active .cp-dot{background:#7B2D4E;border-color:#7B2D4E;color:#fff;box-shadow:0 0 12px rgba(123,45,78,.5)}
 .cp-step.done .cp-dot{background:rgba(201,168,124,.13);border-color:#c9a87c;color:#c9a87c}
@@ -440,6 +448,31 @@ function updateProgress(n) {
     }
     el.querySelector('.cp-dot').innerHTML = el.classList.contains('done') ? '✓' : i;
   }
+  // Кликабельность done-шагов
+  for (var j = 1; j <= total; j++) {
+    (function(step){
+      var stepEl = document.getElementById('cp'+step);
+      stepEl.onclick = null;
+      if (stepEl.classList.contains('done')) {
+        stepEl.onclick = function(){ goStepBack(step); };
+      }
+    })(j);
+  }
+}
+
+// Умный переход назад с учётом состояния
+function goStepBack(target) {
+  // Нельзя прыгнуть дальше текущего шага
+  var current = (cw.step === 'success') ? 7 : cw.step;
+  if (target >= current) return;
+  // Если идём назад на шаг 4 (Extra) но для этой категории допы пропускались — пропускаем
+  if (target === 4) {
+    var skipAddons = cw.category && (cw.category.key === 'wimpern' || cw.category.key === 'kombi' || cw.category.key === 'pediküre');
+    if (skipAddons) { goStep(3); return; }
+  }
+  goStep(target);
+  // Если возвращаемся на шаг 5 — перерисовываем календарь
+  if (target === 5) { renderCalendar(); }
 }
 
 function goStep(n) {
