@@ -135,24 +135,18 @@ var css = `
 #crocus-fab{position:relative;display:flex;align-items:center;gap:0;background:linear-gradient(145deg,#1c0d16 0%,#2e1222 100%);color:#fff;border:1px solid rgba(255,255,255,.13);border-radius:50px;padding:0;width:56px;height:56px;cursor:pointer;box-shadow:0 4px 28px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.07);transition:width .4s cubic-bezier(.34,1.2,.64,1),padding .4s cubic-bezier(.34,1.2,.64,1),border-color .25s,box-shadow .25s;animation:fabIn .6s cubic-bezier(.34,1.56,.64,1) both;overflow:hidden;white-space:nowrap;flex-shrink:0}
 #crocus-fab:hover{width:196px;padding:0 22px 0 14px;border-color:rgba(201,168,124,.45);box-shadow:0 8px 36px rgba(123,45,78,.5),0 2px 10px rgba(0,0,0,.35),inset 0 1px 0 rgba(255,255,255,.09)}
 #crocus-fab:hover .crocus-fab-text{opacity:1;transform:translateX(0);max-width:130px}
+#crocus-fab:hover + .crocus-fab-rings .crocus-fab-ring{animation:none;opacity:0;transition:opacity .2s}
 .crocus-fab-logo{width:30px;height:30px;object-fit:contain;filter:brightness(0) invert(1) drop-shadow(0 0 10px rgba(255,255,255,.8)) drop-shadow(0 0 20px rgba(255,255,255,.4));flex-shrink:0;margin:0 auto;transition:margin .4s cubic-bezier(.34,1.2,.64,1)}
 #crocus-fab:hover .crocus-fab-logo{margin:0}
 .crocus-fab-text{font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;letter-spacing:.04em;color:#fdfaf8;opacity:0;transform:translateX(-8px);max-width:0;transition:opacity .22s .18s,transform .22s .18s,max-width .4s;overflow:hidden;margin-left:11px}
-
-/* Пульс-кольца — вне кнопки, не обрезаются */
-.crocus-fab-ring{position:absolute;top:50%;left:50%;width:56px;height:56px;margin:-28px 0 0 -28px;border-radius:50%;border:1.5px solid rgba(123,45,78,.6);pointer-events:none;animation:cwRing 2.4s ease-out infinite}
-.crocus-fab-ring:nth-child(2){animation-delay:.8s;border-color:rgba(123,45,78,.35);border-width:1px}
-.crocus-fab-ring:nth-child(3){animation-delay:1.6s;border-color:rgba(201,168,124,.2);border-width:1px}
-@keyframes cwRing{0%{transform:scale(1);opacity:.8}80%{transform:scale(2.2);opacity:0}100%{transform:scale(2.2);opacity:0}}
-
-/* Стоп пульса при hover */
-#crocus-fab:hover ~ .crocus-fab-ring{animation:none;opacity:0}
-
-/* Золотое свечение под кнопкой */
-#crocus-fab::before{content:'';position:absolute;inset:0;border-radius:50px;background:radial-gradient(ellipse at 50% 120%,rgba(201,168,124,.18) 0%,transparent 65%);pointer-events:none}
-
+#crocus-fab::before{content:'';position:absolute;inset:0;border-radius:50px;background:radial-gradient(ellipse at 50% 120%,rgba(201,168,124,.15) 0%,transparent 65%);pointer-events:none}
+.crocus-fab-rings{position:absolute;top:50%;right:0;width:56px;height:56px;transform:translate(0,-50%);pointer-events:none}
+.crocus-fab-ring{position:absolute;inset:0;border-radius:50%;border:1.5px solid rgba(123,45,78,.6);animation:cwRing 2.4s ease-out infinite}
+.crocus-fab-ring:nth-child(2){animation-delay:.8s;border-color:rgba(123,45,78,.4);border-width:1px}
+.crocus-fab-ring:nth-child(3){animation-delay:1.6s;border-color:rgba(201,168,124,.25);border-width:1px}
+@keyframes cwRing{0%{transform:scale(1);opacity:.75}80%{transform:scale(2.3);opacity:0}100%{transform:scale(2.3);opacity:0}}
 @keyframes fabIn{from{opacity:0;transform:translateY(22px) scale(.8)}to{opacity:1;transform:translateY(0) scale(1)}}
-@media(max-width:480px){#crocus-fab-wrap{bottom:20px;right:16px}#crocus-fab{width:52px;height:52px}#crocus-fab:hover{width:180px;padding:0 18px 0 12px}.crocus-fab-ring{width:52px;height:52px;margin:-26px 0 0 -26px}}
+@media(max-width:480px){#crocus-fab-wrap{bottom:20px;right:16px}#crocus-fab{width:52px;height:52px}#crocus-fab:hover{width:180px;padding:0 18px 0 12px}.crocus-fab-rings{width:52px;height:52px}}
 #crocus-backdrop{display:none;position:fixed;inset:0;z-index:2147483639;background:rgba(0,0,0,.65);backdrop-filter:blur(4px);opacity:0;transition:opacity .25s}
 #crocus-backdrop.open{display:block}
 #crocus-backdrop.visible{opacity:1}
@@ -311,11 +305,9 @@ var DAYS   = ['Mo','Di','Mi','Do','Fr','Sa','So'];
 // ── HTML ───────────────────────────────────────────────────────
 var wrap = document.createElement('div');
 wrap.innerHTML =
-  '<div id="crocus-fab-wrap">'\
-  + '<button id="crocus-fab"><img class="crocus-fab-logo" src="https://static.tildacdn.com/tild3366-3561-4165-b437-656233636132/ChatGPT_Image_16__20.png" alt="Crocus"><span class="crocus-fab-text">Termin buchen</span></button>'\
-  + '<span class="crocus-fab-ring"></span>'\
-  + '<span class="crocus-fab-ring"></span>'\
-  + '<span class="crocus-fab-ring"></span>'\
+  '<div id="crocus-fab-wrap">'
+  + '<button id="crocus-fab"><img class="crocus-fab-logo" src="https://static.tildacdn.com/tild3366-3561-4165-b437-656233636132/ChatGPT_Image_16__20.png" alt="Crocus"><span class="crocus-fab-text">Termin buchen</span></button>'
+  + '<div class="crocus-fab-rings"><span class="crocus-fab-ring"></span><span class="crocus-fab-ring"></span><span class="crocus-fab-ring"></span></div>'
   + '</div>'
   + '<div id="crocus-backdrop"></div>'
   + '<div id="crocus-modal">'
