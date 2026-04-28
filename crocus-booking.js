@@ -922,6 +922,8 @@ function crocusReset() {
 
 // ── Events ─────────────────────────────────────────────────────
 document.getElementById('crocus-fab').addEventListener('click', crocusOpen);
+window.crocusOpen = crocusOpen;
+window.crocusClose = crocusClose;
 
 // Мобильная кнопка — отдельная верстка
 (function(){
