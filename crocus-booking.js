@@ -20,6 +20,7 @@ var MASTERS_META = {
     bio: 'Unsere erfahrenste Meisterin — präzise, kreativ und immer ausgebucht.',
     skills: ['Maniküre', 'Pediküre', 'Nagelverlängerung', 'Designs'],
     cats: ['manikuere', 'pediküre', 'kombi'],
+    avatar: 'https://static.tildacdn.com/tild3239-3933-4334-b362-386430646432/ChatGPT_Image_28__20.png',
   },
   3020186: {
     level:  'Master',
@@ -30,6 +31,7 @@ var MASTERS_META = {
     bio: 'Sorgfältige Arbeit, bei der jeder Gellack sitzt wie am ersten Tag.',
     skills: ['Maniküre', 'Pediküre', 'Gellack'],
     cats: ['manikuere', 'pediküre', 'kombi'],
+    avatar: 'https://static.tildacdn.com/tild6566-3434-4635-b363-656462633738/__2026-04-28_175455.png',
   },
   3020187: {
     level:  'Master',
@@ -58,29 +60,29 @@ var CATEGORIES = [
   {
     key: 'manikuere',
     label: 'Maniküre',
-    icon: '💅',
-    desc: 'Hygienisch · Gellack · Verstärkung',
+    img: 'https://static.tildacdn.net/tild3038-3034-4734-a332-616564343331/close-up-image-woman.jpg',
+    desc: 'Gepflegte Hände, perfekter Gellack — vom Klassiker bis zur Verlängerung.',
     serviceIds: [13485752, 13485753, 13485754, 13485755],
   },
   {
     key: 'pediküre',
     label: 'Pediküre',
-    icon: '🦶',
-    desc: 'Hygienisch · Gellack · Verwöhnprogramm',
+    img: 'https://static.tildacdn.net/tild3365-3762-4732-b839-623466663935/ChatGPT_Image_5__202.png',
+    desc: 'Verwöhnprogramm für die Füße — hygienisch, gründlich, entspannend.',
     serviceIds: [13485760, 13485761],
   },
   {
     key: 'kombi',
     label: 'Kombi',
-    icon: '✨',
-    desc: 'Maniküre + Pediküre in einem Termin',
+    img: 'https://static.tildacdn.net/tild3838-3839-4266-b532-353835363261/33.jpg',
+    desc: 'Maniküre & Pediküre in einem Termin — Zeit sparen, doppelt strahlen.',
     serviceIds: [13485762],
   },
   {
     key: 'wimpern',
     label: 'Wimpern',
-    icon: '👁',
-    desc: 'Classic · Volumen · Wispy Look',
+    img: null,
+    desc: 'Classic · Volumen 4D/6D · Wispy Look — natürlich oder dramatisch.',
     serviceIds: [13485763,13485764,13485765,13485766,13485767,13485768,13485769,13485770,13485771,13485772,13485773],
   },
 ];
@@ -197,12 +199,14 @@ var css = `
 .cw-skill-tag{font-family:'DM Sans',sans-serif;font-size:10px;color:rgba(253,250,248,.38);background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.07);border-radius:20px;padding:2px 9px}
 
 /* ── Step 2: Categories ── */
-.cw-cats{display:grid;grid-template-columns:1fr 1fr;gap:9px}
-.cw-cat-card{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:14px;padding:18px 14px 15px;cursor:pointer;text-align:center;transition:all .2s;font-family:inherit;color:inherit;display:flex;flex-direction:column;align-items:center;gap:6px}
+.cw-cats{display:flex;flex-direction:column;gap:10px}
+.cw-cat-card{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:16px;cursor:pointer;text-align:left;transition:all .2s;font-family:inherit;color:inherit;display:flex;align-items:center;gap:14px;padding:12px 14px;overflow:hidden;width:100%}
 .cw-cat-card:hover{border-color:rgba(123,45,78,.40);background:rgba(123,45,78,.07);transform:translateY(-2px);box-shadow:0 6px 22px rgba(0,0,0,.32)}
-.cw-cat-icon{font-size:26px;line-height:1}
-.cw-cat-label{font-family:'Cormorant Garamond',Georgia,serif;font-size:16px;font-weight:400;color:#fdfaf8}
-.cw-cat-desc{font-family:'DM Sans',sans-serif;font-size:10px;color:rgba(253,250,248,.32);line-height:1.45}
+.cw-cat-img{width:62px;height:62px;border-radius:11px;object-fit:cover;flex-shrink:0;border:1px solid rgba(255,255,255,.08)}
+.cw-cat-text{flex:1;min-width:0}
+.cw-cat-label{font-family:'Cormorant Garamond',Georgia,serif;font-size:18px;font-weight:400;color:#fdfaf8;display:block;margin-bottom:3px}
+.cw-cat-desc{font-family:'DM Sans',sans-serif;font-size:11px;color:rgba(253,250,248,.38);line-height:1.5;display:block}
+.cw-cat-arrow{color:rgba(253,250,248,.20);font-size:16px;flex-shrink:0}
 
 /* ── Step 3: Services ── */
 .cw-services{display:flex;flex-direction:column;gap:8px}
@@ -581,10 +585,16 @@ function renderCategories(masterId) {
 
     var btn = document.createElement('button');
     btn.className = 'cw-cat-card';
+    var imgHtml = cat.img
+      ? '<img class="cw-cat-img" src="'+cat.img+'" alt="'+cat.label+'" loading="lazy">'
+      : '<div class="cw-cat-img" style="background:rgba(255,255,255,.05);display:flex;align-items:center;justify-content:center;font-size:22px">👁</div>';
     btn.innerHTML =
-      '<div class="cw-cat-icon">'+cat.icon+'</div>'
-      + '<div class="cw-cat-label">'+cat.label+'</div>'
-      + '<div class="cw-cat-desc">'+cat.desc+'</div>';
+      imgHtml
+      + '<div class="cw-cat-text">'
+        + '<span class="cw-cat-label">'+cat.label+'</span>'
+        + '<span class="cw-cat-desc">'+cat.desc+'</span>'
+      + '</div>'
+      + '<span class="cw-cat-arrow">›</span>';
     btn.addEventListener('click', function(){ selectCategory(cat); });
     list.appendChild(btn);
   });
