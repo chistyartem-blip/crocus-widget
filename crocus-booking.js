@@ -142,7 +142,7 @@ var css = `
 @media(max-width:480px){#crocus-modal{width:100vw;border-radius:20px 20px 0 0;height:100dvh;transform:translateY(100%)}#crocus-modal.open{transform:translateY(0)}#crocus-fab{bottom:20px;right:16px;padding:12px 18px 12px 14px;font-size:13px}}
 
 /* Header */
-#crocus-modal-header{display:flex;align-items:center;justify-content:space-between;padding:16px 20px 13px;border-bottom:1px solid rgba(201,168,124,.10);background:rgba(255,255,255,.02);flex-shrink:0}
+#crocus-modal-header{display:flex;align-items:center;justify-content:space-between;padding:16px 20px 13px;background:rgba(255,255,255,.02);flex-shrink:0}
 .crocus-modal-brand{display:flex;align-items:center;gap:13px}
 .crocus-modal-logo{width:40px;height:40px;border-radius:10px;object-fit:contain;background:rgba(123,45,78,.18);border:1px solid rgba(255,255,255,.12);filter:brightness(0) invert(1) drop-shadow(0 0 8px rgba(255,255,255,.70));padding:2px;box-sizing:border-box}
 .crocus-modal-title{font-family:'Cormorant Garamond',Georgia,serif;font-size:15px;font-weight:400;color:#fdfaf8;letter-spacing:.02em;display:block}
