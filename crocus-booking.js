@@ -234,7 +234,9 @@ var css = `
 
 /* ── Step 3: Services ── */
 .cw-services{display:flex;flex-direction:column;gap:8px}
-.cw-svc-btn{display:flex;align-items:center;justify-content:space-between;gap:10px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:13px;padding:13px 14px;cursor:pointer;text-align:left;color:inherit;width:100%;font-family:inherit;transition:all .2s}
+.cw-svc-btn{display:flex;align-items:center;justify-content:space-between;gap:10px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:13px;padding:13px 14px;cursor:pointer;text-align:left;color:inherit;width:100%;font-family:inherit;transition:all .2s;-webkit-tap-highlight-color:transparent;outline:none}
+.cw-svc-btn:focus{outline:none;background:rgba(255,255,255,.03);border-color:rgba(255,255,255,.07)}
+.cw-svc-btn:focus:not(:focus-visible){background:rgba(255,255,255,.03);border-color:rgba(255,255,255,.07)}
 .cw-svc-btn:hover{border-color:rgba(123,45,78,.40);background:rgba(123,45,78,.06);transform:translateY(-1px)}
 .cw-svc-left{flex:1;min-width:0}
 .cw-svc-name{font-family:'DM Sans',sans-serif;font-size:13.5px;font-weight:500;color:#fdfaf8;margin-bottom:2px}
