@@ -930,7 +930,7 @@ document.getElementById('crocus-fab').addEventListener('click', crocusOpen);
     + '<span class="cfm-ring"></span>'
     + '<span class="cfm-ring"></span>'
     + '<button id="crocus-fab-mobile-btn"><img src="https://static.tildacdn.com/tild3366-3561-4165-b437-656233636132/ChatGPT_Image_16__20.png" alt="Crocus"></button>'
-    + '<span style="font-family:DM Sans,sans-serif;font-size:9px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:rgba(253,250,248,.65);text-align:center;white-space:nowrap;text-shadow:0 1px 4px rgba(0,0,0,.8)">Termin</span>';
+    + '<span style="font-family:DM Sans,sans-serif;font-size:7.5px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:#fff;text-align:center;white-space:nowrap;text-shadow:0 1px 3px rgba(0,0,0,1),0 0 8px rgba(0,0,0,.9)">Online · Termin</span>';
   document.body.appendChild(mwrap);
   document.getElementById('crocus-fab-mobile-btn').addEventListener('click', crocusOpen);
 })();
