@@ -149,7 +149,7 @@ var css = `
 @keyframes fabIn{from{opacity:0;transform:translateY(24px) scale(.78)}to{opacity:1;transform:translateY(0) scale(1)}}
 @media(max-width:600px){
   #crocus-fab-wrap{display:none!important}
-  #crocus-fab-mobile{position:fixed;bottom:16px;right:10px;z-index:2147483638;width:52px;display:flex;flex-direction:column;align-items:center;gap:4px}
+  #crocus-fab-mobile{position:fixed;bottom:10px;right:10px;z-index:2147483638;width:52px;display:flex;flex-direction:column;align-items:center;gap:4px}
   #crocus-fab-mobile-btn{position:relative;z-index:1;width:38px;height:38px;min-width:38px;min-height:38px;border-radius:50%;background:linear-gradient(145deg,#1c0d16 0%,#2e1222 100%);border:1px solid rgba(255,255,255,.13);cursor:pointer;display:grid;place-items:center;box-shadow:0 4px 20px rgba(0,0,0,.5);animation:fabIn .7s cubic-bezier(.34,1.56,.64,1) both;flex-shrink:0;padding:0;box-sizing:border-box}
   #crocus-fab-mobile-btn img{width:28px;height:28px;object-fit:contain;filter:brightness(0) invert(1) drop-shadow(0 0 8px rgba(255,255,255,.8)) drop-shadow(0 0 18px rgba(255,255,255,.35));display:block}
   .cfm-ring{position:absolute;border-radius:50%;animation:cwRing 3.6s ease-out infinite}
@@ -175,7 +175,7 @@ var css = `
 #crocus-close:hover{background:rgba(255,255,255,.10);color:#fdfaf8}
 
 /* Progress */
-#crocus-progress{display:flex;align-items:center;justify-content:center;padding:11px 20px 9px;gap:0;border-bottom:1px solid rgba(255,255,255,.04);flex-shrink:0}
+#crocus-progress{display:flex;align-items:center;justify-content:center;padding:11px 20px 9px;gap:0;flex-shrink:0}
 .cp-step{display:flex;flex-direction:column;align-items:center;gap:3px;position:relative;flex:1;cursor:default}.cp-step.done{cursor:pointer}.cp-step.done:hover .cp-dot{background:rgba(201,168,124,.25);border-color:#c9a87c;box-shadow:0 0 10px rgba(201,168,124,.35)}.cp-step.done:hover .cp-label{color:rgba(253,250,248,.75)}
 .cp-dot{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:9.5px;font-weight:600;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.09);color:rgba(253,250,248,.28);transition:all .25s}
 .cp-step.active .cp-dot{background:#7B2D4E;border-color:#7B2D4E;color:#fff;box-shadow:0 0 12px rgba(123,45,78,.5)}
