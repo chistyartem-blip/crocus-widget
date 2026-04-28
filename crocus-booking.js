@@ -148,12 +148,14 @@ var css = `
 @keyframes cwRing{0%{transform:scale(1);opacity:.85}55%{opacity:.25}100%{transform:scale(2.5);opacity:0}}
 @keyframes fabIn{from{opacity:0;transform:translateY(24px) scale(.78)}to{opacity:1;transform:translateY(0) scale(1)}}
 @media(max-width:600px){
-  #crocus-fab-wrap{bottom:26px;right:16px;width:49px;height:49px;display:grid;place-items:center}
-  #crocus-fab{position:relative;top:auto;right:auto;transform:none;width:40px;height:40px}
-  #crocus-fab:hover{width:164px;transform:none}
-  .crocus-fab-icon{width:40px;height:40px;min-width:40px}
-  .crocus-fab-icon img{width:28px;height:28px}
-  .crocus-fab-rings{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:49px;height:49px;margin:0}
+  #crocus-fab-wrap{display:none!important}
+  #crocus-fab-mobile{position:fixed;bottom:22px;right:10px;z-index:2147483638;width:52px;height:52px;display:flex;align-items:center;justify-content:center}
+  #crocus-fab-mobile-btn{position:relative;z-index:1;width:38px;height:38px;border-radius:50%;background:linear-gradient(145deg,#1c0d16 0%,#2e1222 100%);border:1px solid rgba(255,255,255,.13);cursor:pointer;display:grid;place-items:center;box-shadow:0 4px 20px rgba(0,0,0,.5);animation:fabIn .7s cubic-bezier(.34,1.56,.64,1) both}
+  #crocus-fab-mobile-btn img{width:28px;height:28px;object-fit:contain;filter:brightness(0) invert(1) drop-shadow(0 0 8px rgba(255,255,255,.8)) drop-shadow(0 0 18px rgba(255,255,255,.35));display:block}
+  .cfm-ring{position:absolute;border-radius:50%;animation:cwRing 3.6s ease-out infinite}
+  .cfm-ring:nth-child(1){inset:0;border:1.5px solid rgba(123,45,78,.80);animation-delay:0s}
+  .cfm-ring:nth-child(2){inset:0;border:1px solid rgba(123,45,78,.50);animation-delay:1.2s}
+  .cfm-ring:nth-child(3){inset:0;border:1px solid rgba(201,168,124,.30);animation-delay:2.4s}
 }
 #crocus-backdrop{display:none;position:fixed;inset:0;z-index:2147483639;background:rgba(0,0,0,.65);backdrop-filter:blur(4px);opacity:0;transition:opacity .25s}
 #crocus-backdrop.open{display:block}
@@ -917,6 +919,19 @@ function crocusReset() {
 
 // ── Events ─────────────────────────────────────────────────────
 document.getElementById('crocus-fab').addEventListener('click', crocusOpen);
+
+// Мобильная кнопка — отдельная верстка
+(function(){
+  var mwrap = document.createElement('div');
+  mwrap.id = 'crocus-fab-mobile';
+  mwrap.innerHTML =
+    '<span class="cfm-ring"></span>'
+    + '<span class="cfm-ring"></span>'
+    + '<span class="cfm-ring"></span>'
+    + '<button id="crocus-fab-mobile-btn"><img src="https://static.tildacdn.com/tild3366-3561-4165-b437-656233636132/ChatGPT_Image_16__20.png" alt="Crocus"></button>';
+  document.body.appendChild(mwrap);
+  document.getElementById('crocus-fab-mobile-btn').addEventListener('click', crocusOpen);
+})();
 document.getElementById('crocus-backdrop').addEventListener('click', crocusClose);
 document.getElementById('crocus-close').addEventListener('click', crocusClose);
 document.getElementById('cw-back1').addEventListener('click', function(){ goStep(1); });
