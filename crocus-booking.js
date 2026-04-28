@@ -149,7 +149,7 @@ var css = `
 @keyframes fabIn{from{opacity:0;transform:translateY(24px) scale(.78)}to{opacity:1;transform:translateY(0) scale(1)}}
 @media(max-width:600px){
   #crocus-fab-wrap{display:none!important}
-  #crocus-fab-mobile{position:fixed;bottom:22px;right:10px;z-index:2147483638;width:52px;height:52px;display:flex;align-items:center;justify-content:center}
+  #crocus-fab-mobile{position:fixed;bottom:16px;right:10px;z-index:2147483638;width:52px;display:flex;flex-direction:column;align-items:center;gap:4px}
   #crocus-fab-mobile-btn{position:relative;z-index:1;width:38px;height:38px;min-width:38px;min-height:38px;border-radius:50%;background:linear-gradient(145deg,#1c0d16 0%,#2e1222 100%);border:1px solid rgba(255,255,255,.13);cursor:pointer;display:grid;place-items:center;box-shadow:0 4px 20px rgba(0,0,0,.5);animation:fabIn .7s cubic-bezier(.34,1.56,.64,1) both;flex-shrink:0;padding:0;box-sizing:border-box}
   #crocus-fab-mobile-btn img{width:28px;height:28px;object-fit:contain;filter:brightness(0) invert(1) drop-shadow(0 0 8px rgba(255,255,255,.8)) drop-shadow(0 0 18px rgba(255,255,255,.35));display:block}
   .cfm-ring{position:absolute;border-radius:50%;animation:cwRing 3.6s ease-out infinite}
@@ -929,7 +929,8 @@ document.getElementById('crocus-fab').addEventListener('click', crocusOpen);
     '<span class="cfm-ring"></span>'
     + '<span class="cfm-ring"></span>'
     + '<span class="cfm-ring"></span>'
-    + '<button id="crocus-fab-mobile-btn"><img src="https://static.tildacdn.com/tild3366-3561-4165-b437-656233636132/ChatGPT_Image_16__20.png" alt="Crocus"></button>';
+    + '<button id="crocus-fab-mobile-btn"><img src="https://static.tildacdn.com/tild3366-3561-4165-b437-656233636132/ChatGPT_Image_16__20.png" alt="Crocus"></button>'
+    + '<span style="font-family:DM Sans,sans-serif;font-size:9px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:rgba(253,250,248,.65);text-align:center;white-space:nowrap;text-shadow:0 1px 4px rgba(0,0,0,.8)">Termin</span>';
   document.body.appendChild(mwrap);
   document.getElementById('crocus-fab-mobile-btn').addEventListener('click', crocusOpen);
 })();
