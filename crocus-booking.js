@@ -142,9 +142,9 @@ var css = `
 #crocus-fab::before{content:'';position:absolute;inset:0;border-radius:50px;background:radial-gradient(ellipse at 50% 110%,rgba(201,168,124,.12) 0%,transparent 65%);pointer-events:none}
 .crocus-fab-rings{position:absolute;top:50%;right:0;width:58px;height:58px;margin-top:-29px;pointer-events:none}
 .crocus-fab-ring{position:absolute;inset:0;border-radius:50%;animation:cwRing 3.6s ease-out infinite}
-.crocus-fab-ring:nth-child(1){border:1px solid rgba(123,45,78,.80);animation-delay:0s}
-.crocus-fab-ring:nth-child(2){border:0.8px solid rgba(123,45,78,.50);animation-delay:1.2s}
-.crocus-fab-ring:nth-child(3){border:0.7px solid rgba(201,168,124,.30);animation-delay:2.4s}
+.crocus-fab-ring:nth-child(1){border:1.5px solid rgba(123,45,78,.80);animation-delay:0s}
+.crocus-fab-ring:nth-child(2){border:1px solid rgba(123,45,78,.50);animation-delay:1.2s}
+.crocus-fab-ring:nth-child(3){border:1px solid rgba(201,168,124,.30);animation-delay:2.4s}
 @keyframes cwRing{0%{transform:scale(1);opacity:.85}55%{opacity:.25}100%{transform:scale(2.5);opacity:0}}
 @keyframes fabIn{from{opacity:0;transform:translateY(24px) scale(.78)}to{opacity:1;transform:translateY(0) scale(1)}}
 @media(max-width:600px){
