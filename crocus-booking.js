@@ -127,6 +127,7 @@ function apiPost(path, body) {
 // ── CSS ────────────────────────────────────────────────────────
 var css = `
 @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300&family=DM+Sans:wght@300;400;500;600&display=swap');
+#crocus-modal *{box-sizing:border-box;}
 
 #crocus-fab{position:fixed;bottom:28px;right:28px;z-index:2147483638;display:flex;align-items:center;gap:10px;background:linear-gradient(135deg,#7B2D4E 0%,#5a1e37 100%);color:#fff;border:none;border-radius:50px;padding:14px 22px 14px 18px;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;letter-spacing:.03em;cursor:pointer;box-shadow:0 8px 32px rgba(123,45,78,.55),0 2px 8px rgba(0,0,0,.25);transition:transform .2s,box-shadow .2s;animation:fabIn .5s cubic-bezier(.34,1.56,.64,1) both}
 #crocus-fab:hover{transform:translateY(-3px) scale(1.03);box-shadow:0 14px 40px rgba(123,45,78,.65)}
@@ -159,7 +160,7 @@ var css = `
 .cp-line.filled{background:rgba(201,168,124,.28)}
 
 /* Body */
-#crocus-body{flex:1;overflow-y:auto;padding:18px 18px 28px;scrollbar-width:thin;scrollbar-color:rgba(123,45,78,.28) transparent}
+#crocus-body{flex:1;overflow-y:auto;overflow-x:hidden;padding:18px 18px 28px;scrollbar-width:thin;scrollbar-color:rgba(123,45,78,.28) transparent;box-sizing:border-box}
 #crocus-body::-webkit-scrollbar{width:3px}
 #crocus-body::-webkit-scrollbar-thumb{background:rgba(123,45,78,.32);border-radius:3px}
 .cw-step{display:none;animation:stepIn .2s ease-out both}
@@ -214,7 +215,7 @@ var css = `
 
 /* ── Step 4: Addons ── */
 .cw-addons{display:flex;flex-direction:column;gap:8px;margin-bottom:16px}
-.cw-addon-btn{display:flex;align-items:center;gap:11px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:13px;padding:12px 14px;cursor:pointer;text-align:left;color:inherit;width:100%;font-family:inherit;transition:all .2s}
+.cw-addon-btn{display:flex;align-items:center;gap:11px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:13px;padding:12px 14px;cursor:pointer;text-align:left;color:inherit;width:100%;font-family:inherit;transition:all .2s;box-sizing:border-box}
 .cw-addon-btn:hover{border-color:rgba(201,168,124,.28);background:rgba(201,168,124,.04)}
 .cw-addon-btn.sel{border-color:rgba(201,168,124,.55);background:rgba(201,168,124,.08)}
 .cw-addon-check{width:20px;height:20px;border-radius:6px;border:1.5px solid rgba(255,255,255,.15);background:rgba(255,255,255,.04);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:11px;transition:all .18s}
@@ -222,7 +223,7 @@ var css = `
 .cw-addon-info{flex:1}
 .cw-addon-name{font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;color:#fdfaf8;margin-bottom:1px}
 .cw-addon-price{font-family:'Cormorant Garamond',Georgia,serif;font-size:16px;color:rgba(201,168,124,.75)}
-.cw-skip-btn{width:100%;padding:11px;background:none;border:1px dashed rgba(255,255,255,.10);border-radius:11px;color:rgba(253,250,248,.32);font-family:'DM Sans',sans-serif;font-size:12.5px;cursor:pointer;transition:all .18s}
+.cw-skip-btn{width:100%;padding:11px;background:none;border:1px dashed rgba(255,255,255,.10);border-radius:11px;color:rgba(253,250,248,.32);font-family:'DM Sans',sans-serif;font-size:12.5px;cursor:pointer;transition:all .18s;box-sizing:border-box}
 .cw-skip-btn:hover{border-color:rgba(255,255,255,.22);color:rgba(253,250,248,.55)}
 
 /* ── Step 5: Calendar ── */
@@ -258,7 +259,7 @@ var css = `
 .cw-field input{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.09);border-radius:10px;padding:11px 13px;color:#fdfaf8;font-family:'DM Sans',sans-serif;font-size:14px;outline:none;transition:border-color .15s;width:100%;box-sizing:border-box}
 .cw-field input::placeholder{color:rgba(253,250,248,.18)}
 .cw-field input:focus{border-color:rgba(123,45,78,.50);background:rgba(123,45,78,.04)}
-.cw-btn-confirm{background:linear-gradient(135deg,#7B2D4E 0%,#5a1e37 100%);color:#fff;border:none;border-radius:11px;padding:15px 24px;width:100%;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;letter-spacing:.04em;cursor:pointer;transition:all .2s;box-shadow:0 6px 22px rgba(123,45,78,.38);margin-top:2px}
+.cw-btn-confirm{background:linear-gradient(135deg,#7B2D4E 0%,#5a1e37 100%);color:#fff;border:none;border-radius:11px;padding:15px 24px;width:100%;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;letter-spacing:.04em;cursor:pointer;transition:all .2s;box-shadow:0 6px 22px rgba(123,45,78,.38);margin-top:2px;box-sizing:border-box}
 .cw-btn-confirm:hover:not(:disabled){transform:translateY(-2px);box-shadow:0 10px 30px rgba(123,45,78,.52)}
 .cw-btn-confirm:disabled{opacity:.5;cursor:default}
 .cw-form-note{font-family:'DM Sans',sans-serif;font-size:10px;color:rgba(253,250,248,.22);text-align:center;line-height:1.5;margin-top:-4px}
