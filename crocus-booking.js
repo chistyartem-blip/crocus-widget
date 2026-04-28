@@ -149,11 +149,11 @@ var css = `
 @keyframes fabIn{from{opacity:0;transform:translateY(24px) scale(.78)}to{opacity:1;transform:translateY(0) scale(1)}}
 @media(max-width:600px){
   #crocus-fab-wrap{bottom:26px;right:16px;width:49px;height:49px;display:grid;place-items:center}
-  #crocus-fab{position:relative;top:auto;right:auto;transform:none;width:44px;height:44px}
+  #crocus-fab{position:relative;top:auto;right:auto;transform:none;width:40px;height:40px}
   #crocus-fab:hover{width:164px;transform:none}
-  .crocus-fab-icon{width:44px;height:44px;min-width:44px}
-  .crocus-fab-icon img{width:25px;height:25px}
-  .crocus-fab-rings{position:absolute;top:0;right:0;width:49px;height:49px;margin-top:0}
+  .crocus-fab-icon{width:40px;height:40px;min-width:40px}
+  .crocus-fab-icon img{width:28px;height:28px}
+  .crocus-fab-rings{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:49px;height:49px;margin:0}
 }
 #crocus-backdrop{display:none;position:fixed;inset:0;z-index:2147483639;background:rgba(0,0,0,.65);backdrop-filter:blur(4px);opacity:0;transition:opacity .25s}
 #crocus-backdrop.open{display:block}
