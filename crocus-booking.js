@@ -592,8 +592,19 @@ function selectMaster(m, meta) {
   cw.master = m;
   cw.master._meta = meta;
   document.getElementById('cw-sel-master-name').textContent = m.name;
-  renderCategories(m.id);
   goStep(2);
+  // Загружаем услуги с ценами конкретного мастера
+  var list = document.getElementById('cw-cats-list');
+  list.innerHTML = '<div class="cw-loader"><div class="cw-spinner"></div><span class="cw-loader-text">Laden…</span></div>';
+  apiGet('/book_services/'+CONFIG.locationId, { staff_id: m.id })
+    .then(function(res) {
+      if (res.success && res.data && res.data.services) {
+        _allServices = res.data.services;
+        _addonObjs = _allServices.filter(function(s){ return ADDON_IDS.indexOf(s.id) !== -1; });
+      }
+      renderCategories(m.id);
+    })
+    .catch(function(){ renderCategories(m.id); });
 }
 
 // ── Step 2: Categories ─────────────────────────────────────────
