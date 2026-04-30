@@ -651,8 +651,19 @@ function renderServices(cat) {
   }
 
   svcs.forEach(function(s) {
+    // Цена конкретного мастера из staff[], иначе общий price_min/max
     var minP = s.price_min || 0;
     var maxP = s.price_max || 0;
+    if (s.staff && s.staff.length) {
+      var staffEntry = null;
+      for (var si = 0; si < s.staff.length; si++) {
+        if (s.staff[si].id === cw.master.id) { staffEntry = s.staff[si]; break; }
+      }
+      if (staffEntry) {
+        minP = staffEntry.price_min != null ? staffEntry.price_min : minP;
+        maxP = staffEntry.price_max != null ? staffEntry.price_max : maxP;
+      }
+    }
     var priceStr = minP === maxP ? (minP ? minP+' €' : '—') : 'ab '+minP+' €';
     // Длительность не показываем если 0 или null
     var durSec = s.seance_length || 0;
@@ -847,7 +858,16 @@ function renderSummary() {
   var dateStr = cw.date
     ? new Date(cw.date+'T12:00:00').toLocaleDateString('de-DE',{weekday:'short',day:'numeric',month:'long'})
     : '';
-  var totalPrice = (cw.service.price_min||0) + (cw.addon ? (cw.addon.price_min||0) : 0);
+  // Цена мастера из staff[], иначе общий price_min
+  function getMasterPrice(svc) {
+    if (svc.staff && svc.staff.length) {
+      for (var i = 0; i < svc.staff.length; i++) {
+        if (svc.staff[i].id === cw.master.id) return svc.staff[i].price_min || 0;
+      }
+    }
+    return svc.price_min || 0;
+  }
+  var totalPrice = getMasterPrice(cw.service) + (cw.addon ? getMasterPrice(cw.addon) : 0);
   var priceStr = totalPrice ? totalPrice+' €' : '—';
   var svcStr = cw.addon ? cw.service.title+' + '+cw.addon.title : cw.service.title;
 
