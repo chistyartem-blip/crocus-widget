@@ -20,7 +20,6 @@ var MASTERS_META = {
     bio: 'Unsere erfahrenste Meisterin — präzise, kreativ und immer ausgebucht.',
     skills: ['Maniküre', 'Pediküre', 'Nagelverlängerung', 'Designs'],
     cats: ['manikuere', 'pediküre', 'kombi'],
-    avatar: 'https://static.tildacdn.com/tild3239-3933-4334-b362-386430646432/ChatGPT_Image_28__20.png',
   },
   3020186: {
     level:  'Master',
@@ -31,7 +30,6 @@ var MASTERS_META = {
     bio: 'Sorgfältige Arbeit, bei der jeder Gellack sitzt wie am ersten Tag.',
     skills: ['Maniküre', 'Pediküre', 'Gellack'],
     cats: ['manikuere', 'pediküre', 'kombi'],
-    avatar: 'https://static.tildacdn.com/tild6566-3434-4635-b363-656462633738/__2026-04-28_175455.png',
   },
   3020187: {
     level:  'Master',
@@ -60,29 +58,29 @@ var CATEGORIES = [
   {
     key: 'manikuere',
     label: 'Maniküre',
-    img: 'https://static.tildacdn.net/tild3038-3034-4734-a332-616564343331/close-up-image-woman.jpg',
-    desc: 'Gepflegte Hände, perfekter Gellack — vom Klassiker bis zur Verlängerung.',
+    icon: '💅',
+    desc: 'Hygienisch · Gellack · Verstärkung',
     serviceIds: [13485752, 13485753, 13485754, 13485755],
   },
   {
     key: 'pediküre',
     label: 'Pediküre',
-    img: 'https://static.tildacdn.net/tild3365-3762-4732-b839-623466663935/ChatGPT_Image_5__202.png',
-    desc: 'Verwöhnprogramm für die Füße — hygienisch, gründlich, entspannend.',
+    icon: '🦶',
+    desc: 'Hygienisch · Gellack · Verwöhnprogramm',
     serviceIds: [13485760, 13485761],
   },
   {
     key: 'kombi',
     label: 'Kombi',
-    img: 'https://static.tildacdn.net/tild3838-3839-4266-b532-353835363261/33.jpg',
-    desc: 'Maniküre & Pediküre in einem Termin — Zeit sparen, doppelt strahlen.',
+    icon: '✨',
+    desc: 'Maniküre + Pediküre in einem Termin',
     serviceIds: [13485762],
   },
   {
     key: 'wimpern',
     label: 'Wimpern',
-    img: null,
-    desc: 'Classic · Volumen 4D/6D · Wispy Look — natürlich oder dramatisch.',
+    icon: '👁',
+    desc: 'Classic · Volumen · Wispy Look',
     serviceIds: [13485763,13485764,13485765,13485766,13485767,13485768,13485769,13485770,13485771,13485772,13485773],
   },
 ];
@@ -101,83 +99,49 @@ function apiGet(path, params) {
     }).join('&');
     if (qs) url += '?' + qs;
   }
-  var ctrl = new AbortController();
-  var timer = setTimeout(function(){ ctrl.abort(); }, 10000);
   return fetch(url, {
-    signal: ctrl.signal,
     headers: { 'Authorization': 'Bearer '+CONFIG.partnerToken, 'Accept': 'application/vnd.api.v2+json' }
-  }).then(function(r){ clearTimeout(timer); return r.json(); })
-    .catch(function(e){ clearTimeout(timer); throw e; });
+  }).then(function(r){ return r.json(); });
 }
 
 function apiPost(path, body) {
-  var ctrl = new AbortController();
-  var timer = setTimeout(function(){ ctrl.abort(); }, 15000);
   return fetch(CONFIG.apiBase + path, {
     method: 'POST',
-    signal: ctrl.signal,
     headers: {
       'Authorization': 'Bearer '+CONFIG.partnerToken,
       'Accept':        'application/vnd.api.v2+json',
       'Content-Type':  'application/json',
     },
     body: JSON.stringify(body),
-  }).then(function(r){ clearTimeout(timer); return r.json(); })
-    .catch(function(e){ clearTimeout(timer); throw e; });
+  }).then(function(r){ return r.json(); });
 }
 
 // ── CSS ────────────────────────────────────────────────────────
 var css = `
 @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300&family=DM+Sans:wght@300;400;500;600&display=swap');
-#crocus-modal *{box-sizing:border-box;}
 
-#crocus-fab-wrap{position:fixed;bottom:32px;right:32px;z-index:2147483638;width:58px;height:58px;display:flex;align-items:center;justify-content:center}
-#crocus-fab{position:absolute;right:0;top:0;width:58px;height:58px;border-radius:50px;background:linear-gradient(145deg,#1c0d16 0%,#2e1222 100%);border:1px solid rgba(255,255,255,.13);cursor:pointer;box-shadow:0 4px 28px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.07);transition:width .5s cubic-bezier(.4,0,.2,1),border-color .3s,box-shadow .3s;animation:fabIn .7s cubic-bezier(.34,1.56,.64,1) both;overflow:hidden;display:flex;align-items:center;justify-content:flex-end;padding:0}
-#crocus-fab:hover{width:196px;border-color:rgba(201,168,124,.5);box-shadow:0 8px 36px rgba(123,45,78,.5),inset 0 1px 0 rgba(255,255,255,.09)}
-#crocus-fab:hover .crocus-fab-text{opacity:1;transform:translateX(0)}
-#crocus-fab:hover + .crocus-fab-rings .crocus-fab-ring{animation-play-state:paused;opacity:0;transition:opacity .4s}
-.crocus-fab-icon{width:58px;height:58px;min-width:58px;flex-shrink:0;display:grid;place-items:center}
-.crocus-fab-icon img{width:26px;height:26px;object-fit:contain;filter:brightness(0) invert(1) drop-shadow(0 0 8px rgba(255,255,255,.8)) drop-shadow(0 0 18px rgba(255,255,255,.35));display:block}
-.crocus-fab-text{font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;letter-spacing:.04em;color:#fdfaf8;opacity:0;transform:translateX(-8px);white-space:nowrap;transition:opacity .28s .15s,transform .28s .15s;padding-right:0;margin-right:18px;order:-1;flex-shrink:0}
-#crocus-fab::before{content:'';position:absolute;inset:0;border-radius:50px;background:radial-gradient(ellipse at 50% 110%,rgba(201,168,124,.12) 0%,transparent 65%);pointer-events:none}
-.crocus-fab-rings{position:absolute;top:50%;right:0;width:58px;height:58px;margin-top:-29px;pointer-events:none}
-.crocus-fab-ring{position:absolute;inset:0;border-radius:50%;animation:cwRing 3.6s ease-out infinite}
-.crocus-fab-ring:nth-child(1){border:1.5px solid rgba(123,45,78,.80);animation-delay:0s}
-.crocus-fab-ring:nth-child(2){border:1px solid rgba(123,45,78,.50);animation-delay:1.2s}
-.crocus-fab-ring:nth-child(3){border:1px solid rgba(201,168,124,.30);animation-delay:2.4s}
-@keyframes cwRing{0%{transform:scale(1);opacity:.85}55%{opacity:.25}100%{transform:scale(2.5);opacity:0}}
-@keyframes fabIn{from{opacity:0;transform:translateY(24px) scale(.78)}to{opacity:1;transform:translateY(0) scale(1)}}
-#crocus-fab-mobile{display:none!important}
-@media(max-width:600px){
-  #crocus-fab-wrap{display:none!important}
-  #crocus-fab-mobile{display:flex!important;position:fixed;bottom:28px;right:14px;z-index:2147483638;width:52px;flex-direction:column;align-items:center;gap:4px}
-  #crocus-fab-mobile-btn{position:relative;z-index:1;width:38px;height:38px;min-width:38px;min-height:38px;border-radius:50%;background:linear-gradient(145deg,#1c0d16 0%,#2e1222 100%);border:1px solid rgba(255,255,255,.13);cursor:pointer;display:grid;place-items:center;box-shadow:0 4px 20px rgba(0,0,0,.5);animation:fabIn .7s cubic-bezier(.34,1.56,.64,1) both;flex-shrink:0;padding:0;box-sizing:border-box;margin-top:6px}
-  #crocus-fab-mobile-btn img{width:28px;height:28px;object-fit:contain;filter:brightness(0) invert(1) drop-shadow(0 0 8px rgba(255,255,255,.8)) drop-shadow(0 0 18px rgba(255,255,255,.35));display:block}
-  .cfm-ring{position:absolute;border-radius:50%;animation:cwRing 3.6s ease-out infinite}
-  .cfm-ring:nth-child(1){inset:0;border:0.8px solid rgba(123,45,78,.80);animation-delay:0s}
-  .cfm-ring:nth-child(2){inset:0;border:0.6px solid rgba(123,45,78,.50);animation-delay:1.2s}
-  .cfm-ring:nth-child(3){inset:0;border:0.5px solid rgba(201,168,124,.30);animation-delay:2.4s}
-}
+#crocus-fab{position:fixed;bottom:28px;right:28px;z-index:2147483638;display:flex;align-items:center;gap:10px;background:linear-gradient(135deg,#7B2D4E 0%,#5a1e37 100%);color:#fff;border:none;border-radius:50px;padding:14px 22px 14px 18px;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;letter-spacing:.03em;cursor:pointer;box-shadow:0 8px 32px rgba(123,45,78,.55),0 2px 8px rgba(0,0,0,.25);transition:transform .2s,box-shadow .2s;animation:fabIn .5s cubic-bezier(.34,1.56,.64,1) both}
+#crocus-fab:hover{transform:translateY(-3px) scale(1.03);box-shadow:0 14px 40px rgba(123,45,78,.65)}
+@keyframes fabIn{from{opacity:0;transform:translateY(20px) scale(.85)}to{opacity:1;transform:translateY(0) scale(1)}}
 #crocus-backdrop{display:none;position:fixed;inset:0;z-index:2147483639;background:rgba(0,0,0,.65);backdrop-filter:blur(4px);opacity:0;transition:opacity .25s}
 #crocus-backdrop.open{display:block}
 #crocus-backdrop.visible{opacity:1}
-#crocus-modal{position:fixed;top:0;right:0;z-index:2147483640;width:440px;max-width:100vw;height:100dvh;background:#0f0a0d;border-radius:20px 0 0 20px;box-shadow:-8px 0 60px rgba(0,0,0,.6);display:flex;flex-direction:column;overflow:hidden;transform:translateX(100%);transition:transform .32s cubic-bezier(.32,.72,0,1);visibility:hidden}
-#crocus-modal.open{visibility:visible}
+#crocus-modal{position:fixed;top:0;right:0;z-index:2147483640;width:440px;max-width:100vw;height:100dvh;background:#0f0a0d;border-radius:20px 0 0 20px;box-shadow:-8px 0 60px rgba(0,0,0,.6);display:flex;flex-direction:column;overflow:hidden;transform:translateX(100%);transition:transform .32s cubic-bezier(.32,.72,0,1)}
 #crocus-modal.open{transform:translateX(0)}
 @media(max-width:480px){#crocus-modal{width:100vw;border-radius:20px 20px 0 0;height:100dvh;transform:translateY(100%)}#crocus-modal.open{transform:translateY(0)}#crocus-fab{bottom:20px;right:16px;padding:12px 18px 12px 14px;font-size:13px}}
 
 /* Header */
-#crocus-modal-header{display:flex;align-items:center;justify-content:space-between;padding:16px 20px 13px;background:rgba(255,255,255,.02);flex-shrink:0}
-.crocus-modal-brand{display:flex;align-items:center;gap:13px}
-.crocus-modal-logo{width:40px;height:40px;border-radius:10px;object-fit:contain;background:rgba(123,45,78,.18);border:1px solid rgba(255,255,255,.12);filter:brightness(0) invert(1) drop-shadow(0 0 8px rgba(255,255,255,.70));padding:2px;box-sizing:border-box}
+#crocus-modal-header{display:flex;align-items:center;justify-content:space-between;padding:16px 20px 13px;border-bottom:1px solid rgba(201,168,124,.10);background:rgba(255,255,255,.02);flex-shrink:0}
+.crocus-modal-brand{display:flex;align-items:center;gap:10px}
+.crocus-modal-logo{width:36px;height:36px;border-radius:8px;object-fit:cover;border:1px solid rgba(201,168,124,.22)}
 .crocus-modal-title{font-family:'Cormorant Garamond',Georgia,serif;font-size:15px;font-weight:400;color:#fdfaf8;letter-spacing:.02em;display:block}
 .crocus-modal-sub{font-family:'DM Sans',Arial,sans-serif;font-size:10px;color:rgba(253,250,248,.35);letter-spacing:.08em;text-transform:uppercase;display:block}
 #crocus-close{width:32px;height:32px;border-radius:50%;border:1px solid rgba(255,255,255,.10);background:rgba(255,255,255,.05);color:rgba(253,250,248,.5);font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s}
 #crocus-close:hover{background:rgba(255,255,255,.10);color:#fdfaf8}
 
 /* Progress */
-#crocus-progress{display:flex;align-items:center;justify-content:center;padding:11px 20px 9px;gap:0;flex-shrink:0}
-.cp-step{display:flex;flex-direction:column;align-items:center;gap:3px;position:relative;flex:1;cursor:default}.cp-step.done{cursor:pointer}.cp-step.done:hover .cp-dot{background:rgba(201,168,124,.25);border-color:#c9a87c;box-shadow:0 0 10px rgba(201,168,124,.35)}.cp-step.done:hover .cp-label{color:rgba(253,250,248,.75)}
+#crocus-progress{display:flex;align-items:center;justify-content:center;padding:11px 20px 9px;gap:0;border-bottom:1px solid rgba(255,255,255,.04);flex-shrink:0}
+.cp-step{display:flex;flex-direction:column;align-items:center;gap:3px;position:relative;flex:1}
 .cp-dot{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:9.5px;font-weight:600;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.09);color:rgba(253,250,248,.28);transition:all .25s}
 .cp-step.active .cp-dot{background:#7B2D4E;border-color:#7B2D4E;color:#fff;box-shadow:0 0 12px rgba(123,45,78,.5)}
 .cp-step.done .cp-dot{background:rgba(201,168,124,.13);border-color:#c9a87c;color:#c9a87c}
@@ -187,7 +151,7 @@ var css = `
 .cp-line.filled{background:rgba(201,168,124,.28)}
 
 /* Body */
-#crocus-body{flex:1;overflow-y:auto;overflow-x:hidden;padding:18px 18px 28px;scrollbar-width:thin;scrollbar-color:rgba(123,45,78,.28) transparent;box-sizing:border-box}
+#crocus-body{flex:1;overflow-y:auto;padding:18px 18px 28px;scrollbar-width:thin;scrollbar-color:rgba(123,45,78,.28) transparent}
 #crocus-body::-webkit-scrollbar{width:3px}
 #crocus-body::-webkit-scrollbar-thumb{background:rgba(123,45,78,.32);border-radius:3px}
 .cw-step{display:none;animation:stepIn .2s ease-out both}
@@ -224,20 +188,16 @@ var css = `
 .cw-skill-tag{font-family:'DM Sans',sans-serif;font-size:10px;color:rgba(253,250,248,.38);background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.07);border-radius:20px;padding:2px 9px}
 
 /* ── Step 2: Categories ── */
-.cw-cats{display:flex;flex-direction:column;gap:10px}
-.cw-cat-card{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:16px;cursor:pointer;text-align:left;transition:all .2s;font-family:inherit;color:inherit;display:flex;align-items:center;gap:14px;padding:12px 14px;overflow:hidden;width:100%}
+.cw-cats{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.cw-cat-card{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:14px;padding:18px 14px 15px;cursor:pointer;text-align:center;transition:all .2s;font-family:inherit;color:inherit;display:flex;flex-direction:column;align-items:center;gap:6px}
 .cw-cat-card:hover{border-color:rgba(123,45,78,.40);background:rgba(123,45,78,.07);transform:translateY(-2px);box-shadow:0 6px 22px rgba(0,0,0,.32)}
-.cw-cat-img{width:62px;height:62px;border-radius:11px;object-fit:cover;flex-shrink:0;border:1px solid rgba(255,255,255,.08)}
-.cw-cat-text{flex:1;min-width:0}
-.cw-cat-label{font-family:'Cormorant Garamond',Georgia,serif;font-size:18px;font-weight:400;color:#fdfaf8;display:block;margin-bottom:3px}
-.cw-cat-desc{font-family:'DM Sans',sans-serif;font-size:11px;color:rgba(253,250,248,.38);line-height:1.5;display:block}
-.cw-cat-arrow{color:rgba(253,250,248,.20);font-size:16px;flex-shrink:0}
+.cw-cat-icon{font-size:26px;line-height:1}
+.cw-cat-label{font-family:'Cormorant Garamond',Georgia,serif;font-size:16px;font-weight:400;color:#fdfaf8}
+.cw-cat-desc{font-family:'DM Sans',sans-serif;font-size:10px;color:rgba(253,250,248,.32);line-height:1.45}
 
 /* ── Step 3: Services ── */
 .cw-services{display:flex;flex-direction:column;gap:8px}
-.cw-svc-btn{display:flex;align-items:center;justify-content:space-between;gap:10px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:13px;padding:13px 14px;cursor:pointer;text-align:left;color:inherit;width:100%;font-family:inherit;transition:all .2s;-webkit-tap-highlight-color:transparent;outline:none}
-.cw-svc-btn:focus{outline:none;background:rgba(255,255,255,.03);border-color:rgba(255,255,255,.07)}
-.cw-svc-btn:focus:not(:focus-visible){background:rgba(255,255,255,.03);border-color:rgba(255,255,255,.07)}
+.cw-svc-btn{display:flex;align-items:center;justify-content:space-between;gap:10px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:13px;padding:13px 14px;cursor:pointer;text-align:left;color:inherit;width:100%;font-family:inherit;transition:all .2s}
 .cw-svc-btn:hover{border-color:rgba(123,45,78,.40);background:rgba(123,45,78,.06);transform:translateY(-1px)}
 .cw-svc-left{flex:1;min-width:0}
 .cw-svc-name{font-family:'DM Sans',sans-serif;font-size:13.5px;font-weight:500;color:#fdfaf8;margin-bottom:2px}
@@ -246,7 +206,7 @@ var css = `
 
 /* ── Step 4: Addons ── */
 .cw-addons{display:flex;flex-direction:column;gap:8px;margin-bottom:16px}
-.cw-addon-btn{display:flex;align-items:center;gap:11px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:13px;padding:12px 14px;cursor:pointer;text-align:left;color:inherit;width:100%;font-family:inherit;transition:all .2s;box-sizing:border-box}
+.cw-addon-btn{display:flex;align-items:center;gap:11px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:13px;padding:12px 14px;cursor:pointer;text-align:left;color:inherit;width:100%;font-family:inherit;transition:all .2s}
 .cw-addon-btn:hover{border-color:rgba(201,168,124,.28);background:rgba(201,168,124,.04)}
 .cw-addon-btn.sel{border-color:rgba(201,168,124,.55);background:rgba(201,168,124,.08)}
 .cw-addon-check{width:20px;height:20px;border-radius:6px;border:1.5px solid rgba(255,255,255,.15);background:rgba(255,255,255,.04);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:11px;transition:all .18s}
@@ -254,7 +214,7 @@ var css = `
 .cw-addon-info{flex:1}
 .cw-addon-name{font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;color:#fdfaf8;margin-bottom:1px}
 .cw-addon-price{font-family:'Cormorant Garamond',Georgia,serif;font-size:16px;color:rgba(201,168,124,.75)}
-.cw-skip-btn{width:100%;padding:11px;background:none;border:1px dashed rgba(255,255,255,.10);border-radius:11px;color:rgba(253,250,248,.32);font-family:'DM Sans',sans-serif;font-size:12.5px;cursor:pointer;transition:all .18s;box-sizing:border-box}
+.cw-skip-btn{width:100%;padding:11px;background:none;border:1px dashed rgba(255,255,255,.10);border-radius:11px;color:rgba(253,250,248,.32);font-family:'DM Sans',sans-serif;font-size:12.5px;cursor:pointer;transition:all .18s}
 .cw-skip-btn:hover{border-color:rgba(255,255,255,.22);color:rgba(253,250,248,.55)}
 
 /* ── Step 5: Calendar ── */
@@ -290,7 +250,7 @@ var css = `
 .cw-field input{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.09);border-radius:10px;padding:11px 13px;color:#fdfaf8;font-family:'DM Sans',sans-serif;font-size:14px;outline:none;transition:border-color .15s;width:100%;box-sizing:border-box}
 .cw-field input::placeholder{color:rgba(253,250,248,.18)}
 .cw-field input:focus{border-color:rgba(123,45,78,.50);background:rgba(123,45,78,.04)}
-.cw-btn-confirm{background:linear-gradient(135deg,#7B2D4E 0%,#5a1e37 100%);color:#fff;border:none;border-radius:11px;padding:15px 24px;width:100%;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;letter-spacing:.04em;cursor:pointer;transition:all .2s;box-shadow:0 6px 22px rgba(123,45,78,.38);margin-top:2px;box-sizing:border-box}
+.cw-btn-confirm{background:linear-gradient(135deg,#7B2D4E 0%,#5a1e37 100%);color:#fff;border:none;border-radius:11px;padding:15px 24px;width:100%;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;letter-spacing:.04em;cursor:pointer;transition:all .2s;box-shadow:0 6px 22px rgba(123,45,78,.38);margin-top:2px}
 .cw-btn-confirm:hover:not(:disabled){transform:translateY(-2px);box-shadow:0 10px 30px rgba(123,45,78,.52)}
 .cw-btn-confirm:disabled{opacity:.5;cursor:default}
 .cw-form-note{font-family:'DM Sans',sans-serif;font-size:10px;color:rgba(253,250,248,.22);text-align:center;line-height:1.5;margin-top:-4px}
@@ -319,10 +279,7 @@ var DAYS   = ['Mo','Di','Mi','Do','Fr','Sa','So'];
 // ── HTML ───────────────────────────────────────────────────────
 var wrap = document.createElement('div');
 wrap.innerHTML =
-  '<div id="crocus-fab-wrap">'
-  + '<button id="crocus-fab"><span class="crocus-fab-text">Termin buchen</span><div class="crocus-fab-icon"><img src="https://static.tildacdn.com/tild3366-3561-4165-b437-656233636132/ChatGPT_Image_16__20.png" alt="Crocus"></div></button>'
-  + '<div class="crocus-fab-rings"><span class="crocus-fab-ring"></span><span class="crocus-fab-ring"></span><span class="crocus-fab-ring"></span></div>'
-  + '</div>'
+  '<button id="crocus-fab"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2.5"/><path d="M16 2v4M8 2v4M3 10h18"/></svg> Termin buchen</button>'
   + '<div id="crocus-backdrop"></div>'
   + '<div id="crocus-modal">'
     + '<div id="crocus-modal-header">'
@@ -483,31 +440,6 @@ function updateProgress(n) {
     }
     el.querySelector('.cp-dot').innerHTML = el.classList.contains('done') ? '✓' : i;
   }
-  // Кликабельность done-шагов
-  for (var j = 1; j <= total; j++) {
-    (function(step){
-      var stepEl = document.getElementById('cp'+step);
-      stepEl.onclick = null;
-      if (stepEl.classList.contains('done')) {
-        stepEl.onclick = function(){ goStepBack(step); };
-      }
-    })(j);
-  }
-}
-
-// Умный переход назад с учётом состояния
-function goStepBack(target) {
-  // Нельзя прыгнуть дальше текущего шага
-  var current = (cw.step === 'success') ? 7 : cw.step;
-  if (target >= current) return;
-  // Если идём назад на шаг 4 (Extra) но для этой категории допы пропускались — пропускаем
-  if (target === 4) {
-    var skipAddons = cw.category && (cw.category.key === 'wimpern' || cw.category.key === 'kombi' || cw.category.key === 'pediküre');
-    if (skipAddons) { goStep(3); return; }
-  }
-  goStep(target);
-  // Если возвращаемся на шаг 5 — перерисовываем календарь
-  if (target === 5) { renderCalendar(); }
 }
 
 function goStep(n) {
@@ -592,19 +524,8 @@ function selectMaster(m, meta) {
   cw.master = m;
   cw.master._meta = meta;
   document.getElementById('cw-sel-master-name').textContent = m.name;
+  renderCategories(m.id);
   goStep(2);
-  // Загружаем услуги с ценами конкретного мастера
-  var list = document.getElementById('cw-cats-list');
-  list.innerHTML = '<div class="cw-loader"><div class="cw-spinner"></div><span class="cw-loader-text">Laden…</span></div>';
-  apiGet('/book_services/'+CONFIG.locationId, { staff_id: m.id })
-    .then(function(res) {
-      if (res.success && res.data && res.data.services) {
-        _allServices = res.data.services;
-        _addonObjs = _allServices.filter(function(s){ return ADDON_IDS.indexOf(s.id) !== -1; });
-      }
-      renderCategories(m.id);
-    })
-    .catch(function(){ renderCategories(m.id); });
 }
 
 // ── Step 2: Categories ─────────────────────────────────────────
@@ -626,16 +547,10 @@ function renderCategories(masterId) {
 
     var btn = document.createElement('button');
     btn.className = 'cw-cat-card';
-    var imgHtml = cat.img
-      ? '<img class="cw-cat-img" src="'+cat.img+'" alt="'+cat.label+'" loading="lazy">'
-      : '<div class="cw-cat-img" style="background:rgba(255,255,255,.05);display:flex;align-items:center;justify-content:center;font-size:22px">👁</div>';
     btn.innerHTML =
-      imgHtml
-      + '<div class="cw-cat-text">'
-        + '<span class="cw-cat-label">'+cat.label+'</span>'
-        + '<span class="cw-cat-desc">'+cat.desc+'</span>'
-      + '</div>'
-      + '<span class="cw-cat-arrow">›</span>';
+      '<div class="cw-cat-icon">'+cat.icon+'</div>'
+      + '<div class="cw-cat-label">'+cat.label+'</div>'
+      + '<div class="cw-cat-desc">'+cat.desc+'</div>';
     btn.addEventListener('click', function(){ selectCategory(cat); });
     list.appendChild(btn);
   });
@@ -662,19 +577,8 @@ function renderServices(cat) {
   }
 
   svcs.forEach(function(s) {
-    // Цена конкретного мастера из staff[], иначе общий price_min/max
     var minP = s.price_min || 0;
     var maxP = s.price_max || 0;
-    if (s.staff && s.staff.length) {
-      var staffEntry = null;
-      for (var si = 0; si < s.staff.length; si++) {
-        if (s.staff[si].id === cw.master.id) { staffEntry = s.staff[si]; break; }
-      }
-      if (staffEntry) {
-        minP = staffEntry.price_min != null ? staffEntry.price_min : minP;
-        maxP = staffEntry.price_max != null ? staffEntry.price_max : maxP;
-      }
-    }
     var priceStr = minP === maxP ? (minP ? minP+' €' : '—') : 'ab '+minP+' €';
     // Длительность не показываем если 0 или null
     var durSec = s.seance_length || 0;
@@ -869,16 +773,7 @@ function renderSummary() {
   var dateStr = cw.date
     ? new Date(cw.date+'T12:00:00').toLocaleDateString('de-DE',{weekday:'short',day:'numeric',month:'long'})
     : '';
-  // Цена мастера из staff[], иначе общий price_min
-  function getMasterPrice(svc) {
-    if (svc.staff && svc.staff.length) {
-      for (var i = 0; i < svc.staff.length; i++) {
-        if (svc.staff[i].id === cw.master.id) return svc.staff[i].price_min || 0;
-      }
-    }
-    return svc.price_min || 0;
-  }
-  var totalPrice = getMasterPrice(cw.service) + (cw.addon ? getMasterPrice(cw.addon) : 0);
+  var totalPrice = (cw.service.price_min||0) + (cw.addon ? (cw.addon.price_min||0) : 0);
   var priceStr = totalPrice ? totalPrice+' €' : '—';
   var svcStr = cw.addon ? cw.service.title+' + '+cw.addon.title : cw.service.title;
 
@@ -954,22 +849,6 @@ function crocusReset() {
 
 // ── Events ─────────────────────────────────────────────────────
 document.getElementById('crocus-fab').addEventListener('click', crocusOpen);
-window.crocusOpen = crocusOpen;
-window.crocusClose = crocusClose;
-
-// Мобильная кнопка — отдельная верстка
-(function(){
-  var mwrap = document.createElement('div');
-  mwrap.id = 'crocus-fab-mobile';
-  mwrap.innerHTML =
-    '<span class="cfm-ring"></span>'
-    + '<span class="cfm-ring"></span>'
-    + '<span class="cfm-ring"></span>'
-    + '<button id="crocus-fab-mobile-btn"><img src="https://static.tildacdn.com/tild3366-3561-4165-b437-656233636132/ChatGPT_Image_16__20.png" alt="Crocus"></button>'
-    + '<span style="font-family:DM Sans,sans-serif;font-size:7.5px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:#fff;text-align:center;white-space:nowrap;text-shadow:0 1px 3px rgba(0,0,0,1),0 0 8px rgba(0,0,0,.9)">Online · Termin</span>';
-  document.body.appendChild(mwrap);
-  document.getElementById('crocus-fab-mobile-btn').addEventListener('click', crocusOpen);
-})();
 document.getElementById('crocus-backdrop').addEventListener('click', crocusClose);
 document.getElementById('crocus-close').addEventListener('click', crocusClose);
 document.getElementById('cw-back1').addEventListener('click', function(){ goStep(1); });
@@ -1016,280 +895,5 @@ if (document.readyState === 'loading') {
 } else {
   _crocusMount();
 }
-
-// ── Page Theme Inject ──────────────────────────────────────────
-(function(){
-  var path = window.location.pathname.toLowerCase();
-  var isMani = path.indexOf('manik') !== -1;
-  if (!isMani) return;
-
-  var override =
-    /* FAB — розовый */
-    '#crocus-fab{background:linear-gradient(145deg,#3a0a1e 0%,#5c1030 100%)!important;border-color:rgba(212,84,122,.30)!important;}' +
-    '#crocus-fab:hover{border-color:rgba(212,84,122,.70)!important;box-shadow:0 8px 36px rgba(192,52,104,.55)!important;}' +
-    '#crocus-fab::before{background:radial-gradient(ellipse at 50% 110%,rgba(192,52,104,.18) 0%,transparent 65%)!important;}' +
-    '.crocus-fab-ring:nth-child(1){border-color:rgba(192,52,104,.85)!important;}' +
-    '.crocus-fab-ring:nth-child(2){border-color:rgba(192,52,104,.55)!important;}' +
-    '.crocus-fab-ring:nth-child(3){border-color:rgba(212,84,122,.35)!important;}' +
-    '#crocus-fab-mobile-btn{background:linear-gradient(145deg,#3a0a1e 0%,#5c1030 100%)!important;border-color:rgba(212,84,122,.30)!important;}' +
-    '.cfm-ring:nth-child(1){border-color:rgba(192,52,104,.85)!important;}' +
-    '.cfm-ring:nth-child(2){border-color:rgba(192,52,104,.55)!important;}' +
-    '.cfm-ring:nth-child(3){border-color:rgba(212,84,122,.35)!important;}' +
-
-    /* Modal — светлый */
-    '#crocus-modal{background:#fce8ef!important;}' +
-    '#crocus-modal-header{background:#f9dce7!important;border-bottom:1px solid rgba(192,52,104,.15)!important;}' +
-    '.crocus-modal-title{color:#1a0810!important;}' +
-    '.crocus-modal-sub{color:rgba(26,8,16,.45)!important;}' +
-    '#crocus-close{border-color:rgba(192,52,104,.20)!important;background:rgba(192,52,104,.07)!important;color:rgba(26,8,16,.45)!important;}' +
-    '#crocus-close:hover{background:rgba(192,52,104,.15)!important;color:#1a0810!important;}' +
-    '.crocus-modal-logo{background:rgba(192,52,104,.12)!important;border-color:rgba(192,52,104,.25)!important;filter:none!important;}' +
-
-    /* Progress */
-    '#crocus-progress{background:#f9dce7!important;border-bottom:1px solid rgba(192,52,104,.12)!important;}' +
-    '.cp-dot{background:rgba(26,8,16,.06)!important;border-color:rgba(26,8,16,.15)!important;color:rgba(26,8,16,.30)!important;}' +
-    '.cp-step.active .cp-dot{background:#c03468!important;border-color:#c03468!important;color:#fff!important;box-shadow:0 0 12px rgba(192,52,104,.40)!important;}' +
-    '.cp-step.done .cp-dot{background:rgba(192,52,104,.12)!important;border-color:#c03468!important;color:#c03468!important;}' +
-    '.cp-label{color:rgba(26,8,16,.30)!important;}' +
-    '.cp-step.active .cp-label,.cp-step.done .cp-label{color:rgba(26,8,16,.60)!important;}' +
-    '.cp-line{background:rgba(26,8,16,.08)!important;}' +
-    '.cp-line.filled{background:rgba(192,52,104,.30)!important;}' +
-
-    /* Body */
-    '#crocus-body{background:#fce8ef!important;scrollbar-color:rgba(192,52,104,.30) transparent!important;}' +
-    '#crocus-body::-webkit-scrollbar-thumb{background:rgba(192,52,104,.30)!important;}' +
-
-    /* Titles & text */
-    '.cw-title{color:#1a0810!important;}' +
-    '.cw-sub{color:rgba(26,8,16,.45)!important;}' +
-    '.cw-sub strong{color:#c03468!important;}' +
-    '.cw-back{color:rgba(26,8,16,.40)!important;}' +
-    '.cw-back:hover{color:#c03468!important;}' +
-    '.cw-times-title{color:rgba(26,8,16,.40)!important;}' +
-
-    /* Master cards */
-    '.cw-master-card{background:#fff!important;border-color:rgba(26,8,16,.08)!important;}' +
-    '.cw-master-card:hover{border-color:rgba(192,52,104,.35)!important;background:#fff!important;box-shadow:0 8px 28px rgba(192,52,104,.15)!important;}' +
-    '.cw-master-name{color:#1a0810!important;}' +
-    '.cw-master-tagline{color:rgba(26,8,16,.50)!important;}' +
-    '.cw-master-bio{color:rgba(26,8,16,.55)!important;}' +
-    '.cw-skill-tag{color:rgba(26,8,16,.45)!important;background:rgba(192,52,104,.07)!important;border-color:rgba(192,52,104,.15)!important;}' +
-
-    /* Category cards */
-    '.cw-cat-card{background:#fff!important;border-color:rgba(26,8,16,.08)!important;}' +
-    '.cw-cat-card:hover{border-color:rgba(192,52,104,.40)!important;background:#fff!important;box-shadow:0 6px 22px rgba(192,52,104,.14)!important;}' +
-    '.cw-cat-label{color:#1a0810!important;}' +
-    '.cw-cat-desc{color:rgba(26,8,16,.45)!important;}' +
-    '.cw-cat-arrow{color:rgba(26,8,16,.25)!important;}' +
-
-    /* Service buttons */
-    '.cw-svc-btn{background:#fff!important;border-color:rgba(26,8,16,.08)!important;}' +
-    '.cw-svc-btn:hover{border-color:rgba(192,52,104,.40)!important;background:#fff!important;}' +
-    '.cw-svc-name{color:#1a0810!important;}' +
-    '.cw-svc-dur{color:rgba(26,8,16,.38)!important;}' +
-    '.cw-svc-price{color:#c03468!important;}' +
-
-    /* Addons */
-    '.cw-addon-btn{background:#fff!important;border-color:rgba(26,8,16,.08)!important;}' +
-    '.cw-addon-btn:hover{border-color:rgba(192,52,104,.35)!important;background:#fff!important;}' +
-    '.cw-addon-btn.sel{border-color:#c03468!important;background:rgba(192,52,104,.06)!important;}' +
-    '.cw-addon-check{background:rgba(26,8,16,.05)!important;border-color:rgba(26,8,16,.18)!important;}' +
-    '.cw-addon-btn.sel .cw-addon-check{background:#c03468!important;border-color:#c03468!important;color:#fff!important;}' +
-    '.cw-addon-name{color:#1a0810!important;}' +
-    '.cw-addon-price{color:rgba(192,52,104,.80)!important;}' +
-    '.cw-skip-btn{border-color:rgba(26,8,16,.15)!important;color:rgba(26,8,16,.40)!important;}' +
-    '.cw-skip-btn:hover{border-color:rgba(26,8,16,.30)!important;color:rgba(26,8,16,.65)!important;}' +
-
-    /* Calendar */
-    '.cw-calendar{background:#fff!important;border-color:rgba(26,8,16,.08)!important;}' +
-    '.cw-cal-nav{border-bottom-color:rgba(26,8,16,.07)!important;}' +
-    '.cw-cal-nav span{color:#1a0810!important;}' +
-    '.cw-cal-nav button{color:rgba(26,8,16,.40)!important;}' +
-    '.cw-cal-nav button:hover{background:rgba(192,52,104,.08)!important;color:#1a0810!important;}' +
-    '.cw-dow{color:rgba(26,8,16,.30)!important;}' +
-    '.cw-day{color:rgba(26,8,16,.55)!important;}' +
-    '.cw-day.past,.cw-day.unavail{color:rgba(26,8,16,.18)!important;}' +
-    '.cw-day.avail:hover{background:rgba(192,52,104,.12)!important;color:#1a0810!important;}' +
-    '.cw-day.sel{background:#c03468!important;color:#fff!important;box-shadow:0 0 13px rgba(192,52,104,.35)!important;}' +
-    '.cw-day.avail::after{background:#c03468!important;}' +
-    '.cw-day.sel::after{background:#fff!important;}' +
-    '.cw-time{background:rgba(26,8,16,.04)!important;border-color:rgba(26,8,16,.08)!important;color:rgba(26,8,16,.60)!important;}' +
-    '.cw-time.free:hover{border-color:rgba(192,52,104,.45)!important;background:rgba(192,52,104,.10)!important;color:#1a0810!important;}' +
-    '.cw-time.sel{background:#c03468!important;border-color:#c03468!important;color:#fff!important;box-shadow:0 0 11px rgba(192,52,104,.35)!important;}' +
-
-    /* Loader / Error */
-    '.cw-loader-text{color:rgba(26,8,16,.40)!important;}' +
-    '.cw-spinner{border-color:rgba(192,52,104,.18)!important;border-top-color:#c03468!important;}' +
-
-    /* Summary & form */
-    '.cw-summary{background:#fff!important;border-color:rgba(192,52,104,.18)!important;}' +
-    '.cw-sum-row span{color:rgba(26,8,16,.38)!important;}' +
-    '.cw-sum-row strong{color:#1a0810!important;}' +
-    '.cw-sum-price strong{color:#c03468!important;}' +
-    '.cw-field label{color:rgba(26,8,16,.45)!important;}' +
-    '.cw-field input{background:rgba(26,8,16,.04)!important;border-color:rgba(26,8,16,.10)!important;color:#1a0810!important;}' +
-    '.cw-field input::placeholder{color:rgba(26,8,16,.25)!important;}' +
-    '.cw-field input:focus{border-color:rgba(192,52,104,.50)!important;background:#fff!important;}' +
-    '.cw-btn-confirm{background:linear-gradient(135deg,#c03468 0%,#96204e 100%)!important;box-shadow:0 6px 22px rgba(192,52,104,.35)!important;}' +
-    '.cw-btn-confirm:hover:not(:disabled){box-shadow:0 10px 30px rgba(192,52,104,.52)!important;}' +
-    '.cw-form-note{color:rgba(26,8,16,.30)!important;}' +
-
-    /* Success */
-    '.cw-success-icon{background:rgba(192,52,104,.08)!important;border-color:rgba(192,52,104,.25)!important;color:#c03468!important;}' +
-    '.cw-success h2{color:#1a0810!important;}' +
-    '.cw-success p{color:rgba(26,8,16,.50)!important;}' +
-    '.cw-success p strong{color:#1a0810!important;}' +
-    '.cw-btn-new{background:rgba(26,8,16,.05)!important;border-color:rgba(26,8,16,.10)!important;color:rgba(26,8,16,.55)!important;}' +
-    '.cw-btn-new:hover{background:rgba(26,8,16,.09)!important;color:#1a0810!important;}' +
-
-    /* Backdrop */
-    '#crocus-backdrop{background:rgba(180,100,130,.35)!important;}';
-
-  function injectTheme(){
-    var old = document.getElementById('crocus-page-theme');
-    if (old) return; // уже есть
-    var s = document.createElement('style');
-    s.id = 'crocus-page-theme';
-    s.textContent = override;
-    document.head.appendChild(s);
-  }
-
-  if (document.head) injectTheme();
-  document.addEventListener('DOMContentLoaded', injectTheme);
-  setTimeout(injectTheme, 100);
-  setTimeout(injectTheme, 500);
-})();
-
-// ── CRL2 MASTER SELECT + REVEAL ─────────────────────────────────────────────
-(function(){
-  var MASTER_INFO = {
-    nelia: {
-      badge: '✦ Master · Crocus Beauty',
-      title: 'Maniküristin <em>Nelia</em>',
-      sub: 'Ausgebildet nach den Standards von Diana — gleiche Technik, attraktiverer Preis.',
-      points: [
-        'Präzise Technik nach Diana-Standard',
-        'Saubere und sorgfältige Arbeit',
-        'Perfekte Nagelarchitektur',
-        'Sterilisierte Instrumente'
-      ],
-      note: 'Ideale Wahl für Premium-Qualität zum besseren Preis-Leistungs-Verhältnis.'
-    },
-    diana: {
-      badge: '💎 Top-Master · Crocus Beauty',
-      title: 'Meisterin <em>Diana</em>',
-      sub: 'Führende Spezialistin mit über 10 Jahren Erfahrung. Standards setzen — nicht ihnen folgen.',
-      points: [
-        'Medizinische Präzision & Hygiene',
-        'Nagelverlängerung & komplexes Design',
-        'Perfekt beim ersten Termin — ohne Nachbesserungen',
-        'Stil, Eleganz & Selbstbewusstsein'
-      ],
-      note: 'Sie macht nicht einfach Maniküre — sie kreiert ein Gesamtbild.'
-    }
-  };
-
-  function openMasterInfo(key) {
-    var d = MASTER_INFO[key]; if (!d) return;
-    var dotColor = key === 'diana' ? '#c9a87c' : '#7B2D4E';
-    var h = '';
-    h += '<span class="crl2-popup__badge">' + d.badge + '</span>';
-    h += '<div class="crl2-popup__title">' + d.title + '</div>';
-    h += '<p class="crl2-popup__sub">' + d.sub + '</p>';
-    h += '<div style="display:flex;flex-direction:column;gap:7px;margin-bottom:18px;">';
-    d.points.forEach(function(p){
-      h += '<div style="display:flex;align-items:center;gap:8px;font-family:\'DM Sans\',sans-serif;font-size:12px;color:rgba(26,13,18,0.68);">'
-        + '<span style="width:4px;height:4px;border-radius:50%;background:' + dotColor + ';flex-shrink:0;display:inline-block;"></span>' + p + '</div>';
-    });
-    h += '</div>';
-    h += '<p style="font-family:\'DM Sans\',sans-serif;font-size:12px;color:rgba(26,13,18,0.42);font-style:italic;line-height:1.6;margin-bottom:20px;">' + d.note + '</p>';
-    h += '<button class="crl2-popup__cta-btn" data-crl2-select="' + key + '" style="border:none;cursor:pointer;">Preise ansehen</button>';
-
-    var minfoCont = document.getElementById('crl2-minfo-content');
-    var minfoOv   = document.getElementById('crl2-minfo-overlay');
-    if (!minfoCont || !minfoOv) return;
-    minfoCont.innerHTML = h;
-    minfoOv.classList.add('crl2-open');
-    document.body.style.overflow = 'hidden';
-  }
-
-  function selectMaster(key) {
-    // карточки
-    document.querySelectorAll('[data-crl2-master]').forEach(function(el){
-      el.classList.toggle('crl2__mc-btn--active', el.getAttribute('data-crl2-master') === key);
-    });
-    // стрелки
-    document.querySelectorAll('[data-crl2-hint]').forEach(function(el){
-      el.classList.toggle('crl2__mc-prices-hint--active', el.getAttribute('data-crl2-hint') === key);
-    });
-    // панели
-    document.querySelectorAll('.crl2__sub-panel').forEach(function(p){ p.classList.remove('crl2__sub-panel--active'); });
-    var panel = document.getElementById('crl2-sub-' + key);
-    if (panel) panel.classList.add('crl2__sub-panel--active');
-    // reveal
-    var reveal = document.getElementById('crl2-reveal');
-    if (reveal) {
-      reveal.classList.add('crl2__reveal--open');
-      // скролл до прайса с небольшой задержкой (ждём открытия)
-      setTimeout(function(){
-        reveal.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }, 80);
-    }
-  }
-
-  function init() {
-    // клик на карточку мастера
-    document.addEventListener('click', function(e) {
-      // карточка мастера
-      var mc = e.target.closest('[data-crl2-master]');
-      if (mc) {
-        var about = e.target.closest('[data-crl2-about]');
-        if (about) {
-          openMasterInfo(about.getAttribute('data-crl2-about'));
-        } else {
-          selectMaster(mc.getAttribute('data-crl2-master'));
-        }
-        return;
-      }
-      // кнопка "Preise ansehen" внутри попапа
-      var sel = e.target.closest('[data-crl2-select]');
-      if (sel) {
-        var k = sel.getAttribute('data-crl2-select');
-        var ov = document.getElementById('crl2-minfo-overlay');
-        if (ov) { ov.classList.remove('crl2-open'); document.body.style.overflow = ''; }
-        selectMaster(k);
-        return;
-      }
-      // закрыть инфо-оверлей по клику на фон
-      var minfoOv = document.getElementById('crl2-minfo-overlay');
-      if (minfoOv && e.target === minfoOv) {
-        minfoOv.classList.remove('crl2-open');
-        document.body.style.overflow = '';
-      }
-    });
-
-    // main tabs (Maniküre / Wimpern)
-    document.addEventListener('click', function(e) {
-      var tab = e.target.closest('[data-crl2-main]');
-      if (!tab) return;
-      var key = tab.getAttribute('data-crl2-main');
-      document.querySelectorAll('[data-crl2-main]').forEach(function(t){
-        t.classList.toggle('crl2__main-tab--active', t === tab);
-        t.setAttribute('aria-selected', t === tab ? 'true' : 'false');
-      });
-      document.querySelectorAll('.crl2__main-panel').forEach(function(p){ p.classList.remove('crl2__main-panel--active'); });
-      var panel = document.getElementById('crl2-panel-' + key);
-      if (panel) panel.classList.add('crl2__main-panel--active');
-    });
-  }
-
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', init);
-  } else {
-    init();
-  }
-  setTimeout(init, 300);
-  setTimeout(init, 800);
-})();
 
 })();
