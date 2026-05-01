@@ -1232,31 +1232,31 @@ if (document.readyState === 'loading') {
     var h = '';
 
     // ── Шапка с фото ──────────────────────────────────────────────────────
-    h += '<div class="crl2-minfo-header" style="margin:-38px -34px 24px;background:' + headerBg + ';border-radius:16px 16px 0 0;overflow:hidden;position:relative;">';
+    h += '<div style="position:relative;border-radius:22px 22px 0 0;overflow:hidden;">';
     if (photo) {
-      h += '<img src="' + photo + '" alt="' + key + '" style="width:100%;height:220px;object-fit:cover;object-position:top center;display:block;opacity:0.82;">';
+      h += '<img src="' + photo + '" alt="' + key + '" style="width:100%;height:260px;object-fit:cover;object-position:top center;display:block;">';
     }
-    // Градиент снизу фото
-    h += '<div style="position:absolute;bottom:0;left:0;right:0;height:110px;background:linear-gradient(to top,rgba(26,13,18,0.95) 0%,transparent 100%);"></div>';
-    // Бейдж + имя поверх фото
-    h += '<div style="position:absolute;bottom:18px;left:22px;right:22px;">';
-    h += '<span style="display:inline-block;font-family:\'DM Sans\',sans-serif;font-size:8px;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;color:' + accent + ';background:rgba(26,13,18,0.6);border:1px solid ' + accentBorder + ';padding:3px 10px;border-radius:50px;margin-bottom:7px;backdrop-filter:blur(4px);">' + d.badge + '</span><br>';
-    h += '<div style="font-family:\'Cormorant Garamond\',Georgia,serif;font-size:34px;font-weight:300;color:#fff;letter-spacing:-0.02em;line-height:1.05;">' + d.title + '</div>';
-    h += '<p style="font-family:\'DM Sans\',sans-serif;font-size:10px;font-weight:500;letter-spacing:0.07em;text-transform:uppercase;color:rgba(255,255,255,0.5);margin:4px 0 0;">' + d.sub + '</p>';
-    h += '</div>';
-    h += '</div>';
+    h += '<div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(10,3,12,0.92) 0%,rgba(10,3,12,0.30) 55%,transparent 100%);"></div>';
+    h += '<div style="position:absolute;bottom:20px;left:24px;right:24px;">';
+    h += '<span style="display:inline-block;font-family:\'DM Sans\',sans-serif;font-size:8px;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;color:' + accent + ';background:rgba(10,3,12,0.65);border:1px solid ' + accentBorder + ';padding:3px 10px;border-radius:50px;margin-bottom:8px;backdrop-filter:blur(4px);">' + d.badge + '</span><br>';
+    h += '<div style="font-family:\'Cormorant Garamond\',Georgia,serif;font-size:36px;font-weight:300;color:#fff;letter-spacing:-0.02em;line-height:1;">' + d.title + '</div>';
+    h += '<p style="font-family:\'DM Sans\',sans-serif;font-size:9.5px;font-weight:500;letter-spacing:0.08em;text-transform:uppercase;color:rgba(255,255,255,0.45);margin:5px 0 0;">' + d.sub + '</p>';
+    h += '</div></div>';
 
-    // ── Секции ────────────────────────────────────────────────────────────
+    // ── Контент ────────────────────────────────────────────────────────────
+    h += '<div style="padding:24px 24px 28px;box-sizing:border-box;">';
+
+    // Секции
     d.sections.forEach(function(s, i){
-      if (i > 0) h += '<div style="height:1px;background:linear-gradient(to right,' + accentBorder + ',transparent);margin:16px 0;"></div>';
-      h += '<div style="font-family:\'DM Sans\',sans-serif;font-size:8.5px;font-weight:700;letter-spacing:0.17em;text-transform:uppercase;color:' + accent + ';margin-bottom:7px;">' + s.heading + '</div>';
+      if (i > 0) h += '<div style="height:1px;background:linear-gradient(to right,' + accentBorder + ',transparent);margin:18px 0;"></div>';
+      h += '<div style="font-family:\'DM Sans\',sans-serif;font-size:8.5px;font-weight:700;letter-spacing:0.17em;text-transform:uppercase;color:' + accent + ';margin-bottom:8px;">' + s.heading + '</div>';
       if (s.text) {
-        h += '<p style="font-family:\'DM Sans\',sans-serif;font-size:13px;font-weight:300;color:rgba(26,13,18,0.70);line-height:1.72;margin:0;">' + s.text + '</p>';
+        h += '<p style="font-family:\'DM Sans\',sans-serif;font-size:13px;font-weight:300;color:rgba(255,220,200,0.72);line-height:1.72;margin:0;">' + s.text + '</p>';
       }
       if (s.points) {
-        h += '<div style="display:flex;flex-direction:column;gap:6px;margin-top:' + (s.text ? '9px' : '0') + ';">';
+        h += '<div style="display:flex;flex-direction:column;gap:7px;margin-top:' + (s.text ? '10px' : '0') + ';">';
         s.points.forEach(function(p){
-          h += '<div style="display:flex;align-items:flex-start;gap:11px;font-family:\'DM Sans\',sans-serif;font-size:12.5px;color:rgba(26,13,18,0.72);line-height:1.5;">'
+          h += '<div style="display:flex;align-items:flex-start;gap:11px;font-family:\'DM Sans\',sans-serif;font-size:12.5px;color:rgba(255,230,210,0.75);line-height:1.5;">'
             + '<span style="width:18px;height:18px;border-radius:50%;background:' + accentLight + ';border:1px solid ' + accentBorder + ';flex-shrink:0;display:flex;align-items:center;justify-content:center;margin-top:1px;">'
             + '<span style="width:5px;height:5px;border-radius:50%;background:' + accent + ';display:block;"></span></span>'
             + '<span>' + p + '</span></div>';
@@ -1267,15 +1267,14 @@ if (document.readyState === 'loading') {
 
     // ── CTA ───────────────────────────────────────────────────────────────
     h += '<div style="margin-top:24px;padding-top:20px;border-top:1px solid ' + accentBorder + ';display:flex;flex-direction:column;gap:8px;">';
-    // Кнопка 1 — Termin buchen (закрывает minfo, открывает виджет)
-    h += '<button data-crl2-minfo-book style="width:100%;padding:13px 20px;border:none;border-radius:10px;cursor:pointer;font-family:\'DM Sans\',sans-serif;font-size:13px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:#fff;background:linear-gradient(135deg,#7B2D4E,#591c36);display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 4px 16px rgba(123,45,78,0.28);transition:opacity .18s;">'
+    h += '<button data-crl2-minfo-book style="width:100%;padding:14px 20px;border:none;border-radius:12px;cursor:pointer;font-family:\'DM Sans\',sans-serif;font-size:12px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:#fff;background:' + (isDiana ? 'linear-gradient(135deg,#c9a87c,#8c6020)' : 'linear-gradient(135deg,#9b3660,#7B2D4E)') + ';display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:' + (isDiana ? '0 4px 18px rgba(201,168,124,0.35)' : '0 4px 18px rgba(123,45,78,0.38)') + ';box-sizing:border-box;">'
       + '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" style="flex-shrink:0"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>'
       + 'Termin buchen</button>';
-    // Кнопка 2 — Preise ansehen (закрывает minfo, показывает прайс мастера)
-    h += '<button data-crl2-select="' + key + '" style="width:100%;padding:11px 20px;border:1.5px solid ' + accentBorder + ';border-radius:10px;cursor:pointer;font-family:\'DM Sans\',sans-serif;font-size:12px;font-weight:600;letter-spacing:0.04em;color:' + accent + ';background:transparent;display:flex;align-items:center;justify-content:center;gap:8px;transition:opacity .18s;">'
+    h += '<button data-crl2-select="' + key + '" style="width:100%;padding:12px 20px;border:1.5px solid ' + accentBorder + ';border-radius:12px;cursor:pointer;font-family:\'DM Sans\',sans-serif;font-size:12px;font-weight:600;letter-spacing:0.04em;color:' + accent + ';background:transparent;display:flex;align-items:center;justify-content:center;gap:8px;box-sizing:border-box;">'
       + '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0"><path d="M21 8.5A8.38 8.38 0 0 0 5 12a8.38 8.38 0 0 0 16 3.5M3 12h13"/></svg>'
       + 'Preise ansehen</button>';
     h += '</div>';
+    h += '</div>'; // /контент
 
     var minfoCont = document.getElementById('crl2-minfo-content');
     var minfoOv   = document.getElementById('crl2-minfo-overlay');
