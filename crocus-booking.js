@@ -1266,9 +1266,14 @@ if (document.readyState === 'loading') {
     });
 
     // ── CTA ───────────────────────────────────────────────────────────────
-    h += '<div style="margin-top:24px;padding-top:20px;border-top:1px solid ' + accentBorder + ';">';
-    h += '<button data-crl2-select="' + key + '" style="width:100%;padding:13px 20px;border:none;border-radius:10px;cursor:pointer;font-family:\'DM Sans\',sans-serif;font-size:13px;font-weight:600;letter-spacing:0.04em;color:#fff;background:' + (isDiana ? 'linear-gradient(135deg,#c9a87c,#8c6020)' : 'linear-gradient(135deg,#9b3660,#7B2D4E)') + ';display:flex;align-items:center;justify-content:center;gap:8px;transition:opacity .18s;">'
-      + '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0"><path d="M21 8.5A8.38 8.38 0 0 0 5 12a8.38 8.38 0 0 0 16 3.5M3 12h13"/></svg>'
+    h += '<div style="margin-top:24px;padding-top:20px;border-top:1px solid ' + accentBorder + ';display:flex;flex-direction:column;gap:8px;">';
+    // Кнопка 1 — Termin buchen (закрывает minfo, открывает виджет)
+    h += '<button data-crl2-minfo-book style="width:100%;padding:13px 20px;border:none;border-radius:10px;cursor:pointer;font-family:\'DM Sans\',sans-serif;font-size:13px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:#fff;background:linear-gradient(135deg,#7B2D4E,#591c36);display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 4px 16px rgba(123,45,78,0.28);transition:opacity .18s;">'
+      + '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" style="flex-shrink:0"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>'
+      + 'Termin buchen</button>';
+    // Кнопка 2 — Preise ansehen (закрывает minfo, показывает прайс мастера)
+    h += '<button data-crl2-select="' + key + '" style="width:100%;padding:11px 20px;border:1.5px solid ' + accentBorder + ';border-radius:10px;cursor:pointer;font-family:\'DM Sans\',sans-serif;font-size:12px;font-weight:600;letter-spacing:0.04em;color:' + accent + ';background:transparent;display:flex;align-items:center;justify-content:center;gap:8px;transition:opacity .18s;">'
+      + '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0"><path d="M21 8.5A8.38 8.38 0 0 0 5 12a8.38 8.38 0 0 0 16 3.5M3 12h13"/></svg>'
       + 'Preise ansehen</button>';
     h += '</div>';
 
@@ -1324,6 +1329,12 @@ if (document.readyState === 'loading') {
 
     // клик на карточку мастера + кнопки внутри minfo
     document.addEventListener('click', function(e) {
+      // "Termin buchen" внутри minfo попапа
+      if (e.target.closest('[data-crl2-minfo-book]')) {
+        closeMinfo();
+        if (typeof crocusOpen === 'function') crocusOpen();
+        return;
+      }
       // "Preise ansehen" внутри minfo попапа
       var sel = e.target.closest('[data-crl2-select]');
       if (sel) {
