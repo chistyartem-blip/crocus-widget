@@ -1285,6 +1285,7 @@ if (document.readyState === 'loading') {
   }
 
   function selectMaster(key) {
+    if (!key) return;
     // карточки
     document.querySelectorAll('[data-crl2-master]').forEach(function(el){
       el.classList.toggle('crl2__mc-btn--active', el.getAttribute('data-crl2-master') === key);
@@ -1366,6 +1367,19 @@ if (document.readyState === 'loading') {
       document.querySelectorAll('.crl2__main-panel').forEach(function(p){ p.classList.remove('crl2__main-panel--active'); });
       var panel = document.getElementById('crl2-panel-' + key);
       if (panel) panel.classList.add('crl2__main-panel--active');
+
+      // переключаем карточки мастеров в mc-grid
+      var isMani = (key === 'mani' || key === 'manikuere' || key === 'maniküre');
+      var isWimpern = (key === 'wimpern');
+      document.querySelectorAll('.crl2__mc-card--mani').forEach(function(c){ c.style.display = isMani ? '' : 'none'; });
+      document.querySelectorAll('.crl2__mc-card--wimpern').forEach(function(c){ c.style.display = isWimpern ? '' : 'none'; });
+
+      // сбросить reveal и активную карточку
+      var reveal = document.getElementById('crl2-reveal');
+      if (reveal) reveal.classList.remove('crl2__reveal--open');
+      document.querySelectorAll('[data-crl2-master]').forEach(function(el){ el.classList.remove('crl2__mc-btn--active'); });
+      document.querySelectorAll('[data-crl2-hint]').forEach(function(el){ el.classList.remove('crl2__mc-prices-hint--active'); });
+      document.querySelectorAll('.crl2__sub-panel').forEach(function(p){ p.classList.remove('crl2__sub-panel--active'); });
     });
   }
 
