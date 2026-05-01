@@ -1234,7 +1234,7 @@ if (document.readyState === 'loading') {
     // ── Шапка с фото ──────────────────────────────────────────────────────
     h += '<div style="position:relative;border-radius:22px 22px 0 0;overflow:hidden;">';
     if (photo) {
-      h += '<img src="' + photo + '" alt="' + key + '" style="width:100%;height:260px;object-fit:cover;object-position:top center;display:block;">';
+      h += '<img src="' + photo + '" alt="' + key + '" style="width:100%;height:300px;object-fit:cover;object-position:center 20%;display:block;">';
     }
     h += '<div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(10,3,12,0.92) 0%,rgba(10,3,12,0.30) 55%,transparent 100%);"></div>';
     h += '<div style="position:absolute;bottom:20px;left:24px;right:24px;">';
