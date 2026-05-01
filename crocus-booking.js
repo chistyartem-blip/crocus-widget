@@ -1230,10 +1230,11 @@ if (document.readyState === 'loading') {
     var reveal = document.getElementById('crl2-reveal');
     if (reveal) {
       reveal.classList.add('crl2__reveal--open');
-      // скролл до прайса с небольшой задержкой (ждём открытия)
+      // скролл после завершения анимации max-height (550ms transition)
       setTimeout(function(){
-        reveal.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }, 80);
+        var top = reveal.getBoundingClientRect().top + window.pageYOffset - 24;
+        window.scrollTo({ top: top, behavior: 'smooth' });
+      }, 580);
     }
   }
 
