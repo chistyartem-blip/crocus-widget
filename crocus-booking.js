@@ -1213,45 +1213,63 @@ if (document.readyState === 'loading') {
     }
   };
 
+  var MASTER_PHOTO = {
+    nelia: 'https://static.tildacdn.com/tild6566-3434-4635-b363-656462633738/__2026-04-28_175455.png',
+    diana: 'https://static.tildacdn.com/tild3239-3933-4334-b362-386430646432/ChatGPT_Image_28__20.png'
+  };
+
   function openMasterInfo(key) {
     var d = MASTER_INFO[key]; if (!d) return;
     var isDiana = key === 'diana';
-    var accent  = isDiana ? '#c9a87c' : '#7B2D4E';
-    var accentBg = isDiana ? 'rgba(201,168,124,0.10)' : 'rgba(123,45,78,0.07)';
-    var accentBorder = isDiana ? 'rgba(201,168,124,0.30)' : 'rgba(123,45,78,0.15)';
+    var accent       = isDiana ? '#b8924a' : '#7B2D4E';
+    var accentLight  = isDiana ? 'rgba(201,168,124,0.13)' : 'rgba(123,45,78,0.08)';
+    var accentBorder = isDiana ? 'rgba(201,168,124,0.35)' : 'rgba(123,45,78,0.18)';
+    var headerBg     = isDiana
+      ? 'linear-gradient(160deg,#2a1f10 0%,#1a0d12 100%)'
+      : 'linear-gradient(160deg,#2a0d1a 0%,#1a0d12 100%)';
+    var photo = MASTER_PHOTO[key] || '';
 
     var h = '';
-    // Бейдж
-    h += '<span style="display:inline-block;font-family:\'DM Sans\',sans-serif;font-size:8px;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;color:' + accent + ';background:' + accentBg + ';border:1px solid ' + accentBorder + ';padding:4px 12px;border-radius:50px;margin-bottom:14px;">' + d.badge + '</span>';
-    // Имя
-    h += '<div style="font-family:\'Cormorant Garamond\',Georgia,serif;font-size:36px;font-weight:300;color:#1a0d12;letter-spacing:-0.03em;line-height:1.05;margin-bottom:6px;">' + d.title + '</div>';
-    // Подзаголовок
-    h += '<p style="font-family:\'DM Sans\',sans-serif;font-size:11px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:rgba(26,13,18,0.38);margin-bottom:24px;">' + d.sub + '</p>';
 
-    // Секции
+    // ── Шапка с фото ──────────────────────────────────────────────────────
+    h += '<div class="crl2-minfo-header" style="margin:-38px -34px 24px;background:' + headerBg + ';border-radius:16px 16px 0 0;overflow:hidden;position:relative;">';
+    if (photo) {
+      h += '<img src="' + photo + '" alt="' + key + '" style="width:100%;height:220px;object-fit:cover;object-position:top center;display:block;opacity:0.82;">';
+    }
+    // Градиент снизу фото
+    h += '<div style="position:absolute;bottom:0;left:0;right:0;height:110px;background:linear-gradient(to top,rgba(26,13,18,0.95) 0%,transparent 100%);"></div>';
+    // Бейдж + имя поверх фото
+    h += '<div style="position:absolute;bottom:18px;left:22px;right:22px;">';
+    h += '<span style="display:inline-block;font-family:\'DM Sans\',sans-serif;font-size:8px;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;color:' + accent + ';background:rgba(26,13,18,0.6);border:1px solid ' + accentBorder + ';padding:3px 10px;border-radius:50px;margin-bottom:7px;backdrop-filter:blur(4px);">' + d.badge + '</span><br>';
+    h += '<div style="font-family:\'Cormorant Garamond\',Georgia,serif;font-size:34px;font-weight:300;color:#fff;letter-spacing:-0.02em;line-height:1.05;">' + d.title + '</div>';
+    h += '<p style="font-family:\'DM Sans\',sans-serif;font-size:10px;font-weight:500;letter-spacing:0.07em;text-transform:uppercase;color:rgba(255,255,255,0.5);margin:4px 0 0;">' + d.sub + '</p>';
+    h += '</div>';
+    h += '</div>';
+
+    // ── Секции ────────────────────────────────────────────────────────────
     d.sections.forEach(function(s, i){
-      // Разделитель между секциями
-      if (i > 0) h += '<div style="height:1px;background:linear-gradient(to right,rgba(123,45,78,0.10),transparent);margin:18px 0;"></div>';
-      // Заголовок секции
-      h += '<div style="font-family:\'DM Sans\',sans-serif;font-size:9px;font-weight:700;letter-spacing:0.16em;text-transform:uppercase;color:' + accent + ';margin-bottom:8px;">' + s.heading + '</div>';
-      // Текст или список
+      if (i > 0) h += '<div style="height:1px;background:linear-gradient(to right,' + accentBorder + ',transparent);margin:16px 0;"></div>';
+      h += '<div style="font-family:\'DM Sans\',sans-serif;font-size:8.5px;font-weight:700;letter-spacing:0.17em;text-transform:uppercase;color:' + accent + ';margin-bottom:7px;">' + s.heading + '</div>';
       if (s.text) {
-        h += '<p style="font-family:\'DM Sans\',sans-serif;font-size:13px;font-weight:300;color:rgba(26,13,18,0.68);line-height:1.7;margin:0;">' + s.text + '</p>';
+        h += '<p style="font-family:\'DM Sans\',sans-serif;font-size:13px;font-weight:300;color:rgba(26,13,18,0.70);line-height:1.72;margin:0;">' + s.text + '</p>';
       }
       if (s.points) {
-        h += '<div style="display:flex;flex-direction:column;gap:7px;margin-top:' + (s.text ? '10px' : '0') + ';">';
+        h += '<div style="display:flex;flex-direction:column;gap:6px;margin-top:' + (s.text ? '9px' : '0') + ';">';
         s.points.forEach(function(p){
-          h += '<div style="display:flex;align-items:flex-start;gap:10px;font-family:\'DM Sans\',sans-serif;font-size:12.5px;color:rgba(26,13,18,0.72);line-height:1.5;">'
-            + '<span style="width:5px;height:5px;border-radius:50%;background:' + accent + ';flex-shrink:0;margin-top:6px;display:inline-block;"></span>'
+          h += '<div style="display:flex;align-items:flex-start;gap:11px;font-family:\'DM Sans\',sans-serif;font-size:12.5px;color:rgba(26,13,18,0.72);line-height:1.5;">'
+            + '<span style="width:18px;height:18px;border-radius:50%;background:' + accentLight + ';border:1px solid ' + accentBorder + ';flex-shrink:0;display:flex;align-items:center;justify-content:center;margin-top:1px;">'
+            + '<span style="width:5px;height:5px;border-radius:50%;background:' + accent + ';display:block;"></span></span>'
             + '<span>' + p + '</span></div>';
         });
         h += '</div>';
       }
     });
 
-    // CTA
-    h += '<div style="margin-top:26px;">';
-    h += '<button class="crl2-popup__cta-btn" data-crl2-select="' + key + '" style="border:none;cursor:pointer;' + (isDiana ? 'background:linear-gradient(135deg,#c9a87c,#8c6020);' : '') + '">Preise ansehen</button>';
+    // ── CTA ───────────────────────────────────────────────────────────────
+    h += '<div style="margin-top:24px;padding-top:20px;border-top:1px solid ' + accentBorder + ';">';
+    h += '<button data-crl2-select="' + key + '" style="width:100%;padding:13px 20px;border:none;border-radius:10px;cursor:pointer;font-family:\'DM Sans\',sans-serif;font-size:13px;font-weight:600;letter-spacing:0.04em;color:#fff;background:' + (isDiana ? 'linear-gradient(135deg,#c9a87c,#8c6020)' : 'linear-gradient(135deg,#9b3660,#7B2D4E)') + ';display:flex;align-items:center;justify-content:center;gap:8px;transition:opacity .18s;">'
+      + '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0"><path d="M21 8.5A8.38 8.38 0 0 0 5 12a8.38 8.38 0 0 0 16 3.5M3 12h13"/></svg>'
+      + 'Preise ansehen</button>';
     h += '</div>';
 
     var minfoCont = document.getElementById('crl2-minfo-content');
@@ -1287,9 +1305,32 @@ if (document.readyState === 'loading') {
     }
   }
 
+  var _initDone = false;
   function init() {
-    // клик на карточку мастера
+    if (_initDone) return;
+    _initDone = true;
+
+    // закрыть minfo попап — прямой обработчик на крестик и фон
+    function closeMinfo() {
+      var ov = document.getElementById('crl2-minfo-overlay');
+      if (ov) { ov.classList.remove('crl2-open'); document.body.style.overflow = ''; }
+    }
+    var minfoOverlay = document.getElementById('crl2-minfo-overlay');
+    if (minfoOverlay) {
+      minfoOverlay.addEventListener('click', function(e) {
+        if (e.target === minfoOverlay || e.target.closest('[data-crl2-minfo-close]')) closeMinfo();
+      });
+    }
+
+    // клик на карточку мастера + кнопки внутри minfo
     document.addEventListener('click', function(e) {
+      // "Preise ansehen" внутри minfo попапа
+      var sel = e.target.closest('[data-crl2-select]');
+      if (sel) {
+        closeMinfo();
+        selectMaster(sel.getAttribute('data-crl2-select'));
+        return;
+      }
       // карточка мастера
       var mc = e.target.closest('[data-crl2-master]');
       if (mc) {
@@ -1299,22 +1340,6 @@ if (document.readyState === 'loading') {
         } else {
           selectMaster(mc.getAttribute('data-crl2-master'));
         }
-        return;
-      }
-      // кнопка "Preise ansehen" внутри попапа
-      var sel = e.target.closest('[data-crl2-select]');
-      if (sel) {
-        var k = sel.getAttribute('data-crl2-select');
-        var ov = document.getElementById('crl2-minfo-overlay');
-        if (ov) { ov.classList.remove('crl2-open'); document.body.style.overflow = ''; }
-        selectMaster(k);
-        return;
-      }
-      // закрыть инфо-оверлей по клику на фон
-      var minfoOv = document.getElementById('crl2-minfo-overlay');
-      if (minfoOv && (e.target === minfoOv || e.target.closest('[data-crl2-minfo-close]'))) {
-        minfoOv.classList.remove('crl2-open');
-        document.body.style.overflow = '';
         return;
       }
     });
