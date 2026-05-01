@@ -1024,8 +1024,8 @@ if (document.readyState === 'loading') {
   // Главная страница — чуть светлее фон виджета
   var isHome = (path === '/' || path === '');
   if (isHome) {
-    var homeOverride = '#crocus-modal{background:#5b3c4f!important;}' +
-      '#crocus-body{background:#5b3c4f!important;}' +
+    var homeOverride = '#crocus-modal{background:#2d1520!important;}' +
+      '#crocus-body{background:#2d1520!important;}' +
       '#crocus-modal-header{background:rgba(255,255,255,0.04)!important;}';
     function injectHomeTheme(){
       if (document.getElementById('crocus-home-theme')) return;
