@@ -1164,46 +1164,95 @@ if (document.readyState === 'loading') {
 (function(){
   var MASTER_INFO = {
     nelia: {
-      badge: '✦ Master · Crocus Beauty',
-      title: 'Maniküristin <em>Nelia</em>',
-      sub: 'Ausgebildet nach den Standards von Diana — gleiche Technik, attraktiverer Preis.',
-      points: [
-        'Präzise Technik nach Diana-Standard',
-        'Saubere und sorgfältige Arbeit',
-        'Perfekte Nagelarchitektur',
-        'Sterilisierte Instrumente'
-      ],
-      note: 'Ideale Wahl für Premium-Qualität zum besseren Preis-Leistungs-Verhältnis.'
+      badge: '✦ Master · Crocus Beauty Studio',
+      title: '<em>Nelia</em>',
+      sub: 'Ausgebildete Fachkraft · Gleiche Technik · Attraktiver Preis',
+      sections: [
+        {
+          heading: 'Ausgebildet von Diana — nach denselben Standards',
+          text: 'Nelia ist nicht einfach eine Mitarbeiterin — sie wurde persönlich von Diana ausgebildet und arbeitet vollständig nach deren Methoden, Techniken und Qualitätsprinzipien. Jede Behandlung folgt den Standards von Crocus Beauty Studio.'
+        },
+        {
+          heading: 'Was dich erwartet',
+          points: [
+            'Präzise Technik nach Diana-Standard',
+            'Saubere, sorgfältige Arbeit auf hohem Niveau',
+            'Perfekte Nagelarchitektur & modernes Design',
+            'Sterilisierte Instrumente — Hygiene auf medizinischem Niveau'
+          ]
+        },
+        {
+          heading: 'Warum Nelia wählen?',
+          text: 'Der Unterschied zu Diana liegt hauptsächlich in der Erfahrung und Arbeitsgeschwindigkeit — was sich direkt im Preis widerspiegelt. Die ideale Wahl für Kundinnen, die Premium-Qualität zu einem besseren Preis-Leistungs-Verhältnis suchen. Kein Kompromiss bei der Qualität — nur ein fairerer Einstieg.'
+        }
+      ]
     },
     diana: {
-      badge: '💎 Top-Master · Crocus Beauty',
-      title: 'Meisterin <em>Diana</em>',
-      sub: 'Führende Spezialistin mit über 10 Jahren Erfahrung. Standards setzen — nicht ihnen folgen.',
-      points: [
-        'Medizinische Präzision & Hygiene',
-        'Nagelverlängerung & komplexes Design',
-        'Perfekt beim ersten Termin — ohne Nachbesserungen',
-        'Stil, Eleganz & Selbstbewusstsein'
-      ],
-      note: 'Sie macht nicht einfach Maniküre — sie kreiert ein Gesamtbild.'
+      badge: '💎 Top-Master · Crocus Beauty Studio',
+      title: '<em>Diana</em>',
+      sub: 'Führende Spezialistin · 10+ Jahre · Standards setzen, nicht folgen',
+      sections: [
+        {
+          heading: 'Die Meisterin hinter Crocus Beauty',
+          text: 'Diana ist die führende Spezialistin im Crocus Beauty Studio mit über 10 Jahren Erfahrung im Bereich Nageldesign und ästhetische Kosmetik. Sie ist eine Expertin, die Standards setzt — nicht ihnen folgt. Tausende zufriedene Kundinnen, perfektionierte Techniken und ein ausgeprägtes Gefühl für Form, Farbe und Stil zeichnen ihre Arbeit aus.'
+        },
+        {
+          heading: 'Was jede Behandlung auszeichnet',
+          points: [
+            'Perfekte Nagelarchitektur — beim ersten Termin, ohne Nachbesserungen',
+            'Hygienische Präzision auf medizinischem Niveau',
+            'Nagelverlängerung, komplexes Design & Premium-Ästhetik',
+            'Schnell, exakt und kompromisslos in der Qualität'
+          ]
+        },
+        {
+          heading: 'Mehr als Maniküre',
+          text: 'Kundinnen wählen Diana, wenn sie ein Ergebnis auf höchstem Niveau erwarten. Sie macht nicht einfach Maniküre — sie kreiert ein Gesamtbild, das Stil, Eleganz und Selbstbewusstsein unterstreicht.'
+        }
+      ]
     }
   };
 
   function openMasterInfo(key) {
     var d = MASTER_INFO[key]; if (!d) return;
-    var dotColor = key === 'diana' ? '#c9a87c' : '#7B2D4E';
+    var isDiana = key === 'diana';
+    var accent  = isDiana ? '#c9a87c' : '#7B2D4E';
+    var accentBg = isDiana ? 'rgba(201,168,124,0.10)' : 'rgba(123,45,78,0.07)';
+    var accentBorder = isDiana ? 'rgba(201,168,124,0.30)' : 'rgba(123,45,78,0.15)';
+
     var h = '';
-    h += '<span class="crl2-popup__badge">' + d.badge + '</span>';
-    h += '<div class="crl2-popup__title">' + d.title + '</div>';
-    h += '<p class="crl2-popup__sub">' + d.sub + '</p>';
-    h += '<div style="display:flex;flex-direction:column;gap:7px;margin-bottom:18px;">';
-    d.points.forEach(function(p){
-      h += '<div style="display:flex;align-items:center;gap:8px;font-family:\'DM Sans\',sans-serif;font-size:12px;color:rgba(26,13,18,0.68);">'
-        + '<span style="width:4px;height:4px;border-radius:50%;background:' + dotColor + ';flex-shrink:0;display:inline-block;"></span>' + p + '</div>';
+    // Бейдж
+    h += '<span style="display:inline-block;font-family:\'DM Sans\',sans-serif;font-size:8px;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;color:' + accent + ';background:' + accentBg + ';border:1px solid ' + accentBorder + ';padding:4px 12px;border-radius:50px;margin-bottom:14px;">' + d.badge + '</span>';
+    // Имя
+    h += '<div style="font-family:\'Cormorant Garamond\',Georgia,serif;font-size:36px;font-weight:300;color:#1a0d12;letter-spacing:-0.03em;line-height:1.05;margin-bottom:6px;">' + d.title + '</div>';
+    // Подзаголовок
+    h += '<p style="font-family:\'DM Sans\',sans-serif;font-size:11px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:rgba(26,13,18,0.38);margin-bottom:24px;">' + d.sub + '</p>';
+
+    // Секции
+    d.sections.forEach(function(s, i){
+      // Разделитель между секциями
+      if (i > 0) h += '<div style="height:1px;background:linear-gradient(to right,rgba(123,45,78,0.10),transparent);margin:18px 0;"></div>';
+      // Заголовок секции
+      h += '<div style="font-family:\'DM Sans\',sans-serif;font-size:9px;font-weight:700;letter-spacing:0.16em;text-transform:uppercase;color:' + accent + ';margin-bottom:8px;">' + s.heading + '</div>';
+      // Текст или список
+      if (s.text) {
+        h += '<p style="font-family:\'DM Sans\',sans-serif;font-size:13px;font-weight:300;color:rgba(26,13,18,0.68);line-height:1.7;margin:0;">' + s.text + '</p>';
+      }
+      if (s.points) {
+        h += '<div style="display:flex;flex-direction:column;gap:7px;margin-top:' + (s.text ? '10px' : '0') + ';">';
+        s.points.forEach(function(p){
+          h += '<div style="display:flex;align-items:flex-start;gap:10px;font-family:\'DM Sans\',sans-serif;font-size:12.5px;color:rgba(26,13,18,0.72);line-height:1.5;">'
+            + '<span style="width:5px;height:5px;border-radius:50%;background:' + accent + ';flex-shrink:0;margin-top:6px;display:inline-block;"></span>'
+            + '<span>' + p + '</span></div>';
+        });
+        h += '</div>';
+      }
     });
+
+    // CTA
+    h += '<div style="margin-top:26px;">';
+    h += '<button class="crl2-popup__cta-btn" data-crl2-select="' + key + '" style="border:none;cursor:pointer;' + (isDiana ? 'background:linear-gradient(135deg,#c9a87c,#8c6020);' : '') + '">Preise ansehen</button>';
     h += '</div>';
-    h += '<p style="font-family:\'DM Sans\',sans-serif;font-size:12px;color:rgba(26,13,18,0.42);font-style:italic;line-height:1.6;margin-bottom:20px;">' + d.note + '</p>';
-    h += '<button class="crl2-popup__cta-btn" data-crl2-select="' + key + '" style="border:none;cursor:pointer;">Preise ansehen</button>';
 
     var minfoCont = document.getElementById('crl2-minfo-content');
     var minfoOv   = document.getElementById('crl2-minfo-overlay');
@@ -1263,9 +1312,10 @@ if (document.readyState === 'loading') {
       }
       // закрыть инфо-оверлей по клику на фон
       var minfoOv = document.getElementById('crl2-minfo-overlay');
-      if (minfoOv && e.target === minfoOv) {
+      if (minfoOv && (e.target === minfoOv || e.target.closest('[data-crl2-minfo-close]'))) {
         minfoOv.classList.remove('crl2-open');
         document.body.style.overflow = '';
+        return;
       }
     });
 
