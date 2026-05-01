@@ -1160,4 +1160,130 @@ if (document.readyState === 'loading') {
   setTimeout(injectTheme, 500);
 })();
 
+// ── CRL2 MASTER SELECT + REVEAL ─────────────────────────────────────────────
+(function(){
+  var MASTER_INFO = {
+    nelia: {
+      badge: '✦ Master · Crocus Beauty',
+      title: 'Maniküristin <em>Nelia</em>',
+      sub: 'Ausgebildet nach den Standards von Diana — gleiche Technik, attraktiverer Preis.',
+      points: [
+        'Präzise Technik nach Diana-Standard',
+        'Saubere und sorgfältige Arbeit',
+        'Perfekte Nagelarchitektur',
+        'Sterilisierte Instrumente'
+      ],
+      note: 'Ideale Wahl für Premium-Qualität zum besseren Preis-Leistungs-Verhältnis.'
+    },
+    diana: {
+      badge: '💎 Top-Master · Crocus Beauty',
+      title: 'Meisterin <em>Diana</em>',
+      sub: 'Führende Spezialistin mit über 10 Jahren Erfahrung. Standards setzen — nicht ihnen folgen.',
+      points: [
+        'Medizinische Präzision & Hygiene',
+        'Nagelverlängerung & komplexes Design',
+        'Perfekt beim ersten Termin — ohne Nachbesserungen',
+        'Stil, Eleganz & Selbstbewusstsein'
+      ],
+      note: 'Sie macht nicht einfach Maniküre — sie kreiert ein Gesamtbild.'
+    }
+  };
+
+  function openMasterInfo(key) {
+    var d = MASTER_INFO[key]; if (!d) return;
+    var dotColor = key === 'diana' ? '#c9a87c' : '#7B2D4E';
+    var h = '';
+    h += '<span class="crl2-popup__badge">' + d.badge + '</span>';
+    h += '<div class="crl2-popup__title">' + d.title + '</div>';
+    h += '<p class="crl2-popup__sub">' + d.sub + '</p>';
+    h += '<div style="display:flex;flex-direction:column;gap:7px;margin-bottom:18px;">';
+    d.points.forEach(function(p){
+      h += '<div style="display:flex;align-items:center;gap:8px;font-family:\'DM Sans\',sans-serif;font-size:12px;color:rgba(26,13,18,0.68);">'
+        + '<span style="width:4px;height:4px;border-radius:50%;background:' + dotColor + ';flex-shrink:0;display:inline-block;"></span>' + p + '</div>';
+    });
+    h += '</div>';
+    h += '<p style="font-family:\'DM Sans\',sans-serif;font-size:12px;color:rgba(26,13,18,0.42);font-style:italic;line-height:1.6;margin-bottom:20px;">' + d.note + '</p>';
+    h += '<button class="crl2-popup__cta-btn" data-crl2-select="' + key + '" style="border:none;cursor:pointer;">Preise ansehen</button>';
+
+    var minfoCont = document.getElementById('crl2-minfo-content');
+    var minfoOv   = document.getElementById('crl2-minfo-overlay');
+    if (!minfoCont || !minfoOv) return;
+    minfoCont.innerHTML = h;
+    minfoOv.classList.add('crl2-open');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function selectMaster(key) {
+    // карточки
+    document.querySelectorAll('[data-crl2-master]').forEach(function(el){
+      el.classList.toggle('crl2__mc-btn--active', el.getAttribute('data-crl2-master') === key);
+    });
+    // стрелки
+    document.querySelectorAll('[data-crl2-hint]').forEach(function(el){
+      el.classList.toggle('crl2__mc-prices-hint--active', el.getAttribute('data-crl2-hint') === key);
+    });
+    // панели
+    document.querySelectorAll('.crl2__sub-panel').forEach(function(p){ p.classList.remove('crl2__sub-panel--active'); });
+    var panel = document.getElementById('crl2-sub-' + key);
+    if (panel) panel.classList.add('crl2__sub-panel--active');
+    // reveal
+    var reveal = document.getElementById('crl2-reveal');
+    if (reveal) reveal.classList.add('crl2__reveal--open');
+  }
+
+  function init() {
+    // клик на карточку мастера
+    document.addEventListener('click', function(e) {
+      // карточка мастера
+      var mc = e.target.closest('[data-crl2-master]');
+      if (mc) {
+        var about = e.target.closest('[data-crl2-about]');
+        if (about) {
+          openMasterInfo(about.getAttribute('data-crl2-about'));
+        } else {
+          selectMaster(mc.getAttribute('data-crl2-master'));
+        }
+        return;
+      }
+      // кнопка "Preise ansehen" внутри попапа
+      var sel = e.target.closest('[data-crl2-select]');
+      if (sel) {
+        var k = sel.getAttribute('data-crl2-select');
+        var ov = document.getElementById('crl2-minfo-overlay');
+        if (ov) { ov.classList.remove('crl2-open'); document.body.style.overflow = ''; }
+        selectMaster(k);
+        return;
+      }
+      // закрыть инфо-оверлей по клику на фон
+      var minfoOv = document.getElementById('crl2-minfo-overlay');
+      if (minfoOv && e.target === minfoOv) {
+        minfoOv.classList.remove('crl2-open');
+        document.body.style.overflow = '';
+      }
+    });
+
+    // main tabs (Maniküre / Wimpern)
+    document.addEventListener('click', function(e) {
+      var tab = e.target.closest('[data-crl2-main]');
+      if (!tab) return;
+      var key = tab.getAttribute('data-crl2-main');
+      document.querySelectorAll('[data-crl2-main]').forEach(function(t){
+        t.classList.toggle('crl2__main-tab--active', t === tab);
+        t.setAttribute('aria-selected', t === tab ? 'true' : 'false');
+      });
+      document.querySelectorAll('.crl2__main-panel').forEach(function(p){ p.classList.remove('crl2__main-panel--active'); });
+      var panel = document.getElementById('crl2-panel-' + key);
+      if (panel) panel.classList.add('crl2__main-panel--active');
+    });
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+  setTimeout(init, 300);
+  setTimeout(init, 800);
+})();
+
 })();
