@@ -1020,6 +1020,27 @@ if (document.readyState === 'loading') {
 // ── Page Theme Inject ──────────────────────────────────────────
 (function(){
   var path = window.location.pathname.toLowerCase();
+
+  // Главная страница — чуть светлее фон виджета
+  var isHome = (path === '/' || path === '');
+  if (isHome) {
+    var homeOverride = '#crocus-modal{background:#5b3c4f!important;}' +
+      '#crocus-body{background:#5b3c4f!important;}' +
+      '#crocus-modal-header{background:rgba(255,255,255,0.04)!important;}';
+    function injectHomeTheme(){
+      if (document.getElementById('crocus-home-theme')) return;
+      var s = document.createElement('style');
+      s.id = 'crocus-home-theme';
+      s.textContent = homeOverride;
+      document.head.appendChild(s);
+    }
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', injectHomeTheme);
+    } else {
+      injectHomeTheme();
+    }
+  }
+
   var isMani = path.indexOf('manik') !== -1;
   if (!isMani) return;
 
@@ -1234,7 +1255,7 @@ if (document.readyState === 'loading') {
     // ── Шапка с фото ──────────────────────────────────────────────────────
     h += '<div style="position:relative;border-radius:22px 22px 0 0;overflow:hidden;">';
     if (photo) {
-      h += '<img src="' + photo + '" alt="' + key + '" style="width:100%;height:300px;object-fit:cover;object-position:center 20%;display:block;">';
+      h += '<img src="' + photo + '" alt="' + key + '" style="width:100%;height:420px;object-fit:cover;object-position:center 20%;display:block;">';
     }
     h += '<div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(10,3,12,0.92) 0%,rgba(10,3,12,0.30) 55%,transparent 100%);"></div>';
     h += '<div style="position:absolute;bottom:20px;left:24px;right:24px;">';
@@ -1373,6 +1394,10 @@ if (document.readyState === 'loading') {
       var isWimpern = (key === 'wimpern');
       document.querySelectorAll('.crl2__mc-card--mani').forEach(function(c){ c.style.display = isMani ? '' : 'none'; });
       document.querySelectorAll('.crl2__mc-card--wimpern').forEach(function(c){ c.style.display = isWimpern ? '' : 'none'; });
+      // центрировать грид когда одна карточка (wimpern)
+      document.querySelectorAll('.crl2__mc-grid').forEach(function(g){
+        g.classList.toggle('crl2__mc-grid--single', isWimpern);
+      });
 
       // сбросить reveal и активную карточку
       var reveal = document.getElementById('crl2-reveal');
