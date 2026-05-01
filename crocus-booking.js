@@ -413,6 +413,7 @@ wrap.innerHTML =
         + '<form class="cw-form" id="cw-form">'
           + '<div class="cw-field"><label>Name</label><input type="text" id="cw-name" placeholder="Ihr Name" required></div>'
           + '<div class="cw-field"><label>Telefon / WhatsApp</label><input type="tel" id="cw-phone" placeholder="+49 172 …" required></div>'
+          + '<div class="cw-field"><label>E-Mail</label><input type="email" id="cw-email" placeholder="ihre@email.de" required></div>'
           + '<button type="submit" class="cw-btn-confirm" id="cw-btn-submit">Termin bestätigen →</button>'
           + '<p class="cw-form-note">Keine Vorauszahlung · Kostenlose Stornierung bis 24h vorher</p>'
         + '</form>'
@@ -923,7 +924,8 @@ function submitBooking(e) {
   e.preventDefault();
   var name  = document.getElementById('cw-name').value.trim();
   var phone = document.getElementById('cw-phone').value.trim();
-  if (!name || !phone) return;
+  var email = document.getElementById('cw-email').value.trim();
+  if (!name || !phone || !email) return;
 
   var btn = document.getElementById('cw-btn-submit');
   btn.disabled = true; btn.textContent = 'Wird gesendet…';
@@ -931,7 +933,7 @@ function submitBooking(e) {
   var appointments = [{ id: cw.service.id, staff_id: cw.master.id, datetime: cw.datetime }];
   if (cw.addon) appointments.push({ id: cw.addon.id, staff_id: cw.master.id, datetime: cw.datetime });
 
-  apiPost('/book_record/'+CONFIG.locationId, { phone: phone, fullname: name, appointments: appointments })
+  apiPost('/book_record/'+CONFIG.locationId, { phone: phone, fullname: name, email: email, appointments: appointments })
     .then(function(res){
       if (!res.success) throw new Error(res.message||'Buchungsfehler');
       var dateStr = cw.date
