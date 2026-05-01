@@ -87,8 +87,19 @@ var CATEGORIES = [
   },
 ];
 
-// Допы — French, Babyboomer, Stiletto, Design
-var ADDON_IDS = [13485756, 13485757, 13485758, 13485759];
+// Все возможные допы (French, Babyboomer, Stiletto, Design, Länge über 2, Länge über 3, French Pediküre)
+var ADDON_IDS = [13485756, 13485757, 13485758, 13485759, 13493659, 13493664, 13493666];
+
+// Какие допы показывать для конкретной услуги (по service.id)
+var ADDON_IDS_BY_SERVICE = {
+  13485752: [],                                              // Hygienische Maniküre — нет допов
+  13485753: [13485758, 13485757, 13485756, 13485759],        // Maniküre+Gel — Stiletto, Babyboomer, French, Design
+  13485754: [13485756, 13485757, 13485758, 13485759, 13493659, 13493664], // Nagelkorrektur — все кроме French Pedi
+  13485755: [13493659, 13493664, 13485759, 13485757, 13485756], // Nagelverlängerung — Länge2, Länge3, Design, Babyboomer, French
+  13485760: [],                                              // Hygienische Pediküre — нет допов
+  13485761: [13493666],                                      // Pediküre+Gel — только French Pediküre
+  13485762: [13493666, 13485756, 13485759, 13485758, 13485757, 13493659, 13493664], // Kombi — все
+};
 
 // ── API ────────────────────────────────────────────────────────
 function apiGet(path, params) {
@@ -502,8 +513,12 @@ function goStepBack(target) {
   if (target >= current) return;
   // Если идём назад на шаг 4 (Extra) но для этой категории допы пропускались — пропускаем
   if (target === 4) {
-    var skipAddons = cw.category && (cw.category.key === 'wimpern' || cw.category.key === 'kombi' || cw.category.key === 'pediküre');
-    if (skipAddons) { goStep(3); return; }
+    var skipBack = cw.category && cw.category.key === 'wimpern';
+    if (!skipBack && cw.service) {
+      var ids = ADDON_IDS_BY_SERVICE[cw.service.id];
+      if (!ids || ids.length === 0) skipBack = true;
+    }
+    if (skipBack) { goStep(3); return; }
   }
   goStep(target);
   // Если возвращаемся на шаг 5 — перерисовываем календарь
@@ -696,9 +711,17 @@ function renderServices(cat) {
 function selectService(s) {
   cw.service = s;
   cw.addon = null;
-  // Не показываем шаг допов для ресниц и комбо
-  var skipAddons = (cw.category.key === 'wimpern' || cw.category.key === 'kombi' || cw.category.key === 'pediküre');
-  if (skipAddons) {
+  // Для ресниц — всегда пропускаем допы
+  if (cw.category.key === 'wimpern') {
+    buildStep5Sub();
+    goStep(5);
+    renderCalendar();
+    loadAvailDates();
+    return;
+  }
+  // Для остальных — смотрим по конкретной услуге
+  var allowedIds = ADDON_IDS_BY_SERVICE[s.id];
+  if (!allowedIds || allowedIds.length === 0) {
     buildStep5Sub();
     goStep(5);
     renderCalendar();
@@ -715,12 +738,17 @@ function renderAddons() {
   list.innerHTML = '';
   cw.addon = null;
 
-  if (!_addonObjs.length) {
+  var allowedIds = (cw.service && ADDON_IDS_BY_SERVICE[cw.service.id]) || [];
+  var filteredAddons = _addonObjs.filter(function(s){ return allowedIds.indexOf(s.id) !== -1; });
+  // Сохраняем порядок как в allowedIds
+  filteredAddons.sort(function(a, b){ return allowedIds.indexOf(a.id) - allowedIds.indexOf(b.id); });
+
+  if (!filteredAddons.length) {
     goStep(5);
     return;
   }
 
-  _addonObjs.forEach(function(s) {
+  filteredAddons.forEach(function(s) {
     var minP = s.price_min || 0;
     var priceStr = minP ? '+ '+minP+' €' : '';
 
@@ -977,8 +1005,12 @@ document.getElementById('cw-back2').addEventListener('click', function(){ goStep
 document.getElementById('cw-back3').addEventListener('click', function(){ goStep(3); });
 document.getElementById('cw-back4').addEventListener('click', function(){
   // Назад из календаря — если пропускали допы, вернуть к услугам
-  var skipAddons = (cw.category && (cw.category.key === 'wimpern' || cw.category.key === 'kombi' || cw.category.key === 'pediküre'));
-  goStep(skipAddons ? 3 : 4);
+  var skipBack = cw.category && cw.category.key === 'wimpern';
+  if (!skipBack && cw.service) {
+    var ids = ADDON_IDS_BY_SERVICE[cw.service.id];
+    if (!ids || ids.length === 0) skipBack = true;
+  }
+  goStep(skipBack ? 3 : 4);
 });
 document.getElementById('cw-back5').addEventListener('click', function(){ goStep(5); });
 document.getElementById('cw-skip-addon').addEventListener('click', function(){ cw.addon=null; proceedFromAddon(); });
