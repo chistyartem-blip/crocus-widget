@@ -305,6 +305,15 @@ var css = `
 .cw-btn-confirm:hover:not(:disabled){transform:translateY(-2px);box-shadow:0 10px 30px rgba(123,45,78,.52)}
 .cw-btn-confirm:disabled{opacity:.5;cursor:default}
 .cw-form-note{font-family:'DM Sans',sans-serif;font-size:10px;color:rgba(253,250,248,.22);text-align:center;line-height:1.5;margin-top:-4px}
+.cw-field input.invalid{border-color:rgba(252,100,100,.60)!important;background:rgba(252,100,100,.04)!important}
+.cw-field-err{font-family:'DM Sans',sans-serif;font-size:10px;color:#fca5a5;margin-top:4px;display:none}
+.cw-field-err.show{display:block}
+.cw-consent{display:flex;align-items:flex-start;gap:10px;cursor:pointer;margin-top:2px}
+.cw-consent input[type=checkbox]{width:16px;height:16px;min-width:16px;margin-top:2px;accent-color:#7B2D4E;cursor:pointer}
+.cw-consent span{font-family:'DM Sans',sans-serif;font-size:10.5px;color:rgba(253,250,248,.38);line-height:1.55}
+.cw-consent span a{color:rgba(201,168,124,.75);text-decoration:underline}
+.cw-consent span a:hover{color:#c9a87c}
+.cw-consent.invalid span{color:#fca5a5}
 
 /* ── Success ── */
 .cw-success{display:flex;flex-direction:column;align-items:center;text-align:center;padding:36px 16px;gap:12px}
@@ -411,9 +420,10 @@ wrap.innerHTML =
         + '<h2 class="cw-title">Deine Kontaktdaten</h2>'
         + '<div class="cw-summary" id="cw-summary"></div>'
         + '<form class="cw-form" id="cw-form">'
-          + '<div class="cw-field"><label>Name</label><input type="text" id="cw-name" placeholder="Ihr Name" required></div>'
-          + '<div class="cw-field"><label>Telefon / WhatsApp</label><input type="tel" id="cw-phone" placeholder="+49 172 …" required></div>'
-          + '<div class="cw-field"><label>E-Mail</label><input type="email" id="cw-email" placeholder="ihre@email.de" required></div>'
+          + '<div class="cw-field"><label>Name</label><input type="text" id="cw-name" placeholder="Ihr Name" required autocomplete="name"></div>'
+          + '<div class="cw-field"><label>Telefon / WhatsApp</label><input type="tel" id="cw-phone" placeholder="+49 172 …" required autocomplete="tel"></div>'
+          + '<div class="cw-field"><label>E-Mail</label><input type="email" id="cw-email" placeholder="ihre@email.de" required autocomplete="email"></div>'
+          + '<label class="cw-consent"><input type="checkbox" id="cw-consent" checked><span>Ich stimme der <a href="https://crocus-studio.de/datenschutzerklrung" target="_blank" rel="noopener">Datenschutzerklärung</a> zu und willige in die Verarbeitung meiner Daten zur Terminbuchung ein.</span></label>'
           + '<button type="submit" class="cw-btn-confirm" id="cw-btn-submit">Termin bestätigen →</button>'
           + '<p class="cw-form-note">Keine Vorauszahlung · Kostenlose Stornierung bis 24h vorher</p>'
         + '</form>'
@@ -925,7 +935,46 @@ function submitBooking(e) {
   var name  = document.getElementById('cw-name').value.trim();
   var phone = document.getElementById('cw-phone').value.trim();
   var email = document.getElementById('cw-email').value.trim();
-  if (!name || !phone || !email) return;
+  var consent = document.getElementById('cw-consent').checked;
+
+  // Валидация
+  var valid = true;
+
+  // Имя — минимум 2 реальных слова, только буквы/пробел/дефис, мин 3 символа
+  var nameOk = /^[A-Za-zÄäÖöÜüßА-Яа-яЁё\- ]{3,}$/.test(name) && !/^(.)\1+$/.test(name.replace(/\s/g,''));
+  setFieldState('cw-name', nameOk, 'Bitte geben Sie Ihren echten Namen ein.');
+  if (!nameOk) valid = false;
+
+  // Телефон — минимум 7 цифр, допустимы +, пробелы, дефисы, скобки
+  var phoneDigits = phone.replace(/\D/g,'');
+  var phoneOk = phoneDigits.length >= 7 && phoneDigits.length <= 15 && /^[+\d\s\-\(\)]+$/.test(phone);
+  setFieldState('cw-phone', phoneOk, 'Bitte gültige Telefonnummer eingeben (mind. 7 Ziffern).');
+  if (!phoneOk) valid = false;
+
+  // Email
+  var emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email);
+  setFieldState('cw-email', emailOk, 'Bitte gültige E-Mail-Adresse eingeben.');
+  if (!emailOk) valid = false;
+
+  // Consent
+  var consentEl = document.getElementById('cw-consent').parentElement;
+  if (!consent) { consentEl.classList.add('invalid'); valid = false; }
+  else { consentEl.classList.remove('invalid'); }
+
+  if (!valid) return;
+
+  function setFieldState(id, ok, msg) {
+    var inp = document.getElementById(id);
+    var wrap = inp.parentElement;
+    var err = wrap.querySelector('.cw-field-err');
+    if (!err) {
+      err = document.createElement('div');
+      err.className = 'cw-field-err';
+      wrap.appendChild(err);
+    }
+    if (ok) { inp.classList.remove('invalid'); err.classList.remove('show'); }
+    else { inp.classList.add('invalid'); err.textContent = msg; err.classList.add('show'); }
+  }
 
   var btn = document.getElementById('cw-btn-submit');
   btn.disabled = true; btn.textContent = 'Wird gesendet…';
