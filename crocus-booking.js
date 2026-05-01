@@ -930,8 +930,8 @@ function submitBooking(e) {
   var btn = document.getElementById('cw-btn-submit');
   btn.disabled = true; btn.textContent = 'Wird gesendet…';
 
-  var appointments = [{ id: cw.service.id, staff_id: cw.master.id, datetime: cw.datetime }];
-  if (cw.addon) appointments.push({ id: cw.addon.id, staff_id: cw.master.id, datetime: cw.datetime });
+  var appointments = [{ id: cw.service.id, services: [cw.service.id], staff_id: cw.master.id, datetime: cw.datetime }];
+  if (cw.addon) appointments.push({ id: cw.addon.id, services: [cw.addon.id], staff_id: cw.master.id, datetime: cw.datetime });
 
   apiPost('/book_record/'+CONFIG.locationId, { phone: phone, fullname: name, email: email, appointments: appointments })
     .then(function(res){
