@@ -157,6 +157,7 @@ var css = `
 .crocus-fab-ring:nth-child(2){border:1px solid rgba(123,45,78,.50);animation-delay:1.2s}
 .crocus-fab-ring:nth-child(3){border:1px solid rgba(201,168,124,.30);animation-delay:2.4s}
 @keyframes cwRing{0%{transform:scale(1);opacity:.85}55%{opacity:.25}100%{transform:scale(2.5);opacity:0}}
+@keyframes logoPulse{0%,100%{filter:drop-shadow(0 0 4px rgba(255,255,255,.55)) drop-shadow(0 0 10px rgba(123,45,78,.60))}50%{filter:drop-shadow(0 0 8px rgba(255,255,255,.90)) drop-shadow(0 0 20px rgba(123,45,78,.90))}}
 @keyframes fabIn{from{opacity:0;transform:translateY(24px) scale(.78)}to{opacity:1;transform:translateY(0) scale(1)}}
 #crocus-fab-mobile{display:none!important}
 @media(max-width:600px){
@@ -180,7 +181,7 @@ var css = `
 /* Header */
 #crocus-modal-header{display:flex;align-items:center;justify-content:space-between;padding:16px 20px 13px;background:rgba(255,255,255,.02);flex-shrink:0}
 .crocus-modal-brand{display:flex;align-items:center;gap:13px}
-.crocus-modal-logo{width:40px;height:40px;border-radius:10px;object-fit:contain;background:rgba(123,45,78,.18);border:1px solid rgba(255,255,255,.12);filter:brightness(0) invert(1) drop-shadow(0 0 8px rgba(255,255,255,.70));padding:2px;box-sizing:border-box}
+.crocus-modal-logo{width:40px;height:40px;border-radius:10px;object-fit:contain;background:rgba(123,45,78,.15);border:1px solid rgba(255,255,255,.12);filter:drop-shadow(0 0 4px rgba(255,255,255,.55)) drop-shadow(0 0 10px rgba(123,45,78,.60));animation:logoPulse 2.8s ease-in-out infinite;padding:2px;box-sizing:border-box}
 .crocus-modal-title{font-family:'Cormorant Garamond',Georgia,serif;font-size:15px;font-weight:400;color:#fdfaf8;letter-spacing:.02em;display:block}
 .crocus-modal-sub{font-family:'DM Sans',Arial,sans-serif;font-size:10px;color:rgba(253,250,248,.35);letter-spacing:.08em;text-transform:uppercase;display:block}
 #crocus-close{width:32px;height:32px;border-radius:50%;border:1px solid rgba(255,255,255,.10);background:rgba(255,255,255,.05);color:rgba(253,250,248,.5);font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s}
@@ -265,11 +266,11 @@ var css = `
 .cw-addon-info{flex:1}
 .cw-addon-name{font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;color:#fdfaf8;margin-bottom:1px}
 .cw-addon-price{font-family:'Cormorant Garamond',Georgia,serif;font-size:16px;color:rgba(201,168,124,.75)}
-.cw-skip-btn{width:100%;padding:11px;background:none;border:1px dashed rgba(255,255,255,.10);border-radius:11px;color:rgba(253,250,248,.32);font-family:'DM Sans',sans-serif;font-size:12.5px;cursor:pointer;transition:all .18s;box-sizing:border-box}
-.cw-skip-btn:hover{border-color:rgba(255,255,255,.22);color:rgba(253,250,248,.55)}
+.cw-skip-btn{width:100%;padding:11px;background:none;border:1px dashed rgba(255,255,255,.28);border-radius:11px;color:rgba(253,250,248,.68);font-family:'DM Sans',sans-serif;font-size:12.5px;cursor:pointer;transition:all .18s;box-sizing:border-box}
+.cw-skip-btn:hover{border-color:rgba(255,255,255,.50);color:#fdfaf8}
 
 /* ── Step 5: Calendar ── */
-.cw-calendar{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:14px;overflow:hidden;margin-top:4px}
+.cw-calendar{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.14);border-radius:14px;overflow:hidden;margin-top:4px}
 .cw-cal-nav{display:flex;align-items:center;justify-content:space-between;padding:11px 13px;border-bottom:1px solid rgba(255,255,255,.05)}
 .cw-cal-nav span{font-family:'Cormorant Garamond',Georgia,serif;font-size:15px;font-weight:300;color:#fdfaf8}
 .cw-cal-nav button{background:none;border:none;color:rgba(253,250,248,.40);font-size:17px;cursor:pointer;padding:3px 7px;border-radius:6px;transition:all .15s;line-height:1}
@@ -340,14 +341,14 @@ var DAYS   = ['Mo','Di','Mi','Do','Fr','Sa','So'];
 var wrap = document.createElement('div');
 wrap.innerHTML =
   '<div id="crocus-fab-wrap">'
-  + '<button id="crocus-fab"><span class="crocus-fab-text">Termin buchen</span><div class="crocus-fab-icon"><img src="https://static.tildacdn.com/tild3366-3561-4165-b437-656233636132/ChatGPT_Image_16__20.png" alt="Crocus"></div></button>'
+  + '<button id="crocus-fab"><span class="crocus-fab-text">Termin buchen</span><div class="crocus-fab-icon"><img src="https://static.tildacdn.com/tild3830-6165-4233-b735-633433643031/crocus-logo-white.png" alt="Crocus"></div></button>'
   + '<div class="crocus-fab-rings"><span class="crocus-fab-ring"></span><span class="crocus-fab-ring"></span><span class="crocus-fab-ring"></span></div>'
   + '</div>'
   + '<div id="crocus-backdrop"></div>'
   + '<div id="crocus-modal">'
     + '<div id="crocus-modal-header">'
       + '<div class="crocus-modal-brand">'
-        + '<img class="crocus-modal-logo" src="https://static.tildacdn.com/tild3466-6662-4234-b863-376638653730/ChatGPT_Image_16__20.png" alt="Crocus">'
+        + '<img class="crocus-modal-logo" src="https://static.tildacdn.com/tild3830-6165-4233-b735-633433643031/crocus-logo-white.png" alt="Crocus">'
         + '<div><span class="crocus-modal-title">Crocus Beauty Studio</span><span class="crocus-modal-sub">Göppingen · Online-Buchung</span></div>'
       + '</div>'
       + '<button id="crocus-close">✕</button>'
@@ -1044,7 +1045,7 @@ window.crocusClose = crocusClose;
     '<span class="cfm-ring"></span>'
     + '<span class="cfm-ring"></span>'
     + '<span class="cfm-ring"></span>'
-    + '<button id="crocus-fab-mobile-btn"><img src="https://static.tildacdn.com/tild3366-3561-4165-b437-656233636132/ChatGPT_Image_16__20.png" alt="Crocus"></button>'
+    + '<button id="crocus-fab-mobile-btn"><img src="https://static.tildacdn.com/tild3830-6165-4233-b735-633433643031/crocus-logo-white.png" alt="Crocus"></button>'
     + '<span style="font-family:DM Sans,sans-serif;font-size:7.5px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:#fff;text-align:center;white-space:nowrap;text-shadow:0 1px 3px rgba(0,0,0,1),0 0 8px rgba(0,0,0,.9)">Online · Termin</span>';
   document.body.appendChild(mwrap);
   document.getElementById('crocus-fab-mobile-btn').addEventListener('click', crocusOpen);
@@ -1147,7 +1148,8 @@ if (document.readyState === 'loading') {
     '.crocus-modal-sub{color:rgba(26,8,16,.45)!important;}' +
     '#crocus-close{border-color:rgba(192,52,104,.20)!important;background:rgba(192,52,104,.07)!important;color:rgba(26,8,16,.45)!important;}' +
     '#crocus-close:hover{background:rgba(192,52,104,.15)!important;color:#1a0810!important;}' +
-    '.crocus-modal-logo{background:rgba(192,52,104,.12)!important;border-color:rgba(192,52,104,.25)!important;filter:none!important;}' +
+    '@keyframes logoPulseManik{0%,100%{filter:drop-shadow(0 0 4px rgba(255,255,255,.70)) drop-shadow(0 0 10px rgba(192,52,104,.55))}50%{filter:drop-shadow(0 0 8px rgba(255,255,255,1)) drop-shadow(0 0 20px rgba(192,52,104,.90))}}' +
+    '.crocus-modal-logo{background:rgba(192,52,104,.10)!important;border-color:rgba(192,52,104,.25)!important;animation-name:logoPulseManik!important;}' +
 
     /* Progress */
     '#crocus-progress{background:#f9dce7!important;border-bottom:1px solid rgba(192,52,104,.12)!important;}' +
@@ -1201,8 +1203,8 @@ if (document.readyState === 'loading') {
     '.cw-addon-btn.sel .cw-addon-check{background:#c03468!important;border-color:#c03468!important;color:#fff!important;}' +
     '.cw-addon-name{color:#1a0810!important;}' +
     '.cw-addon-price{color:rgba(192,52,104,.80)!important;}' +
-    '.cw-skip-btn{border-color:rgba(26,8,16,.15)!important;color:rgba(26,8,16,.40)!important;}' +
-    '.cw-skip-btn:hover{border-color:rgba(26,8,16,.30)!important;color:rgba(26,8,16,.65)!important;}' +
+    '.cw-skip-btn{border-color:rgba(26,8,16,.35)!important;color:rgba(26,8,16,.70)!important;}' +
+    '.cw-skip-btn:hover{border-color:rgba(26,8,16,.55)!important;color:#1a0810!important;}' +
 
     /* Calendar */
     '.cw-calendar{background:#fff!important;border-color:rgba(26,8,16,.08)!important;}' +
@@ -1290,7 +1292,8 @@ if (document.readyState === 'loading') {
     '.crocus-modal-sub{color:rgba(220,200,255,.38)!important;}' +
     '#crocus-close{border-color:rgba(196,168,216,.18)!important;background:rgba(196,168,216,.06)!important;color:rgba(220,200,255,.45)!important;}' +
     '#crocus-close:hover{background:rgba(196,168,216,.14)!important;color:#f0eaf8!important;}' +
-    '.crocus-modal-logo{background:rgba(94,58,140,.20)!important;border-color:rgba(196,168,216,.22)!important;}' +
+    '@keyframes logoPulsePedi{0%,100%{filter:drop-shadow(0 0 4px rgba(255,255,255,.70)) drop-shadow(0 0 10px rgba(94,58,140,.65))}50%{filter:drop-shadow(0 0 8px rgba(255,255,255,1)) drop-shadow(0 0 22px rgba(196,168,216,.95))}}' +
+    '.crocus-modal-logo{background:rgba(94,58,140,.20)!important;border-color:rgba(196,168,216,.22)!important;animation-name:logoPulsePedi!important;}' +
 
     /* Progress */
     '#crocus-progress{background:rgba(94,58,140,.08)!important;border-bottom:1px solid rgba(196,168,216,.09)!important;}' +
@@ -1345,25 +1348,25 @@ if (document.readyState === 'loading') {
     '.cw-addon-btn.sel .cw-addon-check{background:#5e3a8c!important;border-color:#5e3a8c!important;color:#fff!important;}' +
     '.cw-addon-name{color:#f0eaf8!important;}' +
     '.cw-addon-price{color:rgba(196,168,216,.80)!important;}' +
-    '.cw-skip-btn{border-color:rgba(196,168,216,.18)!important;color:rgba(220,200,255,.38)!important;}' +
-    '.cw-skip-btn:hover{border-color:rgba(196,168,216,.35)!important;color:rgba(220,200,255,.65)!important;}' +
+    '.cw-skip-btn{border-color:rgba(196,168,216,.45)!important;color:rgba(220,200,255,.80)!important;}' +
+    '.cw-skip-btn:hover{border-color:rgba(196,168,216,.70)!important;color:#f0eaf8!important;}' +
 
     /* Calendar */
-    '.cw-calendar{background:rgba(255,255,255,.04)!important;border-color:rgba(196,168,216,.10)!important;}' +
-    '.cw-cal-nav{border-bottom-color:rgba(196,168,216,.08)!important;}' +
+    '.cw-calendar{background:rgba(196,168,216,.10)!important;border-color:rgba(196,168,216,.22)!important;}' +
+    '.cw-cal-nav{border-bottom-color:rgba(196,168,216,.15)!important;}' +
     '.cw-cal-nav span{color:#f0eaf8!important;}' +
-    '.cw-cal-nav button{color:rgba(220,200,255,.40)!important;}' +
-    '.cw-cal-nav button:hover{background:rgba(94,58,140,.14)!important;color:#f0eaf8!important;}' +
-    '.cw-dow{color:rgba(220,200,255,.30)!important;}' +
-    '.cw-day{color:rgba(220,200,255,.55)!important;}' +
-    '.cw-day.past,.cw-day.unavail{color:rgba(220,200,255,.16)!important;}' +
-    '.cw-day.avail:hover{background:rgba(94,58,140,.20)!important;color:#f0eaf8!important;}' +
-    '.cw-day.sel{background:#5e3a8c!important;color:#fff!important;box-shadow:0 0 13px rgba(94,58,140,.45)!important;}' +
+    '.cw-cal-nav button{color:rgba(220,200,255,.55)!important;}' +
+    '.cw-cal-nav button:hover{background:rgba(94,58,140,.25)!important;color:#f0eaf8!important;}' +
+    '.cw-dow{color:rgba(220,200,255,.50)!important;}' +
+    '.cw-day{color:rgba(240,234,248,.80)!important;}' +
+    '.cw-day.past,.cw-day.unavail{color:rgba(220,200,255,.25)!important;}' +
+    '.cw-day.avail:hover{background:rgba(94,58,140,.30)!important;color:#fff!important;}' +
+    '.cw-day.sel{background:#5e3a8c!important;color:#fff!important;box-shadow:0 0 13px rgba(94,58,140,.55)!important;}' +
     '.cw-day.avail::after{background:#c4a8d8!important;}' +
     '.cw-day.sel::after{background:#fff!important;}' +
-    '.cw-time{background:rgba(255,255,255,.04)!important;border-color:rgba(196,168,216,.10)!important;color:rgba(220,200,255,.58)!important;}' +
-    '.cw-time.free:hover{border-color:rgba(196,168,216,.45)!important;background:rgba(94,58,140,.14)!important;color:#f0eaf8!important;}' +
-    '.cw-time.sel{background:#5e3a8c!important;border-color:#5e3a8c!important;color:#fff!important;box-shadow:0 0 11px rgba(94,58,140,.45)!important;}' +
+    '.cw-time{background:rgba(196,168,216,.12)!important;border-color:rgba(196,168,216,.25)!important;color:rgba(240,234,248,.85)!important;}' +
+    '.cw-time.free:hover{border-color:rgba(196,168,216,.60)!important;background:rgba(94,58,140,.25)!important;color:#fff!important;}' +
+    '.cw-time.sel{background:#5e3a8c!important;border-color:#5e3a8c!important;color:#fff!important;box-shadow:0 0 11px rgba(94,58,140,.55)!important;}' +
 
     /* Loader / Error */
     '.cw-loader-text{color:rgba(220,200,255,.38)!important;}' +
