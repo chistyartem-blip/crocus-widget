@@ -351,14 +351,16 @@ body.crocus-open .t-header,body.crocus-open header{z-index:1!important;position:
 .cgpline-filled,.cw-gp-line.filled{background:rgba(201,168,124,.28)!important}
 
 /* ── Gift amount selection ── */
-.cw-gift-amounts{display:flex;flex-direction:column;gap:10px;margin-top:4px}
-.cw-gift-amount-btn{width:100%;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:16px 18px;cursor:pointer;text-align:left;color:inherit;font-family:inherit;display:flex;align-items:center;justify-content:space-between;gap:12px;transition:all .22s;-webkit-tap-highlight-color:transparent}
-.cw-gift-amount-inner{display:flex;flex-direction:column;pointer-events:none}
+.cw-gift-amounts{display:flex;flex-direction:column;gap:12px;margin-top:4px}
+.cw-gift-amount-btn{width:100%;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:0;cursor:pointer;text-align:left;color:inherit;font-family:inherit;display:flex;flex-direction:column;overflow:hidden;transition:all .22s;-webkit-tap-highlight-color:transparent;box-sizing:border-box}
 .cw-gift-amount-btn *{pointer-events:none}
-.cw-gift-amount-btn:hover{border-color:rgba(201,168,124,.40);background:rgba(201,168,124,.06);transform:translateY(-2px);box-shadow:0 6px 22px rgba(201,168,124,.10)}
-.cw-gift-amount-btn.sel{border-color:rgba(201,168,124,.65);background:rgba(201,168,124,.10);box-shadow:0 0 0 1px rgba(201,168,124,.25),0 6px 22px rgba(201,168,124,.15)}
-.cw-gift-amount-value{font-family:'Cormorant Garamond',Georgia,serif;font-size:28px;font-weight:300;color:#c9a87c;display:block;line-height:1}
-.cw-gift-amount-desc{font-family:'DM Sans',sans-serif;font-size:11px;color:rgba(253,250,248,.38);display:block;margin-top:4px}
+.cw-gift-amount-btn:hover{border-color:rgba(201,168,124,.45);background:rgba(201,168,124,.04);transform:translateY(-2px);box-shadow:0 8px 28px rgba(201,168,124,.12)}
+.cw-gift-amount-btn.sel{border-color:rgba(201,168,124,.70);background:rgba(201,168,124,.07);box-shadow:0 0 0 1px rgba(201,168,124,.30),0 8px 28px rgba(201,168,124,.18)}
+.cw-gift-amount-img{width:100%;height:110px;object-fit:cover;object-position:center 30%;display:block;border-radius:14px 14px 0 0}
+.cw-gift-amount-inner{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:13px 16px;pointer-events:none}
+.cw-gift-amount-meta{display:flex;flex-direction:column}
+.cw-gift-amount-value{font-family:'Cormorant Garamond',Georgia,serif;font-size:26px;font-weight:300;color:#c9a87c;display:block;line-height:1}
+.cw-gift-amount-desc{font-family:'DM Sans',sans-serif;font-size:10.5px;color:rgba(253,250,248,.38);display:block;margin-top:3px}
 
 /* ── Gift info box ── */
 .cw-gift-info-box{display:flex;align-items:flex-start;gap:10px;background:rgba(201,168,124,.06);border:1px solid rgba(201,168,124,.15);border-radius:11px;padding:12px 13px;margin-bottom:2px}
@@ -443,16 +445,16 @@ wrap.innerHTML =
         + '</div>'
         + '<div class="cw-gift-amounts" id="cw-gift-amounts">'
           + '<button type="button" class="cw-gift-amount-btn" data-gift-id="25366593" data-gift-cert="303583" data-gift-amount="30">'
-            + '<div class="cw-gift-amount-inner"><span class="cw-gift-amount-value">30 €</span><span class="cw-gift-amount-desc">Perfekt für den ersten Besuch — Maniküre oder Behandlung nach Wahl</span></div>'
-            + '<span style="font-size:18px;opacity:.6">›</span>'
+            + '<img class="cw-gift-amount-img" src="https://raw.githubusercontent.com/chistyartem-blip/crocus-widget/main/gift-30-opt.jpg" alt="Geschenkgutschein 30 €" loading="lazy">'
+            + '<div class="cw-gift-amount-inner"><div class="cw-gift-amount-meta"><span class="cw-gift-amount-value">30 €</span><span class="cw-gift-amount-desc">Perfekt für den ersten Besuch — Maniküre oder Behandlung nach Wahl</span></div><span style="font-size:18px;color:rgba(201,168,124,.55)">›</span></div>'
           + '</button>'
           + '<button type="button" class="cw-gift-amount-btn" data-gift-id="25378965" data-gift-cert="303876" data-gift-amount="50">'
-            + '<div class="cw-gift-amount-inner"><span class="cw-gift-amount-value">50 €</span><span class="cw-gift-amount-desc">Maniküre, Pediküre oder Kombi — unsere meistgekaufte Wahl</span></div>'
-            + '<span style="font-size:18px;opacity:.6">›</span>'
+            + '<img class="cw-gift-amount-img" src="https://raw.githubusercontent.com/chistyartem-blip/crocus-widget/main/gift-50-opt.jpg" alt="Geschenkgutschein 50 €" loading="lazy">'
+            + '<div class="cw-gift-amount-inner"><div class="cw-gift-amount-meta"><span class="cw-gift-amount-value">50 €</span><span class="cw-gift-amount-desc">Maniküre, Pediküre oder Kombi — unsere meistgekaufte Wahl</span></div><span style="font-size:18px;color:rgba(201,168,124,.55)">›</span></div>'
           + '</button>'
           + '<button type="button" class="cw-gift-amount-btn" data-gift-id="25378978" data-gift-cert="303878" data-gift-amount="100">'
-            + '<div class="cw-gift-amount-inner"><span class="cw-gift-amount-value">100 €</span><span class="cw-gift-amount-desc">Das komplette Verwöhnprogramm — für Menschen, die es wert sind</span></div>'
-            + '<span style="font-size:18px;opacity:.6">›</span>'
+            + '<img class="cw-gift-amount-img" src="https://raw.githubusercontent.com/chistyartem-blip/crocus-widget/main/gift-100-opt.jpg" alt="Geschenkgutschein 100 €" loading="lazy">'
+            + '<div class="cw-gift-amount-inner"><div class="cw-gift-amount-meta"><span class="cw-gift-amount-value">100 €</span><span class="cw-gift-amount-desc">Das komplette Verwöhnprogramm — für Menschen, die es wert sind</span></div><span style="font-size:18px;color:rgba(201,168,124,.55)">›</span></div>'
           + '</button>'
         + '</div>'
       + '</div>'
