@@ -199,9 +199,8 @@ var css = `
 .cp-line.filled{background:rgba(201,168,124,.28)}
 
 /* Body */
-#crocus-body{flex:1;overflow-y:auto;overflow-x:hidden;padding:18px 18px 28px;scrollbar-width:thin;scrollbar-color:rgba(123,45,78,.28) transparent;box-sizing:border-box}
-#crocus-body::-webkit-scrollbar{width:3px}
-#crocus-body::-webkit-scrollbar-thumb{background:rgba(123,45,78,.32);border-radius:3px}
+#crocus-body{flex:1;overflow-y:auto;overflow-x:hidden;padding:18px 18px 28px;scrollbar-width:none;box-sizing:border-box}
+#crocus-body::-webkit-scrollbar{display:none}
 .cw-step{display:none;animation:stepIn .2s ease-out both}
 .cw-step.active{display:block}
 @keyframes stepIn{from{opacity:0;transform:translateX(12px)}to{opacity:1;transform:translateX(0)}}
@@ -863,18 +862,6 @@ function selectDate(ds) {
   document.getElementById('cw-times-wrap').style.display = 'block';
   renderCalendar();
   loadTimes();
-  // Автоскролл к слотам времени
-  setTimeout(function() {
-    var timesWrap = document.getElementById('cw-times-wrap');
-    var body = document.getElementById('crocus-body');
-    if (timesWrap && body) {
-      // Считаем позицию timesWrap относительно crocus-body
-      var bodyRect = body.getBoundingClientRect();
-      var wrapRect = timesWrap.getBoundingClientRect();
-      var scrollTarget = body.scrollTop + (wrapRect.top - bodyRect.top) - 16;
-      body.scrollTo({ top: scrollTarget, behavior: 'smooth' });
-    }
-  }, 120);
 }
 
 function loadTimes() {
@@ -907,11 +894,23 @@ function renderTimesLoaded(slots) {
     btn.textContent = slot.time;
     btn.addEventListener('click', function(){
       cw.time = slot.time;
+
       cw.datetime = slot.datetime;
       renderTimesLoaded(slots);
       setTimeout(function(){ renderSummary(); goStep(6); }, 180);
     });
     grid.appendChild(btn);
+  });
+  // Скролл до слотов после рендера
+  requestAnimationFrame(function() {
+    var timesWrap = document.getElementById('cw-times-wrap');
+    var body = document.getElementById('crocus-body');
+    if (timesWrap && body) {
+      var bodyRect = body.getBoundingClientRect();
+      var wrapRect = timesWrap.getBoundingClientRect();
+      var scrollTarget = body.scrollTop + (wrapRect.top - bodyRect.top) - 12;
+      body.scrollTo({ top: scrollTarget, behavior: 'smooth' });
+    }
   });
 }
 
