@@ -863,6 +863,15 @@ function selectDate(ds) {
   document.getElementById('cw-times-wrap').style.display = 'block';
   renderCalendar();
   loadTimes();
+  // Автоскролл к слотам времени
+  setTimeout(function() {
+    var timesWrap = document.getElementById('cw-times-wrap');
+    var body = document.getElementById('crocus-body');
+    if (timesWrap && body) {
+      var offsetTop = timesWrap.offsetTop;
+      body.scrollTo({ top: offsetTop - 16, behavior: 'smooth' });
+    }
+  }, 120);
 }
 
 function loadTimes() {
