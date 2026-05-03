@@ -1210,31 +1210,34 @@ function submitGiftForm(e) {
   btn.disabled = true;
   btn.textContent = 'Wird gesendet…';
 
-  // Build mailto link as fallback — also try a simple fetch to a notification endpoint
-  var subject = encodeURIComponent('Gutschein-Anfrage: ' + gift.amount + ' € — ' + name);
-  var body = encodeURIComponent(
-    'Neue Gutschein-Anfrage:\n\n' +
-    'Betrag: ' + gift.amount + ' €\n' +
-    'Good ID: ' + gift.goodId + '\n' +
-    'Cert Type ID: ' + gift.certTypeId + '\n\n' +
-    'Käufer: ' + name + '\n' +
-    'E-Mail: ' + email + '\n' +
-    (phone ? 'Telefon: ' + phone + '\n' : '') +
-    (recipient ? 'Für: ' + recipient + '\n' : '') +
-    '\nBitte Zahlung anfordern und Gutschein zusenden.'
-  );
+  // Generate voucher code XXXX-XXXX-XXXX-XXXX (only sent to owner, not shown to client)
+  function genCode() {
+    var chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    var groups = [];
+    for (var g = 0; g < 4; g++) {
+      var part = '';
+      for (var c = 0; c < 4; c++) {
+        part += chars[Math.floor(Math.random() * chars.length)];
+      }
+      groups.push(part);
+    }
+    return groups.join('-');
+  }
+  var voucherCode = genCode();
 
   // Send via formsubmit.co — no backend needed, delivers to email
   var payload = {
-    _subject: 'Gutschein-Anfrage ' + gift.amount + ' € — ' + name,
+    _subject: '🎁 Gutschein-Anfrage ' + gift.amount + ' € — ' + name,
     _replyto: email,
     _template: 'table',
     _captcha: 'false',
     Betrag: gift.amount + ' €',
+    Gutschein_Code: voucherCode,
     Name: name,
     EMail: email,
     Telefon: phone || '—',
     Fuer_wen: recipient || '—',
+    Hinweis: 'Code nach Zahlungseingang an Kunden weitergeben',
   };
 
   fetch('https://formsubmit.co/ajax/akazadavenka@gmail.com', {
