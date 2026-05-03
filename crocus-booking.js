@@ -433,17 +433,26 @@ wrap.innerHTML =
           + '<div class="cw-gp-line" id="cgpline2"></div>'
           + '<div class="cw-gp-step" id="cgp3"><div class="cw-gp-dot">3</div><span class="cw-gp-label">Fertig</span></div>'
         + '</div>'
-        + '<h2 class="cw-title">Geschenkgutschein</h2>'
-        + '<p class="cw-sub">Wähle den Wunschbetrag — perfekt als Geschenk für jede Gelegenheit.</p>'
+        + '<div style="text-align:center;margin-bottom:6px"><span style="font-size:32px;line-height:1;display:block;margin-bottom:6px">🎁</span>'
+          + '<h2 class="cw-title" style="margin-bottom:4px">Verschenke echte Schönheit</h2>'
+          + '<p class="cw-sub" style="margin-bottom:0">Ein Gutschein von Crocus — das schönste Geschenk,<br>das man machen kann.</p>'
+        + '</div>'
+        + '<div style="background:linear-gradient(135deg,rgba(201,168,124,.07) 0%,rgba(123,45,78,.07) 100%);border:1px solid rgba(201,168,124,.18);border-radius:12px;padding:10px 14px;margin:14px 0 16px;display:flex;align-items:center;gap:10px">'
+          + '<span style="font-size:15px;flex-shrink:0">✨</span>'
+          + '<span style="font-family:DM Sans,sans-serif;font-size:11px;color:rgba(253,250,248,.55);line-height:1.55">Persönlich übergeben oder per <strong style="color:#c9a87c">E-Mail zugeschickt</strong> · 12 Monate gültig · Keine Vorauszahlung</span>'
+        + '</div>'
         + '<div class="cw-gift-amounts" id="cw-gift-amounts">'
           + '<button type="button" class="cw-gift-amount-btn" data-gift-id="25366593" data-gift-cert="303583" data-gift-amount="30">'
-            + '<div class="cw-gift-amount-inner"><span class="cw-gift-amount-value">30 €</span><span class="cw-gift-amount-desc">Für einen kleinen Verwöhntag</span></div>'
+            + '<div class="cw-gift-amount-inner"><span class="cw-gift-amount-value">30 €</span><span class="cw-gift-amount-desc">🌸 Ein entspannter Verwöhnnachmittag</span></div>'
+            + '<span style="font-size:18px;opacity:.6">›</span>'
           + '</button>'
           + '<button type="button" class="cw-gift-amount-btn" data-gift-id="25378965" data-gift-cert="303876" data-gift-amount="50">'
-            + '<div class="cw-gift-amount-inner"><span class="cw-gift-amount-value">50 €</span><span class="cw-gift-amount-desc">Maniküre &amp; mehr — der Klassiker</span></div>'
+            + '<div class="cw-gift-amount-inner"><span class="cw-gift-amount-value">50 €</span><span class="cw-gift-amount-desc">💅 Maniküre &amp; mehr — der beliebteste Gutschein</span></div>'
+            + '<span style="font-size:18px;opacity:.6">›</span>'
           + '</button>'
           + '<button type="button" class="cw-gift-amount-btn" data-gift-id="25378978" data-gift-cert="303878" data-gift-amount="100">'
-            + '<div class="cw-gift-amount-inner"><span class="cw-gift-amount-value">100 €</span><span class="cw-gift-amount-desc">Das volle Verwöhnerlebnis</span></div>'
+            + '<div class="cw-gift-amount-inner"><span class="cw-gift-amount-value">100 €</span><span class="cw-gift-amount-desc">👑 Das volle Crocus-Erlebnis — für besondere Momente</span></div>'
+            + '<span style="font-size:18px;opacity:.6">›</span>'
           + '</button>'
         + '</div>'
       + '</div>'
@@ -1258,6 +1267,11 @@ function submitGiftForm(e) {
 document.getElementById('crocus-fab').addEventListener('click', crocusOpen);
 window.crocusOpen = crocusOpen;
 window.crocusClose = crocusClose;
+window.crocusOpenGutschein = function() {
+  crocusOpen();
+  // Wait for modal animation, then immediately enter gift mode
+  setTimeout(function(){ openGiftMode(); }, 80);
+};
 
 // Мобильная кнопка — отдельная верстка
 (function(){
