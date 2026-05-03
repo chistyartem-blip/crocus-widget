@@ -868,8 +868,11 @@ function selectDate(ds) {
     var timesWrap = document.getElementById('cw-times-wrap');
     var body = document.getElementById('crocus-body');
     if (timesWrap && body) {
-      var offsetTop = timesWrap.offsetTop;
-      body.scrollTo({ top: offsetTop - 16, behavior: 'smooth' });
+      // Считаем позицию timesWrap относительно crocus-body
+      var bodyRect = body.getBoundingClientRect();
+      var wrapRect = timesWrap.getBoundingClientRect();
+      var scrollTarget = body.scrollTop + (wrapRect.top - bodyRect.top) - 16;
+      body.scrollTo({ top: scrollTarget, behavior: 'smooth' });
     }
   }, 120);
 }
