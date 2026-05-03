@@ -20,7 +20,7 @@ var MASTERS_META = {
     bio: 'Unsere erfahrenste Meisterin — präzise, kreativ und immer ausgebucht.',
     skills: ['Maniküre', 'Pediküre', 'Nagelverlängerung', 'Designs'],
     cats: ['manikuere', 'pediküre', 'kombi'],
-    avatar: 'https://static.tildacdn.com/tild3565-3731-4564-a536-376463363936/WhatsApp_Image_2026-.jpeg',
+    avatar: 'https://static.tildacdn.com/tild3239-3933-4334-b362-386430646432/ChatGPT_Image_28__20.png',
   },
   3020186: {
     level:  'Master',
@@ -31,7 +31,7 @@ var MASTERS_META = {
     bio: 'Sorgfältige Arbeit, bei der jeder Gellack sitzt wie am ersten Tag.',
     skills: ['Maniküre', 'Pediküre', 'Gellack'],
     cats: ['manikuere', 'pediküre', 'kombi'],
-    avatar: 'https://static.tildacdn.com/tild3537-3733-4430-b466-336537373738/WhatsApp_Image_2026-.jpeg',
+    avatar: 'https://static.tildacdn.com/tild6566-3434-4635-b363-656462633738/__2026-04-28_175455.png',
   },
   3020187: {
     level:  'Master',
@@ -1502,6 +1502,7 @@ if (document.readyState === 'loading') {
     nelia: 'https://static.tildacdn.com/tild3537-3733-4430-b466-336537373738/WhatsApp_Image_2026-.jpeg',
     diana: 'https://static.tildacdn.com/tild3565-3731-4564-a536-376463363936/WhatsApp_Image_2026-.jpeg',
     karina: 'https://static.tildacdn.com/tild6538-3366-4130-b062-666165616361/WhatsApp_Image_2026-.jpeg'
+
   };
 
   function openMasterInfo(key) {
