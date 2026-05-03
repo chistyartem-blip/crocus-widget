@@ -356,7 +356,7 @@ body.crocus-open .t-header,body.crocus-open header{z-index:1!important;position:
 .cw-gift-amount-btn *{pointer-events:none}
 .cw-gift-amount-btn:hover{border-color:rgba(201,168,124,.45);background:rgba(201,168,124,.04);transform:translateY(-2px);box-shadow:0 8px 28px rgba(201,168,124,.12)}
 .cw-gift-amount-btn.sel{border-color:rgba(201,168,124,.70);background:rgba(201,168,124,.07);box-shadow:0 0 0 1px rgba(201,168,124,.30),0 8px 28px rgba(201,168,124,.18)}
-.cw-gift-amount-img{width:100%;height:110px;object-fit:cover;object-position:center 30%;display:block;border-radius:14px 14px 0 0}
+.cw-gift-amount-img{width:100%;height:130px;object-fit:cover;object-position:center center;display:block;border-radius:14px 14px 0 0}
 .cw-gift-amount-inner{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:13px 16px;pointer-events:none}
 .cw-gift-amount-meta{display:flex;flex-direction:column}
 .cw-gift-amount-value{font-family:'Cormorant Garamond',Georgia,serif;font-size:26px;font-weight:300;color:#c9a87c;display:block;line-height:1}
