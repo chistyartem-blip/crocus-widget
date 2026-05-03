@@ -353,6 +353,8 @@ body.crocus-open .t-header,body.crocus-open header{z-index:1!important;position:
 /* ── Gift amount selection ── */
 .cw-gift-amounts{display:flex;flex-direction:column;gap:10px;margin-top:4px}
 .cw-gift-amount-btn{width:100%;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:16px 18px;cursor:pointer;text-align:left;color:inherit;font-family:inherit;display:flex;align-items:center;justify-content:space-between;gap:12px;transition:all .22s;-webkit-tap-highlight-color:transparent}
+.cw-gift-amount-inner{display:flex;flex-direction:column;pointer-events:none}
+.cw-gift-amount-btn *{pointer-events:none}
 .cw-gift-amount-btn:hover{border-color:rgba(201,168,124,.40);background:rgba(201,168,124,.06);transform:translateY(-2px);box-shadow:0 6px 22px rgba(201,168,124,.10)}
 .cw-gift-amount-btn.sel{border-color:rgba(201,168,124,.65);background:rgba(201,168,124,.10);box-shadow:0 0 0 1px rgba(201,168,124,.25),0 6px 22px rgba(201,168,124,.15)}
 .cw-gift-amount-value{font-family:'Cormorant Garamond',Georgia,serif;font-size:28px;font-weight:300;color:#c9a87c;display:block;line-height:1}
@@ -434,17 +436,14 @@ wrap.innerHTML =
         + '<h2 class="cw-title">Geschenkgutschein</h2>'
         + '<p class="cw-sub">Wähle den Wunschbetrag — perfekt als Geschenk für jede Gelegenheit.</p>'
         + '<div class="cw-gift-amounts" id="cw-gift-amounts">'
-          + '<button class="cw-gift-amount-btn" data-gift-id="25366593" data-gift-cert="303583" data-gift-amount="30">'
-            + '<span class="cw-gift-amount-value">30 €</span>'
-            + '<span class="cw-gift-amount-desc">Für einen kleinen Verwöhntag</span>'
+          + '<button type="button" class="cw-gift-amount-btn" data-gift-id="25366593" data-gift-cert="303583" data-gift-amount="30">'
+            + '<div class="cw-gift-amount-inner"><span class="cw-gift-amount-value">30 €</span><span class="cw-gift-amount-desc">Für einen kleinen Verwöhntag</span></div>'
           + '</button>'
-          + '<button class="cw-gift-amount-btn" data-gift-id="25378965" data-gift-cert="303876" data-gift-amount="50">'
-            + '<span class="cw-gift-amount-value">50 €</span>'
-            + '<span class="cw-gift-amount-desc">Maniküre & mehr — der Klassiker</span>'
+          + '<button type="button" class="cw-gift-amount-btn" data-gift-id="25378965" data-gift-cert="303876" data-gift-amount="50">'
+            + '<div class="cw-gift-amount-inner"><span class="cw-gift-amount-value">50 €</span><span class="cw-gift-amount-desc">Maniküre &amp; mehr — der Klassiker</span></div>'
           + '</button>'
-          + '<button class="cw-gift-amount-btn" data-gift-id="25378978" data-gift-cert="303878" data-gift-amount="100">'
-            + '<span class="cw-gift-amount-value">100 €</span>'
-            + '<span class="cw-gift-amount-desc">Das volle Verwöhnerlebnis</span>'
+          + '<button type="button" class="cw-gift-amount-btn" data-gift-id="25378978" data-gift-cert="303878" data-gift-amount="100">'
+            + '<div class="cw-gift-amount-inner"><span class="cw-gift-amount-value">100 €</span><span class="cw-gift-amount-desc">Das volle Verwöhnerlebnis</span></div>'
           + '</button>'
         + '</div>'
       + '</div>'
@@ -1308,17 +1307,18 @@ document.getElementById('cw-gift-back2').addEventListener('click', function(){
   document.getElementById('crocus-body').scrollTop = 0;
 });
 
-// Amount button clicks
-document.getElementById('cw-gift-amounts').addEventListener('click', function(e){
-  var btn = e.target.closest('.cw-gift-amount-btn');
-  if (!btn) return;
-  document.querySelectorAll('.cw-gift-amount-btn').forEach(function(b){ b.classList.remove('sel'); });
-  btn.classList.add('sel');
-  gift.amount     = parseInt(btn.getAttribute('data-gift-amount'), 10);
-  gift.goodId     = btn.getAttribute('data-gift-id');
-  gift.certTypeId = btn.getAttribute('data-gift-cert');
-  // Short delay then proceed
-  setTimeout(goGiftStep2, 220);
+// Amount button clicks — direct listeners on each button
+document.querySelectorAll('.cw-gift-amount-btn').forEach(function(amtBtn){
+  amtBtn.addEventListener('click', function(e){
+    e.preventDefault();
+    e.stopPropagation();
+    document.querySelectorAll('.cw-gift-amount-btn').forEach(function(b){ b.classList.remove('sel'); });
+    amtBtn.classList.add('sel');
+    gift.amount     = parseInt(amtBtn.getAttribute('data-gift-amount'), 10);
+    gift.goodId     = amtBtn.getAttribute('data-gift-id');
+    gift.certTypeId = amtBtn.getAttribute('data-gift-cert');
+    setTimeout(goGiftStep2, 220);
+  });
 });
 
 document.getElementById('cw-gift-form').addEventListener('submit', submitGiftForm);
