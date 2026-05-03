@@ -20,7 +20,7 @@ var MASTERS_META = {
     bio: 'Unsere erfahrenste Meisterin — präzise, kreativ und immer ausgebucht.',
     skills: ['Maniküre', 'Pediküre', 'Nagelverlängerung', 'Designs'],
     cats: ['manikuere', 'pediküre', 'kombi'],
-    avatar: 'https://static.tildacdn.com/tild3239-3933-4334-b362-386430646432/ChatGPT_Image_28__20.png',
+    avatar: 'https://static.tildacdn.com/tild3565-3731-4564-a536-376463363936/WhatsApp_Image_2026-.jpeg',
   },
   3020186: {
     level:  'Master',
@@ -31,7 +31,7 @@ var MASTERS_META = {
     bio: 'Sorgfältige Arbeit, bei der jeder Gellack sitzt wie am ersten Tag.',
     skills: ['Maniküre', 'Pediküre', 'Gellack'],
     cats: ['manikuere', 'pediküre', 'kombi'],
-    avatar: 'https://static.tildacdn.com/tild6566-3434-4635-b363-656462633738/__2026-04-28_175455.png',
+    avatar: 'https://static.tildacdn.com/tild3537-3733-4430-b466-336537373738/WhatsApp_Image_2026-.jpeg',
   },
   3020187: {
     level:  'Master',
@@ -1448,6 +1448,30 @@ if (document.readyState === 'loading') {
         }
       ]
     },
+    karina: {
+      badge: '✦ Lash Specialist · Crocus Beauty Studio',
+      title: '<em>Karina</em>',
+      sub: 'Wimpernverlängerung · Classic · Volumen 4D/6D · Wispy · Wet-Look',
+      sections: [
+        {
+          heading: 'Spezialistin für Wimpernverlängerungen',
+          text: 'Karina ist unsere Lash Specialist bei Crocus Beauty Studio — sie hat sich vollständig auf Wimpernverlängerungen spezialisiert. Ihr Ergebnis sieht so natürlich aus, dass es niemand errät. Jede Behandlung ist präzise, sorgfältig und auf deine Augenform abgestimmt.'
+        },
+        {
+          heading: 'Was dich erwartet',
+          points: [
+            'Classic, Volumen 4D/6D, Wispy und Wet-Look',
+            'Natürliches Ergebnis — abgestimmt auf deine Augenform',
+            'Sterilisierte Instrumente & zertifizierte Materialien',
+            'Haltbarkeit von 3–4 Wochen bei regelmäßigem Auffüllen'
+          ]
+        },
+        {
+          heading: 'Warum Karina?',
+          text: 'Wimpernverlängerung ist Präzisionsarbeit — Karina beherrscht sie perfekt. Egal ob dezent Classic oder dramatischer Wet-Look, sie findet den perfekten Look für jeden Typ. Ihre Kundinnen kommen immer wieder — das Ergebnis spricht für sich.'
+        }
+      ]
+    },
     diana: {
       badge: '💎 Top-Master · Crocus Beauty Studio',
       title: '<em>Diana</em>',
@@ -1475,16 +1499,18 @@ if (document.readyState === 'loading') {
   };
 
   var MASTER_PHOTO = {
-    nelia: 'https://static.tildacdn.com/tild6566-3434-4635-b363-656462633738/__2026-04-28_175455.png',
-    diana: 'https://static.tildacdn.com/tild3239-3933-4334-b362-386430646432/ChatGPT_Image_28__20.png'
+    nelia: 'https://static.tildacdn.com/tild3537-3733-4430-b466-336537373738/WhatsApp_Image_2026-.jpeg',
+    diana: 'https://static.tildacdn.com/tild3565-3731-4564-a536-376463363936/WhatsApp_Image_2026-.jpeg',
+    karina: 'https://static.tildacdn.com/tild6538-3366-4130-b062-666165616361/WhatsApp_Image_2026-.jpeg'
   };
 
   function openMasterInfo(key) {
     var d = MASTER_INFO[key]; if (!d) return;
-    var isDiana = key === 'diana';
-    var accent       = isDiana ? '#b8924a' : '#7B2D4E';
-    var accentLight  = isDiana ? 'rgba(201,168,124,0.13)' : 'rgba(123,45,78,0.08)';
-    var accentBorder = isDiana ? 'rgba(201,168,124,0.35)' : 'rgba(123,45,78,0.18)';
+    var isDiana  = key === 'diana';
+    var isKarina = key === 'karina';
+    var accent       = (isDiana || isKarina) ? '#b8924a' : '#7B2D4E';
+    var accentLight  = (isDiana || isKarina) ? 'rgba(201,168,124,0.13)' : 'rgba(123,45,78,0.08)';
+    var accentBorder = (isDiana || isKarina) ? 'rgba(201,168,124,0.35)' : 'rgba(123,45,78,0.18)';
     var headerBg     = isDiana
       ? 'linear-gradient(160deg,#2a1f10 0%,#1a0d12 100%)'
       : 'linear-gradient(160deg,#2a0d1a 0%,#1a0d12 100%)';
@@ -1528,7 +1554,7 @@ if (document.readyState === 'loading') {
 
     // ── CTA ───────────────────────────────────────────────────────────────
     h += '<div style="margin-top:24px;padding-top:20px;border-top:1px solid ' + accentBorder + ';display:flex;flex-direction:column;gap:8px;">';
-    h += '<button data-crl2-minfo-book style="width:100%;padding:14px 20px;border:none;border-radius:12px;cursor:pointer;font-family:\'DM Sans\',sans-serif;font-size:12px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:#fff;background:' + (isDiana ? 'linear-gradient(135deg,#c9a87c,#8c6020)' : 'linear-gradient(135deg,#9b3660,#7B2D4E)') + ';display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:' + (isDiana ? '0 4px 18px rgba(201,168,124,0.35)' : '0 4px 18px rgba(123,45,78,0.38)') + ';box-sizing:border-box;">'
+    h += '<button data-crl2-minfo-book style="width:100%;padding:14px 20px;border:none;border-radius:12px;cursor:pointer;font-family:\'DM Sans\',sans-serif;font-size:12px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:#fff;background:' + ((isDiana || isKarina) ? 'linear-gradient(135deg,#c9a87c,#8c6020)' : 'linear-gradient(135deg,#9b3660,#7B2D4E)') + ';display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:' + ((isDiana || isKarina) ? '0 4px 18px rgba(201,168,124,0.35)' : '0 4px 18px rgba(123,45,78,0.38)') + ';box-sizing:border-box;">'
       + '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" style="flex-shrink:0"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>'
       + 'Termin buchen</button>';
     h += '<button data-crl2-select="' + key + '" style="width:100%;padding:12px 20px;border:1.5px solid ' + accentBorder + ';border-radius:12px;cursor:pointer;font-family:\'DM Sans\',sans-serif;font-size:12px;font-weight:600;letter-spacing:0.04em;color:' + accent + ';background:transparent;display:flex;align-items:center;justify-content:center;gap:8px;box-sizing:border-box;">'
