@@ -1225,36 +1225,31 @@ function submitGiftForm(e) {
     '\nBitte Zahlung anfordern und Gutschein zusenden.'
   );
 
-  // Send via mailto (opens email client) — reliable, no backend needed
-  var mailBody =
-    'Neue Gutschein-Anfrage von der Webseite:\n\n' +
-    'Betrag: ' + gift.amount + ' €\n' +
-    'Käufer/in: ' + name + '\n' +
-    'E-Mail: ' + email + '\n' +
-    (phone ? 'Telefon: ' + phone + '\n' : '') +
-    (recipient ? 'Für: ' + recipient + '\n' : '') +
-    '\n---\nBitte Zahlung anfordern und Gutschein per E-Mail zusenden.';
+  // Send via formsubmit.co — no backend needed, delivers to email
+  var payload = {
+    _subject: 'Gutschein-Anfrage ' + gift.amount + ' € — ' + name,
+    _replyto: email,
+    _template: 'table',
+    _captcha: 'false',
+    Betrag: gift.amount + ' €',
+    Name: name,
+    EMail: email,
+    Telefon: phone || '—',
+    Fuer_wen: recipient || '—',
+  };
 
-  var mailSubject = 'Gutschein-Anfrage ' + gift.amount + ' € — ' + name;
-
-  // Open mailto silently — won't interrupt flow if browser blocks it
-  try {
-    var a = document.createElement('a');
-    a.href = 'mailto:akazadavenka@gmail.com'
-      + '?subject=' + encodeURIComponent(mailSubject)
-      + '&body=' + encodeURIComponent(mailBody);
-    a.style.display = 'none';
-    document.body.appendChild(a);
-    a.click();
-    setTimeout(function(){ document.body.removeChild(a); }, 500);
-  } catch(e) {}
-
-  // Show success immediately
-  setTimeout(function(){
+  fetch('https://formsubmit.co/ajax/akazadavenka@gmail.com', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+    body: JSON.stringify(payload),
+  })
+  .then(function(r){ return r.json(); })
+  .catch(function(){ return {}; })
+  .then(function(){
     btn.disabled = false;
     btn.textContent = 'Gutschein anfragen →';
     goGiftSuccess();
-  }, 400);
+  });
 }
 
 // ── Events ─────────────────────────────────────────────────────
