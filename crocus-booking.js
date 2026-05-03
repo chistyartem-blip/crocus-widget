@@ -612,6 +612,7 @@ function crocusClose() {
   setTimeout(function(){
     document.getElementById('crocus-backdrop').classList.remove('open');
     document.body.style.overflow = '';
+    crocusReset();
   }, 320);
 }
 
