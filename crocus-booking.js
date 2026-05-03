@@ -326,7 +326,45 @@ var css = `
 .cw-btn-new:hover{background:rgba(255,255,255,.09);color:#fdfaf8}
 
 body.crocus-open .t-header,body.crocus-open header{z-index:1!important;position:relative!important}
+
+/* ── Gift CTA button (Step 1 bottom) ── */
+.cw-gift-divider{display:flex;align-items:center;gap:10px;margin:18px 0 12px}
+.cw-gift-divider::before,.cw-gift-divider::after{content:'';flex:1;height:1px;background:rgba(255,255,255,.07)}
+.cw-gift-divider span{font-family:'DM Sans',sans-serif;font-size:10px;letter-spacing:.06em;color:rgba(253,250,248,.25);text-transform:uppercase}
+.cw-gift-cta{width:100%;background:linear-gradient(135deg,rgba(201,168,124,.08) 0%,rgba(201,168,124,.04) 100%);border:1px solid rgba(201,168,124,.22);border-radius:14px;padding:14px 16px;cursor:pointer;text-align:left;color:inherit;font-family:inherit;display:flex;align-items:center;gap:13px;transition:all .22s;-webkit-tap-highlight-color:transparent}
+.cw-gift-cta:hover{border-color:rgba(201,168,124,.45);background:linear-gradient(135deg,rgba(201,168,124,.13) 0%,rgba(201,168,124,.07) 100%);transform:translateY(-1px);box-shadow:0 6px 22px rgba(201,168,124,.12)}
+.cw-gift-cta-icon{font-size:22px;flex-shrink:0;line-height:1}
+.cw-gift-cta-text{flex:1;min-width:0}
+.cw-gift-cta-title{display:block;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;color:#fdfaf8;margin-bottom:2px}
+.cw-gift-cta-sub{display:block;font-family:'DM Sans',sans-serif;font-size:11px;color:rgba(253,250,248,.38)}
+.cw-gift-cta-arrow{color:rgba(201,168,124,.55);font-size:20px;flex-shrink:0}
+
+/* ── Gift Progress bar ── */
+.cw-gift-progress{display:flex;align-items:center;justify-content:center;gap:0;margin-bottom:18px}
+.cw-gp-step{display:flex;flex-direction:column;align-items:center;gap:3px;flex:1;position:relative}
+.cw-gp-dot{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:9.5px;font-weight:600;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.09);color:rgba(253,250,248,.28);transition:all .25s}
+.cw-gp-step.active .cw-gp-dot{background:#c9a87c;border-color:#c9a87c;color:#0f0a0d;box-shadow:0 0 12px rgba(201,168,124,.45)}
+.cw-gp-step.done .cw-gp-dot{background:rgba(201,168,124,.13);border-color:#c9a87c;color:#c9a87c}
+.cw-gp-label{font-size:8.5px;letter-spacing:.05em;text-transform:uppercase;color:rgba(253,250,248,.22);font-family:'DM Sans',sans-serif;white-space:nowrap}
+.cw-gp-step.active .cw-gp-label,.cw-gp-step.done .cw-gp-label{color:rgba(253,250,248,.55)}
+.cw-gp-line{position:absolute;top:10px;left:calc(50% + 13px);right:calc(-50% + 13px);height:1px;background:rgba(255,255,255,.06);z-index:0;transition:background .3s}
+.cgpline-filled,.cw-gp-line.filled{background:rgba(201,168,124,.28)!important}
+
+/* ── Gift amount selection ── */
+.cw-gift-amounts{display:flex;flex-direction:column;gap:10px;margin-top:4px}
+.cw-gift-amount-btn{width:100%;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:16px 18px;cursor:pointer;text-align:left;color:inherit;font-family:inherit;display:flex;align-items:center;justify-content:space-between;gap:12px;transition:all .22s;-webkit-tap-highlight-color:transparent}
+.cw-gift-amount-btn:hover{border-color:rgba(201,168,124,.40);background:rgba(201,168,124,.06);transform:translateY(-2px);box-shadow:0 6px 22px rgba(201,168,124,.10)}
+.cw-gift-amount-btn.sel{border-color:rgba(201,168,124,.65);background:rgba(201,168,124,.10);box-shadow:0 0 0 1px rgba(201,168,124,.25),0 6px 22px rgba(201,168,124,.15)}
+.cw-gift-amount-value{font-family:'Cormorant Garamond',Georgia,serif;font-size:28px;font-weight:300;color:#c9a87c;display:block;line-height:1}
+.cw-gift-amount-desc{font-family:'DM Sans',sans-serif;font-size:11px;color:rgba(253,250,248,.38);display:block;margin-top:4px}
+
+/* ── Gift info box ── */
+.cw-gift-info-box{display:flex;align-items:flex-start;gap:10px;background:rgba(201,168,124,.06);border:1px solid rgba(201,168,124,.15);border-radius:11px;padding:12px 13px;margin-bottom:2px}
+.cw-gift-info-icon{font-size:14px;flex-shrink:0;opacity:.55;margin-top:1px}
+.cw-gift-info-box p{font-family:'DM Sans',sans-serif;font-size:11.5px;color:rgba(253,250,248,.45);line-height:1.6;margin:0}
 `;
+
+var styleEl = document.createElement('style');
 
 var styleEl = document.createElement('style');
 styleEl.textContent = css;
@@ -372,6 +410,80 @@ wrap.innerHTML =
         + '<h2 class="cw-title">Wähle deine Meisterin</h2>'
         + '<p class="cw-sub">Jede Meisterin hat ihre eigene Stärke — lies kurz rein und wähle die Richtige für dich.</p>'
         + '<div class="cw-masters" id="cw-masters-list"></div>'
+        + '<div class="cw-gift-divider"><span>oder</span></div>'
+        + '<button class="cw-gift-cta" id="cw-btn-gift">'
+          + '<div class="cw-gift-cta-icon">🎁</div>'
+          + '<div class="cw-gift-cta-text">'
+            + '<span class="cw-gift-cta-title">Geschenkgutschein kaufen</span>'
+            + '<span class="cw-gift-cta-sub">30 € · 50 € · 100 € — per E-Mail zugeschickt</span>'
+          + '</div>'
+          + '<span class="cw-gift-cta-arrow">›</span>'
+        + '</button>'
+      + '</div>'
+
+      // Gift Step 1 — Nominale
+      + '<div class="cw-step" id="cw-gift1">'
+        + '<div class="cw-nav"><button class="cw-back" id="cw-gift-back1">← Zurück</button></div>'
+        + '<div class="cw-gift-progress">'
+          + '<div class="cw-gp-step active" id="cgp1"><div class="cw-gp-dot">1</div><span class="cw-gp-label">Betrag</span></div>'
+          + '<div class="cw-gp-line" id="cgpline1"></div>'
+          + '<div class="cw-gp-step" id="cgp2"><div class="cw-gp-dot">2</div><span class="cw-gp-label">Daten</span></div>'
+          + '<div class="cw-gp-line" id="cgpline2"></div>'
+          + '<div class="cw-gp-step" id="cgp3"><div class="cw-gp-dot">3</div><span class="cw-gp-label">Fertig</span></div>'
+        + '</div>'
+        + '<h2 class="cw-title">Geschenkgutschein</h2>'
+        + '<p class="cw-sub">Wähle den Wunschbetrag — perfekt als Geschenk für jede Gelegenheit.</p>'
+        + '<div class="cw-gift-amounts" id="cw-gift-amounts">'
+          + '<button class="cw-gift-amount-btn" data-gift-id="25366593" data-gift-cert="303583" data-gift-amount="30">'
+            + '<span class="cw-gift-amount-value">30 €</span>'
+            + '<span class="cw-gift-amount-desc">Für einen kleinen Verwöhntag</span>'
+          + '</button>'
+          + '<button class="cw-gift-amount-btn" data-gift-id="25378965" data-gift-cert="303876" data-gift-amount="50">'
+            + '<span class="cw-gift-amount-value">50 €</span>'
+            + '<span class="cw-gift-amount-desc">Maniküre & mehr — der Klassiker</span>'
+          + '</button>'
+          + '<button class="cw-gift-amount-btn" data-gift-id="25378978" data-gift-cert="303878" data-gift-amount="100">'
+            + '<span class="cw-gift-amount-value">100 €</span>'
+            + '<span class="cw-gift-amount-desc">Das volle Verwöhnerlebnis</span>'
+          + '</button>'
+        + '</div>'
+      + '</div>'
+
+      // Gift Step 2 — Form
+      + '<div class="cw-step" id="cw-gift2">'
+        + '<div class="cw-nav"><button class="cw-back" id="cw-gift-back2">← Zurück</button></div>'
+        + '<div class="cw-gift-progress">'
+          + '<div class="cw-gp-step done" id="cgp1b"><div class="cw-gp-dot">✓</div><span class="cw-gp-label">Betrag</span></div>'
+          + '<div class="cw-gp-line cgpline-filled" id="cgpline1b"></div>'
+          + '<div class="cw-gp-step active" id="cgp2b"><div class="cw-gp-dot">2</div><span class="cw-gp-label">Daten</span></div>'
+          + '<div class="cw-gp-line" id="cgpline2b"></div>'
+          + '<div class="cw-gp-step" id="cgp3b"><div class="cw-gp-dot">3</div><span class="cw-gp-label">Fertig</span></div>'
+        + '</div>'
+        + '<h2 class="cw-title">Ihre Kontaktdaten</h2>'
+        + '<p class="cw-sub">Gutschein: <strong id="cw-gift-selected-label">50 €</strong> — wird per E-Mail bestätigt</p>'
+        + '<form class="cw-form" id="cw-gift-form">'
+          + '<div class="cw-field"><label>Ihr Name</label><input type="text" id="cw-gift-name" placeholder="Ihr Name" required autocomplete="name"></div>'
+          + '<div class="cw-field"><label>Ihre E-Mail</label><input type="email" id="cw-gift-email" placeholder="ihre@email.de" required autocomplete="email"></div>'
+          + '<div class="cw-field"><label>Telefon / WhatsApp</label><input type="tel" id="cw-gift-phone" placeholder="+49 172 …" autocomplete="tel"></div>'
+          + '<div class="cw-field"><label>Für wen ist der Gutschein? <span style="opacity:.45;font-size:9px">(optional)</span></label><input type="text" id="cw-gift-recipient" placeholder="z.B. für Maria zum Geburtstag"></div>'
+          + '<div class="cw-gift-info-box">'
+            + '<div class="cw-gift-info-icon">ℹ</div>'
+            + '<p>Nach Ihrer Anfrage melden wir uns per E-Mail mit Zahlungsdetails und schicken Ihnen den Gutschein zu.</p>'
+          + '</div>'
+          + '<button type="submit" class="cw-btn-confirm" id="cw-gift-submit">Gutschein anfragen →</button>'
+          + '<p class="cw-form-note">Kein Vorauszahlung · Wir melden uns innerhalb 24h</p>'
+        + '</form>'
+      + '</div>'
+
+      // Gift Success
+      + '<div class="cw-step" id="cw-gift-success">'
+        + '<div class="cw-success">'
+          + '<div class="cw-success-icon">🎁</div>'
+          + '<h2>Anfrage eingegangen!</h2>'
+          + '<p id="cw-gift-success-text">Wir melden uns in Kürze per E-Mail mit den Zahlungsdetails.</p>'
+          + '<p class="cw-success-note">Nach Zahlungseingang erhalten Sie Ihren Gutschein per E-Mail.</p>'
+          + '<button class="cw-btn-new" id="cw-gift-btn-new">Termin buchen</button>'
+        + '</div>'
       + '</div>'
 
       // Step 2 — Category
@@ -463,6 +575,13 @@ var cw = {
 var _allMasters  = null;
 var _allServices = null;
 var _addonObjs   = [];
+
+// Gift state
+var gift = {
+  amount: null,       // 30 | 50 | 100
+  goodId: null,
+  certTypeId: null,
+};
 
 // ── Open/Close ─────────────────────────────────────────────────
 function crocusOpen() {
@@ -1043,6 +1162,101 @@ function crocusReset() {
   document.getElementById('crocus-body').scrollTop = 0;
 }
 
+// ── Gift flow ──────────────────────────────────────────────────
+function openGiftMode() {
+  // Hide main progress bar, show gift steps
+  document.getElementById('crocus-progress').style.display = 'none';
+  document.querySelectorAll('.cw-step').forEach(function(el){ el.classList.remove('active'); });
+  document.getElementById('cw-gift1').classList.add('active');
+  document.getElementById('crocus-body').scrollTop = 0;
+  // Reset gift state
+  gift.amount = null;
+  gift.goodId = null;
+  gift.certTypeId = null;
+  // Deselect all amount buttons
+  document.querySelectorAll('.cw-gift-amount-btn').forEach(function(b){ b.classList.remove('sel'); });
+}
+
+function goGiftStep2() {
+  document.querySelectorAll('.cw-step').forEach(function(el){ el.classList.remove('active'); });
+  document.getElementById('cw-gift2').classList.add('active');
+  document.getElementById('cw-gift-selected-label').textContent = gift.amount + ' €';
+  document.getElementById('crocus-body').scrollTop = 0;
+}
+
+function goGiftSuccess() {
+  document.querySelectorAll('.cw-step').forEach(function(el){ el.classList.remove('active'); });
+  document.getElementById('cw-gift-success').classList.add('active');
+  var name = (document.getElementById('cw-gift-name').value || '').trim();
+  document.getElementById('cw-gift-success-text').innerHTML =
+    'Vielen Dank' + (name ? ', <strong>' + name + '</strong>' : '') + '! ' +
+    'Wir melden uns in Kürze per E-Mail mit den Zahlungsdetails für Ihren <strong>' + gift.amount + '&nbsp;€ Gutschein</strong>.';
+  document.getElementById('crocus-body').scrollTop = 0;
+}
+
+function submitGiftForm(e) {
+  e.preventDefault();
+  var name      = (document.getElementById('cw-gift-name').value || '').trim();
+  var email     = (document.getElementById('cw-gift-email').value || '').trim();
+  var phone     = (document.getElementById('cw-gift-phone').value || '').trim();
+  var recipient = (document.getElementById('cw-gift-recipient').value || '').trim();
+
+  if (!name || !email) {
+    if (!name) document.getElementById('cw-gift-name').classList.add('invalid');
+    if (!email) document.getElementById('cw-gift-email').classList.add('invalid');
+    return;
+  }
+
+  var btn = document.getElementById('cw-gift-submit');
+  btn.disabled = true;
+  btn.textContent = 'Wird gesendet…';
+
+  // Build mailto link as fallback — also try a simple fetch to a notification endpoint
+  var subject = encodeURIComponent('Gutschein-Anfrage: ' + gift.amount + ' € — ' + name);
+  var body = encodeURIComponent(
+    'Neue Gutschein-Anfrage:\n\n' +
+    'Betrag: ' + gift.amount + ' €\n' +
+    'Good ID: ' + gift.goodId + '\n' +
+    'Cert Type ID: ' + gift.certTypeId + '\n\n' +
+    'Käufer: ' + name + '\n' +
+    'E-Mail: ' + email + '\n' +
+    (phone ? 'Telefon: ' + phone + '\n' : '') +
+    (recipient ? 'Für: ' + recipient + '\n' : '') +
+    '\nBitte Zahlung anfordern und Gutschein zusenden.'
+  );
+
+  // Send via mailto (opens email client) — reliable, no backend needed
+  var mailBody =
+    'Neue Gutschein-Anfrage von der Webseite:\n\n' +
+    'Betrag: ' + gift.amount + ' €\n' +
+    'Käufer/in: ' + name + '\n' +
+    'E-Mail: ' + email + '\n' +
+    (phone ? 'Telefon: ' + phone + '\n' : '') +
+    (recipient ? 'Für: ' + recipient + '\n' : '') +
+    '\n---\nBitte Zahlung anfordern und Gutschein per E-Mail zusenden.';
+
+  var mailSubject = 'Gutschein-Anfrage ' + gift.amount + ' € — ' + name;
+
+  // Open mailto silently — won't interrupt flow if browser blocks it
+  try {
+    var a = document.createElement('a');
+    a.href = 'mailto:akazadavenka@gmail.com'
+      + '?subject=' + encodeURIComponent(mailSubject)
+      + '&body=' + encodeURIComponent(mailBody);
+    a.style.display = 'none';
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(function(){ document.body.removeChild(a); }, 500);
+  } catch(e) {}
+
+  // Show success immediately
+  setTimeout(function(){
+    btn.disabled = false;
+    btn.textContent = 'Gutschein anfragen →';
+    goGiftSuccess();
+  }, 400);
+}
+
 // ── Events ─────────────────────────────────────────────────────
 document.getElementById('crocus-fab').addEventListener('click', crocusOpen);
 window.crocusOpen = crocusOpen;
@@ -1081,6 +1295,50 @@ document.getElementById('cw-cal-prev').addEventListener('click', calPrev);
 document.getElementById('cw-cal-next').addEventListener('click', calNext);
 document.getElementById('cw-btn-new').addEventListener('click', crocusReset);
 document.getElementById('cw-form').addEventListener('submit', submitBooking);
+
+// Gift flow events
+document.getElementById('cw-btn-gift').addEventListener('click', openGiftMode);
+
+document.getElementById('cw-gift-back1').addEventListener('click', function(){
+  document.getElementById('crocus-progress').style.display = 'flex';
+  document.querySelectorAll('.cw-step').forEach(function(el){ el.classList.remove('active'); });
+  document.getElementById('cw-step1').classList.add('active');
+  updateProgress(1);
+  document.getElementById('crocus-body').scrollTop = 0;
+});
+
+document.getElementById('cw-gift-back2').addEventListener('click', function(){
+  document.querySelectorAll('.cw-step').forEach(function(el){ el.classList.remove('active'); });
+  document.getElementById('cw-gift1').classList.add('active');
+  document.getElementById('crocus-body').scrollTop = 0;
+});
+
+// Amount button clicks
+document.getElementById('cw-gift-amounts').addEventListener('click', function(e){
+  var btn = e.target.closest('.cw-gift-amount-btn');
+  if (!btn) return;
+  document.querySelectorAll('.cw-gift-amount-btn').forEach(function(b){ b.classList.remove('sel'); });
+  btn.classList.add('sel');
+  gift.amount     = parseInt(btn.getAttribute('data-gift-amount'), 10);
+  gift.goodId     = btn.getAttribute('data-gift-id');
+  gift.certTypeId = btn.getAttribute('data-gift-cert');
+  // Short delay then proceed
+  setTimeout(goGiftStep2, 220);
+});
+
+document.getElementById('cw-gift-form').addEventListener('submit', submitGiftForm);
+
+document.getElementById('cw-gift-btn-new').addEventListener('click', function(){
+  crocusReset();
+  document.getElementById('crocus-progress').style.display = 'flex';
+});
+
+// Clear invalid state on input
+['cw-gift-name','cw-gift-email'].forEach(function(id){
+  document.getElementById(id).addEventListener('input', function(){
+    this.classList.remove('invalid');
+  });
+});
 document.addEventListener('keydown', function(e){ if(e.key==='Escape') crocusClose(); });
 
 // Кнопка "далее" после выбора допа (клик на карточку) — авто-переход с задержкой
