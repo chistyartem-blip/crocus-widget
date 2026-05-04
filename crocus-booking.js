@@ -219,19 +219,19 @@ var css = `
 .cw-error{background:rgba(248,113,113,.06);border:1px solid rgba(248,113,113,.18);border-radius:11px;padding:13px;text-align:center;font-family:'DM Sans',sans-serif;font-size:12.5px;color:#fca5a5;margin-top:14px}
 
 /* ── Step 1: Masters ── */
-.cw-masters{display:flex;flex-direction:column;gap:10px}
-.cw-master-card{width:100%;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:16px;cursor:pointer;text-align:left;color:inherit;font-family:inherit;overflow:hidden;transition:all .22s;padding:0}
+.cw-masters{display:flex;flex-direction:column;gap:7px}
+.cw-master-card{width:100%;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:13px;cursor:pointer;text-align:left;color:inherit;font-family:inherit;overflow:hidden;transition:all .22s;padding:0}
 .cw-master-card:hover{border-color:rgba(201,168,124,.30);background:rgba(201,168,124,.04);transform:translateY(-2px);box-shadow:0 8px 28px rgba(0,0,0,.38)}
 .cw-master-card.selected{border-color:rgba(123,45,78,.55);background:rgba(123,45,78,.06)}
-.cw-master-top-row{display:flex;align-items:center;gap:12px;padding:14px 14px 0}
-.cw-master-avatar{width:52px;height:52px;border-radius:50%;object-fit:cover;flex-shrink:0;border:2px solid rgba(255,255,255,.08);background:#1a0f15}
+.cw-master-top-row{display:flex;align-items:center;gap:10px;padding:10px 12px 0}
+.cw-master-avatar{width:44px;height:44px;border-radius:50%;object-fit:cover;flex-shrink:0;border:2px solid rgba(255,255,255,.08);background:#1a0f15}
 .cw-master-info{flex:1;min-width:0}
-.cw-master-name{font-family:'DM Sans',sans-serif;font-size:15px;font-weight:600;color:#fdfaf8;margin-bottom:3px}
-.cw-master-tagline{font-family:'Cormorant Garamond',Georgia,serif;font-size:13.5px;font-style:italic;color:rgba(253,250,248,.50);line-height:1.35}
+.cw-master-name{font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;color:#fdfaf8;margin-bottom:2px}
+.cw-master-tagline{font-family:'Cormorant Garamond',Georgia,serif;font-size:12.5px;font-style:italic;color:rgba(253,250,248,.50);line-height:1.3}
 .cw-lvl-badge{display:inline-block;font-family:'DM Sans',sans-serif;font-size:9px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;padding:2px 8px;border-radius:20px;margin-top:4px}
-.cw-master-bio-wrap{padding:10px 14px 14px}
-.cw-master-bio{font-family:'DM Sans',sans-serif;font-size:11.5px;color:rgba(253,250,248,.42);line-height:1.6;margin:0 0 9px}
-.cw-master-skills{display:flex;flex-wrap:wrap;gap:5px}
+.cw-master-bio-wrap{padding:7px 12px 10px}
+.cw-master-bio{font-family:'DM Sans',sans-serif;font-size:11px;color:rgba(253,250,248,.42);line-height:1.5;margin:0 0 6px}
+.cw-master-skills{display:flex;flex-wrap:wrap;gap:4px}
 .cw-skill-tag{font-family:'DM Sans',sans-serif;font-size:10px;color:rgba(253,250,248,.38);background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.07);border-radius:20px;padding:2px 9px}
 
 /* ── Step 2: Categories ── */
