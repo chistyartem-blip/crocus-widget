@@ -310,7 +310,7 @@ var css = `
 .cw-field-err.show{display:block}
 .cw-consent{display:flex;align-items:flex-start;gap:10px;cursor:pointer;margin-top:2px}
 .cw-consent input[type=checkbox]{width:16px;height:16px;min-width:16px;margin-top:2px;accent-color:#7B2D4E;cursor:pointer}
-.cw-consent span{font-family:'DM Sans',sans-serif;font-size:10.5px;color:rgba(253,250,248,.38);line-height:1.55}
+.cw-consent span{font-family:'DM Sans',sans-serif;font-size:10.5px;color:rgba(253,250,248,.65);line-height:1.55}
 .cw-consent span a{color:rgba(201,168,124,.75);text-decoration:underline}
 .cw-consent span a:hover{color:#c9a87c}
 .cw-consent.invalid span{color:#fca5a5}
@@ -1079,32 +1079,7 @@ function submitBooking(e) {
   var email = document.getElementById('cw-email').value.trim();
   var consent = document.getElementById('cw-consent').checked;
 
-  // Валидация
-  var valid = true;
-
-  // Имя — минимум 2 реальных слова, только буквы/пробел/дефис, мин 3 символа
-  var nameOk = /^[A-Za-zÄäÖöÜüßА-Яа-яЁё\- ]{3,}$/.test(name) && !/^(.)\1+$/.test(name.replace(/\s/g,''));
-  setFieldState('cw-name', nameOk, 'Bitte geben Sie Ihren echten Namen ein.');
-  if (!nameOk) valid = false;
-
-  // Телефон — минимум 7 цифр, допустимы +, пробелы, дефисы, скобки
-  var phoneDigits = phone.replace(/\D/g,'');
-  var phoneOk = phoneDigits.length >= 7 && phoneDigits.length <= 15 && /^[+\d\s\-\(\)]+$/.test(phone);
-  setFieldState('cw-phone', phoneOk, 'Bitte gültige Telefonnummer eingeben (mind. 7 Ziffern).');
-  if (!phoneOk) valid = false;
-
-  // Email
-  var emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email);
-  setFieldState('cw-email', emailOk, 'Bitte gültige E-Mail-Adresse eingeben.');
-  if (!emailOk) valid = false;
-
-  // Consent
-  var consentEl = document.getElementById('cw-consent').parentElement;
-  if (!consent) { consentEl.classList.add('invalid'); valid = false; }
-  else { consentEl.classList.remove('invalid'); }
-
-  if (!valid) return;
-
+  // ── Helper: field validation state ──────────────────────────
   function setFieldState(id, ok, msg) {
     var inp = document.getElementById(id);
     var wrap = inp.parentElement;
@@ -1118,14 +1093,56 @@ function submitBooking(e) {
     else { inp.classList.add('invalid'); err.textContent = msg; err.classList.add('show'); }
   }
 
+  // ── Validation ───────────────────────────────────────────────
+  var valid = true;
+
+  // Name — min 3 chars, letters/space/hyphen only
+  var nameOk = name.length >= 3 && /^[A-Za-zÄäÖöÜüßА-Яа-яЁё\- ]+$/.test(name);
+  setFieldState('cw-name', nameOk, 'Bitte geben Sie Ihren Namen ein (mind. 3 Zeichen).');
+  if (!nameOk) valid = false;
+
+  // Phone — min 7 digits, allowed: +, digits, spaces, hyphens, brackets
+  var phoneDigits = phone.replace(/\D/g,'');
+  var phoneOk = phoneDigits.length >= 7 && phoneDigits.length <= 15;
+  setFieldState('cw-phone', phoneOk, 'Bitte gültige Telefonnummer eingeben (mind. 7 Ziffern).');
+  if (!phoneOk) valid = false;
+
+  // Email — basic check
+  var emailOk = email.length === 0 || /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email);
+  setFieldState('cw-email', emailOk, 'Bitte gültige E-Mail-Adresse eingeben.');
+  if (!emailOk) valid = false;
+
+  // Consent
+  var consentEl = document.getElementById('cw-consent').parentElement;
+  if (!consent) { consentEl.classList.add('invalid'); valid = false; }
+  else { consentEl.classList.remove('invalid'); }
+
+  if (!valid) { console.warn('[Crocus] Validation failed', {name, nameOk, phone, phoneOk, email, emailOk, consent}); return; }
+
+  // ── Check booking state ──────────────────────────────────────
+  if (!cw.service || !cw.master || !cw.datetime) {
+    console.error('[Crocus] Missing booking state', {service: cw.service, master: cw.master, datetime: cw.datetime});
+    var errMsg = document.getElementById('cw-form').querySelector('.cw-err-msg');
+    if (errMsg) errMsg.remove();
+    var pErr = document.createElement('p');
+    pErr.className = 'cw-err-msg';
+    pErr.style.cssText = 'color:#fca5a5;font-size:12px;text-align:center;margin:4px 0 0;font-family:DM Sans,sans-serif';
+    pErr.textContent = 'Bitte wählen Sie zuerst Datum und Uhrzeit aus.';
+    document.getElementById('cw-form').appendChild(pErr);
+    return;
+  }
+
   var btn = document.getElementById('cw-btn-submit');
   btn.disabled = true; btn.textContent = 'Wird gesendet…';
 
   var appointments = [{ id: cw.service.id, services: [cw.service.id], staff_id: cw.master.id, datetime: cw.datetime }];
   if (cw.addon) appointments.push({ id: cw.addon.id, services: [cw.addon.id], staff_id: cw.master.id, datetime: cw.datetime });
 
+  console.log('[Crocus] Booking →', { phone, name, email, appointments });
+
   apiPost('/book_record/'+CONFIG.locationId, { phone: phone, fullname: name, email: email, appointments: appointments })
     .then(function(res){
+      console.log('[Crocus] Booking response:', res);
       if (!res.success) throw new Error(res.message||'Buchungsfehler');
       var dateStr = cw.date
         ? new Date(cw.date+'T12:00:00').toLocaleDateString('de-DE',{weekday:'long',day:'numeric',month:'long'})
@@ -1137,6 +1154,7 @@ function submitBooking(e) {
       document.getElementById('crocus-progress').style.display = 'none';
     })
     .catch(function(err){
+      console.error('[Crocus] Booking error:', err);
       btn.disabled = false; btn.textContent = 'Termin bestätigen →';
       var old = document.getElementById('cw-form').querySelector('.cw-err-msg');
       if (old) old.remove();
