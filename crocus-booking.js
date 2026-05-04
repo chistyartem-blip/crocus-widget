@@ -1528,14 +1528,14 @@ if (document.readyState === 'loading') {
     '#crocus-close{border-color:rgba(192,52,104,.20)!important;background:rgba(192,52,104,.07)!important;color:rgba(26,8,16,.45)!important;}' +
     '#crocus-close:hover{background:rgba(192,52,104,.15)!important;color:#1a0810!important;}' +
     '@keyframes logoPulseManik{' +
-      '0%,100%{filter:sepia(1) saturate(2.5) hue-rotate(320deg) brightness(0.85) drop-shadow(0 0 5px rgba(201,140,80,.55)) drop-shadow(0 0 12px rgba(201,140,80,.25))}' +
-      '50%{filter:sepia(1) saturate(3) hue-rotate(320deg) brightness(1.05) drop-shadow(0 0 9px rgba(201,140,80,.85)) drop-shadow(0 0 22px rgba(201,140,80,.40))}' +
+      '0%,100%{filter:brightness(0) saturate(1) invert(13%) sepia(50%) saturate(800%) hue-rotate(300deg) brightness(0.75) drop-shadow(0 0 4px rgba(122,21,48,.30))}' +
+      '50%{filter:brightness(0) saturate(1) invert(13%) sepia(50%) saturate(800%) hue-rotate(300deg) brightness(0.85) drop-shadow(0 0 8px rgba(122,21,48,.55))}' +
     '}' +
     '.crocus-modal-logo{' +
-      'background:transparent!important;' +
-      'border-color:rgba(201,140,80,.30)!important;' +
+      'background:rgba(255,255,255,.55)!important;' +
+      'border-color:rgba(122,21,48,.20)!important;' +
       'animation-name:logoPulseManik!important;' +
-      'filter:sepia(1) saturate(2.5) hue-rotate(320deg) brightness(0.85) drop-shadow(0 0 5px rgba(201,140,80,.55)) drop-shadow(0 0 12px rgba(201,140,80,.25))!important;' +
+      'filter:brightness(0) saturate(1) invert(13%) sepia(50%) saturate(800%) hue-rotate(300deg) brightness(0.75) drop-shadow(0 0 4px rgba(122,21,48,.30))!important;' +
     '}' +
 
     /* Progress */
