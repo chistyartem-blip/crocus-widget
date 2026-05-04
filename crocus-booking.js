@@ -369,8 +369,6 @@ body.crocus-open .t-header,body.crocus-open header{z-index:1!important;position:
 `;
 
 var styleEl = document.createElement('style');
-
-var styleEl = document.createElement('style');
 styleEl.textContent = css;
 document.head.appendChild(styleEl);
 
@@ -1096,9 +1094,9 @@ function submitBooking(e) {
   // ── Validation ───────────────────────────────────────────────
   var valid = true;
 
-  // Name — min 3 chars, letters/space/hyphen only
-  var nameOk = name.length >= 3 && /^[A-Za-zÄäÖöÜüßА-Яа-яЁё\- ]+$/.test(name);
-  setFieldState('cw-name', nameOk, 'Bitte geben Sie Ihren Namen ein (mind. 3 Zeichen).');
+  // Name — min 2 chars (allow any characters incl. numbers, punctuation)
+  var nameOk = name.length >= 2;
+  setFieldState('cw-name', nameOk, 'Bitte geben Sie Ihren Namen ein (mind. 2 Zeichen).');
   if (!nameOk) valid = false;
 
   // Phone — min 7 digits, allowed: +, digits, spaces, hyphens, brackets
@@ -1541,6 +1539,25 @@ if (document.readyState === 'loading') {
     '.cw-btn-confirm{background:linear-gradient(135deg,#c03468 0%,#96204e 100%)!important;box-shadow:0 6px 22px rgba(192,52,104,.35)!important;}' +
     '.cw-btn-confirm:hover:not(:disabled){box-shadow:0 10px 30px rgba(192,52,104,.52)!important;}' +
     '.cw-form-note{color:rgba(26,8,16,.30)!important;}' +
+
+    /* Consent checkbox */
+    '.cw-consent span{color:rgba(26,8,16,.72)!important;}' +
+    '.cw-consent span a{color:#c03468!important;}' +
+    '.cw-consent span a:hover{color:#96204e!important;}' +
+    '.cw-consent.invalid span{color:#c03468!important;}' +
+
+    /* Validation errors — visible on pink bg */
+    '.cw-field-err{color:#96204e!important;}' +
+    '.cw-field input.invalid{border-color:rgba(150,32,78,.60)!important;background:rgba(150,32,78,.06)!important;}' +
+
+    /* Gift CTA on light bg */
+    '.cw-gift-cta{background:rgba(192,52,104,.08)!important;border-color:rgba(192,52,104,.25)!important;}' +
+    '.cw-gift-cta:hover{background:rgba(192,52,104,.13)!important;border-color:rgba(192,52,104,.45)!important;}' +
+    '.cw-gift-cta-title{color:#1a0810!important;}' +
+    '.cw-gift-cta-sub{color:rgba(26,8,16,.62)!important;}' +
+    '.cw-gift-cta-arrow{color:rgba(192,52,104,.65)!important;}' +
+    '.cw-gift-divider span{color:rgba(26,8,16,.30)!important;}' +
+    '.cw-gift-divider::before,.cw-gift-divider::after{background:rgba(26,8,16,.10)!important;}' +
 
     /* Success */
     '.cw-success-icon{background:rgba(192,52,104,.08)!important;border-color:rgba(192,52,104,.25)!important;color:#c03468!important;}' +
