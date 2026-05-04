@@ -1133,8 +1133,9 @@ function submitBooking(e) {
   var btn = document.getElementById('cw-btn-submit');
   btn.disabled = true; btn.textContent = 'Wird gesendet…';
 
-  var appointments = [{ id: cw.service.id, services: [cw.service.id], staff_id: cw.master.id, datetime: cw.datetime }];
-  if (cw.addon) appointments.push({ id: cw.addon.id, services: [cw.addon.id], staff_id: cw.master.id, datetime: cw.datetime });
+  // Addon must be in the same appointment (not separate) — API requires combined services array
+  var svcIds = cw.addon ? [cw.service.id, cw.addon.id] : [cw.service.id];
+  var appointments = [{ id: cw.service.id, services: svcIds, staff_id: cw.master.id, datetime: cw.datetime }];
 
   console.log('[Crocus] Booking →', { phone, name, email, appointments });
 
