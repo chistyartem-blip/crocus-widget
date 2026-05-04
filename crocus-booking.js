@@ -123,7 +123,7 @@ function apiGet(path, params) {
 
 function apiPost(path, body) {
   var ctrl = new AbortController();
-  var timer = setTimeout(function(){ ctrl.abort(); }, 15000);
+  var timer = setTimeout(function(){ ctrl.abort(); }, 10000);
   return fetch(CONFIG.apiBase + path, {
     method: 'POST',
     signal: ctrl.signal,
@@ -1158,9 +1158,11 @@ function submitBooking(e) {
       var old = document.getElementById('cw-form').querySelector('.cw-err-msg');
       if (old) old.remove();
       var p = document.createElement('p');
-      p.className = 'cw-err-msg';
-      p.style.cssText = 'color:#fca5a5;font-size:12px;text-align:center;margin:4px 0 0;font-family:DM Sans,sans-serif';
-      p.textContent = err.message||'Fehler. Bitte erneut versuchen.';
+      p.className = 'cw-err-msg cw-err-msg--visible';
+      p.style.cssText = 'font-size:12px;text-align:center;margin:8px 0 0;font-family:DM Sans,sans-serif;padding:8px 12px;border-radius:8px;background:rgba(252,100,100,.10);border:1px solid rgba(252,100,100,.25)';
+      var msg = (err && err.message) ? err.message : 'Fehler. Bitte erneut versuchen.';
+      if (msg === 'AbortError' || msg.indexOf('abort') !== -1) msg = 'Verbindungsfehler. Bitte erneut versuchen.';
+      p.textContent = msg;
       document.getElementById('cw-form').appendChild(p);
     });
 }
@@ -1182,6 +1184,19 @@ function crocusReset() {
   cw = { step:1, master:null, category:null, service:null, addon:null,
          date:null, time:null, datetime:null,
          calY:new Date().getFullYear(), calM:new Date().getMonth(), availDates:[] };
+  // Always re-enable submit button in case previous attempt left it disabled
+  var submitBtn = document.getElementById('cw-btn-submit');
+  if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = 'Termin bestätigen →'; }
+  // Clear any leftover error messages in form
+  var oldErr = document.getElementById('cw-form') && document.getElementById('cw-form').querySelector('.cw-err-msg');
+  if (oldErr) oldErr.remove();
+  // Clear form fields
+  ['cw-name','cw-phone','cw-email'].forEach(function(id){
+    var el = document.getElementById(id);
+    if (el) { el.value = ''; el.classList.remove('invalid'); }
+  });
+  var consentEl = document.getElementById('cw-consent');
+  if (consentEl) { consentEl.checked = true; consentEl.parentElement.classList.remove('invalid'); }
   document.getElementById('crocus-progress').style.display = 'flex';
   document.querySelectorAll('.cw-step').forEach(function(el){ el.classList.remove('active'); });
   document.getElementById('cw-step1').classList.add('active');
@@ -1547,9 +1562,10 @@ if (document.readyState === 'loading') {
     '.cw-consent span a:hover{color:#96204e!important;}' +
     '.cw-consent.invalid span{color:#c03468!important;}' +
 
-    /* Validation errors — visible on pink bg */
+    /* Validation & booking errors — visible on pink bg */
     '.cw-field-err{color:#96204e!important;}' +
     '.cw-field input.invalid{border-color:rgba(150,32,78,.60)!important;background:rgba(150,32,78,.06)!important;}' +
+    '.cw-err-msg--visible{color:#7a1530!important;background:rgba(192,52,104,.08)!important;border-color:rgba(192,52,104,.25)!important;}' +
 
     /* Gift CTA on light bg */
     '.cw-gift-cta{background:rgba(192,52,104,.08)!important;border-color:rgba(192,52,104,.25)!important;}' +
