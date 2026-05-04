@@ -601,6 +601,10 @@ function crocusOpen() {
     document.getElementById('crocus-modal').classList.add('open');
   });
   if (!_allMasters) loadInitialData();
+  // Push history entry so Android back button is intercepted
+  if (window.history && window.history.pushState) {
+    window.history.pushState({ crocusOpen: true }, '');
+  }
 }
 
 function crocusClose() {
@@ -612,6 +616,10 @@ function crocusClose() {
     document.body.style.overflow = '';
     crocusReset();
   }, 320);
+  // Clean up history entry if it's still there
+  if (window.history && window.history.state && window.history.state.crocusOpen) {
+    window.history.back();
+  }
 }
 
 // ── Progress ───────────────────────────────────────────────────
@@ -1387,6 +1395,61 @@ document.getElementById('cw-gift-btn-new').addEventListener('click', function(){
   });
 });
 document.addEventListener('keydown', function(e){ if(e.key==='Escape') crocusClose(); });
+
+// ── Android back button / browser back ─────────────────────────
+window.addEventListener('popstate', function(e) {
+  var modal = document.getElementById('crocus-modal');
+  if (!modal || !modal.classList.contains('open')) return;
+
+  // Modal is open — intercept back navigation
+  e.preventDefault();
+
+  var isGiftMode = document.getElementById('cw-gift1') && document.getElementById('cw-gift1').classList.contains('active');
+  var isGiftStep2 = document.getElementById('cw-gift2') && document.getElementById('cw-gift2').classList.contains('active');
+  var isGiftSuccess = document.getElementById('cw-gift-success') && document.getElementById('cw-gift-success').classList.contains('active');
+
+  if (isGiftStep2) {
+    // Gift step 2 → Gift step 1
+    document.querySelectorAll('.cw-step').forEach(function(el){ el.classList.remove('active'); });
+    document.getElementById('cw-gift1').classList.add('active');
+    document.getElementById('crocus-body').scrollTop = 0;
+    window.history.pushState({ crocusOpen: true }, '');
+    return;
+  }
+  if (isGiftMode || isGiftSuccess) {
+    // Gift step 1 or success → main step 1
+    document.getElementById('crocus-progress').style.display = 'flex';
+    document.querySelectorAll('.cw-step').forEach(function(el){ el.classList.remove('active'); });
+    document.getElementById('cw-step1').classList.add('active');
+    updateProgress(1);
+    document.getElementById('crocus-body').scrollTop = 0;
+    window.history.pushState({ crocusOpen: true }, '');
+    return;
+  }
+
+  var step = cw.step;
+  if (step === 'success' || step === 1) {
+    // On step 1 or success — close the modal entirely, no new pushState
+    crocusClose();
+    return;
+  }
+
+  // Steps 2–6: go back one step
+  window.history.pushState({ crocusOpen: true }, '');
+  if (step === 2) { goStep(1); return; }
+  if (step === 3) { goStep(2); return; }
+  if (step === 4) { goStep(3); return; }
+  if (step === 5) {
+    var skipBack = cw.category && cw.category.key === 'wimpern';
+    if (!skipBack && cw.service) {
+      var ids = ADDON_IDS_BY_SERVICE[cw.service.id];
+      if (!ids || ids.length === 0) skipBack = true;
+    }
+    goStep(skipBack ? 3 : 4);
+    return;
+  }
+  if (step === 6) { goStep(5); return; }
+});
 
 // Кнопка "далее" после выбора допа (клик на карточку) — авто-переход с задержкой
 // убран авто-переход, пользователь нажимает "Без допа" или выбирает и нажимает кнопку
