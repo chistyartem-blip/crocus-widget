@@ -1527,8 +1527,8 @@ if (document.readyState === 'loading') {
     '.crocus-modal-sub{color:rgba(26,8,16,.45)!important;}' +
     '#crocus-close{border-color:rgba(192,52,104,.20)!important;background:rgba(192,52,104,.07)!important;color:rgba(26,8,16,.45)!important;}' +
     '#crocus-close:hover{background:rgba(192,52,104,.15)!important;color:#1a0810!important;}' +
-    '@keyframes logoPulseManik{0%,100%{filter:drop-shadow(0 0 4px rgba(255,255,255,.70)) drop-shadow(0 0 10px rgba(192,52,104,.55))}50%{filter:drop-shadow(0 0 8px rgba(255,255,255,1)) drop-shadow(0 0 20px rgba(192,52,104,.90))}}' +
-    '.crocus-modal-logo{background:rgba(192,52,104,.10)!important;border-color:rgba(192,52,104,.25)!important;animation-name:logoPulseManik!important;}' +
+    '@keyframes logoPulseManik{0%,100%{filter:drop-shadow(0 0 6px rgba(122,21,48,.40))}50%{filter:drop-shadow(0 0 12px rgba(122,21,48,.70))}}' +
+    '.crocus-modal-logo{background:#7a1530!important;border-color:rgba(122,21,48,.40)!important;animation-name:logoPulseManik!important;filter:drop-shadow(0 0 6px rgba(122,21,48,.35))!important;}' +
 
     /* Progress */
     '#crocus-progress{background:#f9dce7!important;border-bottom:1px solid rgba(192,52,104,.12)!important;}' +
