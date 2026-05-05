@@ -116,7 +116,7 @@ function apiGet(path, params) {
   var timer = setTimeout(function(){ ctrl.abort(); }, 10000);
   return fetch(url, {
     signal: ctrl.signal,
-    headers: { 'Authorization': 'Bearer '+CONFIG.partnerToken, 'Accept': 'application/vnd.api.v2+json' }
+    headers: { 'Authorization': 'Bearer '+CONFIG.partnerToken, 'Accept': 'application/vnd.api.v2+json', 'Accept-Language': CONFIG.lang }
   }).then(function(r){ clearTimeout(timer); return r.json(); })
     .catch(function(e){ clearTimeout(timer); throw e; });
 }
@@ -128,9 +128,10 @@ function apiPost(path, body) {
     method: 'POST',
     signal: ctrl.signal,
     headers: {
-      'Authorization': 'Bearer '+CONFIG.partnerToken,
-      'Accept':        'application/vnd.api.v2+json',
-      'Content-Type':  'application/json',
+      'Authorization':    'Bearer '+CONFIG.partnerToken,
+      'Accept':           'application/vnd.api.v2+json',
+      'Content-Type':     'application/json',
+      'Accept-Language':  CONFIG.lang,
     },
     body: JSON.stringify(body),
   }).then(function(r){ clearTimeout(timer); return r.json(); })
@@ -1161,7 +1162,7 @@ function submitBooking(e) {
 
   console.log('[Crocus] Booking →', { phone, name, email, appointments });
 
-  apiPost('/book_record/'+CONFIG.locationId, { phone: phone, fullname: name, email: email, notify_by_email: emailRemind ? 1 : 0, appointments: appointments })
+  apiPost('/book_record/'+CONFIG.locationId, { phone: phone, fullname: name, email: email, notify_by_email: emailRemind ? 1 : 0, lang: CONFIG.lang, appointments: appointments })
     .then(function(res){
       console.log('[Crocus] Booking response:', res);
       if (!res.success) throw new Error(res.message||'Buchungsfehler');
