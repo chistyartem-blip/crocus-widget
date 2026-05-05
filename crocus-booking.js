@@ -1380,12 +1380,24 @@ function tryShowReturnScreen() {
     var price = (last.service.price || 0) + (last.addon ? (last.addon.price || 0) : 0);
     var priceStr = price ? price + ' €' : '—';
     var meta = last.masterMeta || {};
+    var avatarHtml = meta.avatar
+      ? '<div style="display:flex;align-items:center;gap:12px;padding-bottom:12px;border-bottom:1px solid rgba(255,255,255,.07);margin-bottom:10px">' +
+          '<div style="position:relative;flex-shrink:0">' +
+            '<img src="' + meta.avatar + '" style="width:52px;height:52px;border-radius:50%;object-fit:cover;border:2px solid rgba(201,168,124,.35);display:block"/>' +
+            '<div style="position:absolute;bottom:-1px;right:-1px;width:14px;height:14px;border-radius:50%;background:#2b6344;border:2px solid rgba(13,6,18,.9)"></div>' +
+          '</div>' +
+          '<div style="flex:1;min-width:0">' +
+            '<div style="font-family:\'DM Sans\',sans-serif;font-size:14px;font-weight:600;color:#fdfaf8;display:flex;align-items:center;gap:7px;flex-wrap:wrap">' + last.masterName +
+              (meta.level ? '<span style="font-size:9px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:1px 7px;border-radius:20px;color:'+(meta.levelColor||'#c9a87c')+';background:'+(meta.levelBg||'rgba(201,168,124,.1)')+';border:1px solid '+(meta.levelBorder||'rgba(201,168,124,.3)') + '">' + meta.level + '</span>' : '') +
+            '</div>' +
+            (meta.tagline ? '<div style="font-family:\'DM Sans\',sans-serif;font-size:11px;color:rgba(253,250,248,.38);margin-top:2px">' + meta.tagline + '</div>' : '') +
+          '</div>' +
+        '</div>'
+      : '';
     document.getElementById('cw-return-card').innerHTML =
-      '<div class="cw-return-row"><span>Meisterin</span><strong>' + last.masterName +
-        (meta.level ? ' <span style="font-size:9px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:1px 7px;border-radius:20px;color:'+(meta.levelColor||'#c9a87c')+';background:'+(meta.levelBg||'rgba(201,168,124,.1)')+';border:1px solid '+(meta.levelBorder||'rgba(201,168,124,.3)')+'">' + meta.level + '</span>' : '') +
-      '</strong></div>' +
+      avatarHtml +
       '<div class="cw-return-row"><span>Behandlung</span><strong>' + svcStr + '</strong></div>' +
-      '<div class="cw-return-row"><span>Preis</span><strong class="cw-return-price">' + priceStr + '</strong></div>';
+      '<div class="cw-return-row" style="margin-top:4px"><span>Preis</span><strong class="cw-return-price">' + priceStr + '</strong></div>';
     // Switch to return screen (hide progress bar)
     document.getElementById('crocus-progress').style.display = 'none';
     document.querySelectorAll('.cw-step').forEach(function(el){ el.classList.remove('active'); });
@@ -1947,6 +1959,7 @@ if (document.readyState === 'loading') {
 
     /* Return screen */
     '.cw-return-card{background:rgba(255,255,255,.04)!important;border-color:rgba(196,168,216,.18)!important;}' +
+    '.cw-return-card img{border-color:rgba(196,168,216,.40)!important;}' +
     '.cw-return-row span{color:rgba(220,200,255,.38)!important;}' +
     '.cw-return-row strong{color:#f0eaf8!important;}' +
     '.cw-return-price{color:#c4a8d8!important;}' +
