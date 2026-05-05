@@ -326,6 +326,7 @@ var css = `
 .cw-btn-new:hover{background:rgba(255,255,255,.09);color:#fdfaf8}
 
 body.crocus-open .t-header,body.crocus-open header{z-index:1!important;position:relative!important}
+body.crocus-open{overflow:hidden!important;touch-action:none;}
 
 /* ── Gift CTA button (Step 1 bottom) ── */
 .cw-gift-divider{display:flex;align-items:center;gap:10px;margin:18px 0 12px}
@@ -592,10 +593,16 @@ var gift = {
 };
 
 // ── Open/Close ─────────────────────────────────────────────────
+var _scrollY = 0;
 function crocusOpen() {
   document.getElementById('crocus-backdrop').classList.add('open');
+  // iOS scroll lock: save position, fix body
+  _scrollY = window.scrollY || window.pageYOffset || 0;
   document.body.classList.add('crocus-open');
   document.body.style.overflow = 'hidden';
+  document.body.style.position = 'fixed';
+  document.body.style.top = '-' + _scrollY + 'px';
+  document.body.style.width = '100%';
   requestAnimationFrame(function(){
     document.getElementById('crocus-backdrop').classList.add('visible');
     document.getElementById('crocus-modal').classList.add('open');
@@ -613,7 +620,12 @@ function crocusClose() {
   document.body.classList.remove('crocus-open');
   setTimeout(function(){
     document.getElementById('crocus-backdrop').classList.remove('open');
+    // iOS scroll lock: restore position
+    document.body.style.position = '';
+    document.body.style.top = '';
+    document.body.style.width = '';
     document.body.style.overflow = '';
+    window.scrollTo(0, _scrollY);
     crocusReset();
   }, 320);
   // Clean up history entry if it's still there
@@ -1522,7 +1534,7 @@ if (document.readyState === 'loading') {
 
     /* Modal — светлый */
     '#crocus-modal{background:#fce8ef!important;}' +
-    '#crocus-modal-header{background:#f9dce7!important;border-bottom:1px solid rgba(192,52,104,.15)!important;}' +
+    '#crocus-modal-header{background:#f9dce7!important;border-bottom:none!important;}' +
     '.crocus-modal-title{color:#1a0810!important;}' +
     '.crocus-modal-sub{color:rgba(26,8,16,.45)!important;}' +
     '#crocus-close{border-color:rgba(192,52,104,.20)!important;background:rgba(192,52,104,.07)!important;color:rgba(26,8,16,.45)!important;}' +
@@ -1546,7 +1558,7 @@ if (document.readyState === 'loading') {
     '}' +
 
     /* Progress */
-    '#crocus-progress{background:#f9dce7!important;border-bottom:1px solid rgba(192,52,104,.12)!important;}' +
+    '#crocus-progress{background:#f9dce7!important;border-bottom:none!important;}' +
     '.cp-dot{background:rgba(26,8,16,.06)!important;border-color:rgba(26,8,16,.15)!important;color:rgba(26,8,16,.30)!important;}' +
     '.cp-step.active .cp-dot{background:#c03468!important;border-color:#c03468!important;color:#fff!important;box-shadow:0 0 12px rgba(192,52,104,.40)!important;}' +
     '.cp-step.done .cp-dot{background:rgba(192,52,104,.12)!important;border-color:#c03468!important;color:#c03468!important;}' +
@@ -1701,7 +1713,7 @@ if (document.readyState === 'loading') {
 
     /* Modal — тёмный фиолетовый */
     '#crocus-modal{background:#0f0820!important;}' +
-    '#crocus-modal-header{background:rgba(94,58,140,.10)!important;border-bottom:1px solid rgba(196,168,216,.10)!important;}' +
+    '#crocus-modal-header{background:rgba(94,58,140,.10)!important;border-bottom:none!important;}' +
     '.crocus-modal-title{color:#f0eaf8!important;}' +
     '.crocus-modal-sub{color:rgba(220,200,255,.38)!important;}' +
     '#crocus-close{border-color:rgba(196,168,216,.18)!important;background:rgba(196,168,216,.06)!important;color:rgba(220,200,255,.45)!important;}' +
@@ -1710,7 +1722,7 @@ if (document.readyState === 'loading') {
     '.crocus-modal-logo{background:rgba(94,58,140,.20)!important;border-color:rgba(196,168,216,.22)!important;animation-name:logoPulsePedi!important;}' +
 
     /* Progress */
-    '#crocus-progress{background:rgba(94,58,140,.08)!important;border-bottom:1px solid rgba(196,168,216,.09)!important;}' +
+    '#crocus-progress{background:rgba(94,58,140,.08)!important;border-bottom:none!important;}' +
     '.cp-dot{background:rgba(255,255,255,.04)!important;border-color:rgba(255,255,255,.10)!important;color:rgba(220,200,255,.28)!important;}' +
     '.cp-step.active .cp-dot{background:#5e3a8c!important;border-color:#5e3a8c!important;color:#fff!important;box-shadow:0 0 12px rgba(94,58,140,.55)!important;}' +
     '.cp-step.done .cp-dot{background:rgba(196,168,216,.12)!important;border-color:#c4a8d8!important;color:#c4a8d8!important;}' +
