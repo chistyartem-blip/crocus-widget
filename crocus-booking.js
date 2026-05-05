@@ -1945,6 +1945,12 @@ if (document.readyState === 'loading') {
     '.cw-btn-new{background:rgba(255,255,255,.05)!important;border-color:rgba(196,168,216,.14)!important;color:rgba(220,200,255,.55)!important;}' +
     '.cw-btn-new:hover{background:rgba(94,58,140,.10)!important;color:#f0eaf8!important;}' +
 
+    /* Return screen */
+    '.cw-return-card{background:rgba(255,255,255,.04)!important;border-color:rgba(196,168,216,.18)!important;}' +
+    '.cw-return-row span{color:rgba(220,200,255,.38)!important;}' +
+    '.cw-return-row strong{color:#f0eaf8!important;}' +
+    '.cw-return-price{color:#c4a8d8!important;}' +
+
     /* Backdrop */
     '#crocus-backdrop{background:rgba(20,8,45,.55)!important;}';
 
