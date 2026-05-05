@@ -545,6 +545,7 @@ wrap.innerHTML =
           + '<div class="cw-field"><label>Telefon / WhatsApp</label><input type="tel" id="cw-phone" placeholder="+49 172 …" required autocomplete="tel"></div>'
           + '<div class="cw-field"><label>E-Mail</label><input type="email" id="cw-email" placeholder="ihre@email.de" required autocomplete="email"></div>'
           + '<label class="cw-consent"><input type="checkbox" id="cw-consent" checked><span>Ich stimme den <a href="https://alteg.io/en/info/terms" target="_blank" rel="noopener">Nutzungsbedingungen</a> und der <a href="https://alteg.io/en/info/privacy" target="_blank" rel="noopener">Datenschutzerklärung</a> zu und willige in die Verarbeitung meiner Daten zur Terminbuchung ein.</span></label>'
+          + '<label class="cw-consent" style="margin-top:6px"><input type="checkbox" id="cw-email-remind" checked><span>E-Mail-Erinnerung 1 Stunde vor dem Termin erhalten</span></label>'
           + '<button type="submit" class="cw-btn-confirm" id="cw-btn-submit">Termin bestätigen →</button>'
           + '<p class="cw-form-note">Keine Vorauszahlung · Kostenlose Stornierung bis 24h vorher</p>'
         + '</form>'
@@ -1096,6 +1097,7 @@ function submitBooking(e) {
   var phone = document.getElementById('cw-phone').value.trim();
   var email = document.getElementById('cw-email').value.trim();
   var consent = document.getElementById('cw-consent').checked;
+  var emailRemind = document.getElementById('cw-email-remind') ? document.getElementById('cw-email-remind').checked : true;
 
   // ── Helper: field validation state ──────────────────────────
   function setFieldState(id, ok, msg) {
@@ -1159,7 +1161,7 @@ function submitBooking(e) {
 
   console.log('[Crocus] Booking →', { phone, name, email, appointments });
 
-  apiPost('/book_record/'+CONFIG.locationId, { phone: phone, fullname: name, email: email, appointments: appointments })
+  apiPost('/book_record/'+CONFIG.locationId, { phone: phone, fullname: name, email: email, notify_by_email: emailRemind ? 1 : 0, appointments: appointments })
     .then(function(res){
       console.log('[Crocus] Booking response:', res);
       if (!res.success) throw new Error(res.message||'Buchungsfehler');
@@ -1217,6 +1219,8 @@ function crocusReset() {
   });
   var consentEl = document.getElementById('cw-consent');
   if (consentEl) { consentEl.checked = true; consentEl.parentElement.classList.remove('invalid'); }
+  var remindEl = document.getElementById('cw-email-remind');
+  if (remindEl) remindEl.checked = true;
   document.getElementById('crocus-progress').style.display = 'flex';
   document.querySelectorAll('.cw-step').forEach(function(el){ el.classList.remove('active'); });
   document.getElementById('cw-step1').classList.add('active');
