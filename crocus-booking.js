@@ -1190,7 +1190,7 @@ function submitBooking(e) {
 
   console.log('[Crocus] Booking →', { phone, name, email, appointments });
 
-  apiPost('/book_record/'+CONFIG.locationId, { phone: phone, fullname: name, email: email, notify_by_email: emailRemind ? 1 : 0, lang: CONFIG.lang, appointments: appointments })
+  apiPost('/book_record/'+CONFIG.locationId, { phone: phone, fullname: name, email: email, notify_by_email: emailRemind ? 1 : 0, lang: CONFIG.lang, lang_id: 3, bookform_id: 1427839, appointments: appointments })
     .then(function(res){
       console.log('[Crocus] Booking response:', res);
       if (!res.success) throw new Error(res.message||'Buchungsfehler');
