@@ -422,7 +422,7 @@ wrap.innerHTML =
         + '<p class="cw-sub">Dein letzter Besuch:</p>'
         + '<div class="cw-return-card" id="cw-return-card"></div>'
         + '<button class="cw-btn-confirm" id="cw-btn-repeat" style="margin-top:14px">Gleichen Termin wiederholen →</button>'
-        + '<button class="cw-skip-btn" id="cw-btn-newbook" style="margin-top:10px">Neue Buchung / anderen Termin</button>'
+        + '<button class="cw-skip-btn" id="cw-btn-newbook" style="margin-top:10px">Neue Buchung / anderer Master</button>'
       + '</div>'
 
       // Step 1 — Master
