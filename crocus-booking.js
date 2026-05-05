@@ -1047,7 +1047,17 @@ function renderTimesLoaded(slots) {
 
       cw.datetime = slot.datetime;
       renderTimesLoaded(slots);
-      setTimeout(function(){ renderSummary(); goStep(6); }, 180);
+      setTimeout(function(){
+        renderSummary();
+        goStep(6);
+        // Prefill from localStorage
+        try {
+          var saved = JSON.parse(localStorage.getItem('crocus_client') || '{}');
+          if (saved.name)  { var fn = document.getElementById('cw-name');  if (fn && !fn.value) fn.value = saved.name; }
+          if (saved.phone) { var fp = document.getElementById('cw-phone'); if (fp && !fp.value) fp.value = saved.phone; }
+          if (saved.email) { var fe = document.getElementById('cw-email'); if (fe && !fe.value) fe.value = saved.email; }
+        } catch(ex) {}
+      }, 180);
     });
     grid.appendChild(btn);
   });
@@ -1172,6 +1182,8 @@ function submitBooking(e) {
       var svcStr = cw.addon ? cw.service.title+' + '+cw.addon.title : cw.service.title;
       document.getElementById('cw-success-text').innerHTML =
         '<strong>'+svcStr+'</strong> bei <strong>'+cw.master.name+'</strong><br>'+dateStr+', '+cw.time+' Uhr';
+      // Save client data for next visit
+      try { localStorage.setItem('crocus_client', JSON.stringify({ name: name, phone: phone, email: email })); } catch(ex) {}
       goStep('success');
       document.getElementById('crocus-progress').style.display = 'none';
     })
