@@ -1234,18 +1234,36 @@ function submitBooking(e) {
           addon:       cw.addon ? { id: cw.addon.id, title: cw.addon.title, price: cw.addon.price_min || 0 } : null,
         }));
       } catch(ex) {}
-      // Tracking — booking_success
+      // Tracking — booking_success (Enhanced Conversions ready)
       window.dataLayer = window.dataLayer || [];
-      window.dataLayer.push({
-        event: 'booking_success',
-        service_name: cw.service ? cw.service.title : '',
-        category: cw.category ? cw.category.label : '',
-        master_name: cw.master ? cw.master.name : '',
-        addon_name: cw.addon ? cw.addon.title : '',
-        booking_date: cw.date || '',
-        booking_time: cw.time || '',
-        source: 'widget',
-        page_location: window.location.href,
+      // Hash email for Enhanced Conversions (SHA-256)
+      var _ecEmail = email ? email.toLowerCase().trim() : '';
+      var _ecPhone = phone ? phone.replace(/\s/g,'') : '';
+      (window.crypto && window.crypto.subtle && _ecEmail
+        ? window.crypto.subtle.digest('SHA-256', new TextEncoder().encode(_ecEmail))
+            .then(function(buf){
+              return Array.from(new Uint8Array(buf)).map(function(b){ return b.toString(16).padStart(2,'0'); }).join('');
+            })
+        : Promise.resolve('')
+      ).then(function(emailHash) {
+        window.dataLayer.push({
+          event: 'booking_success',
+          service_name: cw.service ? cw.service.title : '',
+          service_category: cw.category ? cw.category.key : '',
+          category: cw.category ? cw.category.label : '',
+          master_name: cw.master ? cw.master.name : '',
+          addon_name: cw.addon ? cw.addon.title : '',
+          booking_date: cw.date || '',
+          booking_time: cw.time || '',
+          source: 'widget',
+          page_location: window.location.href,
+          // Enhanced Conversions
+          user_data: {
+            email_address: _ecEmail || undefined,
+            phone_number: _ecPhone || undefined,
+            sha256_email_address: emailHash || undefined,
+          },
+        });
       });
       goStep('success');
       document.getElementById('crocus-progress').style.display = 'none';
@@ -1401,6 +1419,14 @@ function submitGiftForm(e) {
   .then(function(){
     btn.disabled = false;
     btn.textContent = 'Gutschein anfragen →';
+    // Tracking — gutschein_lead
+    window.dataLayer = window.dataLayer || [];
+    window.dataLayer.push({
+      event: 'gutschein_lead',
+      gutschein_amount: gift.amount || '',
+      page_location: window.location.href,
+      source: 'widget',
+    });
     goGiftSuccess();
   });
 }
@@ -1479,8 +1505,14 @@ document.getElementById('crocus-fab').addEventListener('click', crocusOpen);
 window.crocusOpen = crocusOpen;
 window.crocusClose = crocusClose;
 window.crocusOpenGutschein = function() {
+  // Tracking — click_gutschein
+  window.dataLayer = window.dataLayer || [];
+  window.dataLayer.push({
+    event: 'click_gutschein',
+    page_location: window.location.href,
+    cta_location: 'widget_fab',
+  });
   crocusOpen();
-  // Wait for modal animation, then immediately enter gift mode
   setTimeout(function(){ openGiftMode(); }, 80);
 };
 
@@ -1498,6 +1530,52 @@ window.crocusOpenGutschein = function() {
   document.getElementById('crocus-fab-mobile-btn').addEventListener('click', crocusOpen);
 })();
 document.getElementById('crocus-backdrop').addEventListener('click', crocusClose);
+
+// ── WhatsApp / Phone click tracking ────────────────────────────
+(function() {
+  function trackExternalClick(e) {
+    var a = e.target.closest('a[href]');
+    if (!a) return;
+    var href = a.href || '';
+    var loc = window.location.href;
+    
+    // WhatsApp
+    if (href.includes('wa.me') || href.includes('whatsapp')) {
+      // Определяем источник по ближайшему родителю
+      var section = a.closest('[class*="crn1"], [class*="header"]') ? 'header'
+        : a.closest('[class*="crf"], [class*="footer"]') ? 'footer'
+        : a.closest('[class*="nrh1__g-mobile"], .nrh1') ? 'hero_mobile'
+        : a.closest('#crocus-modal') ? 'booking_widget'
+        : a.closest('[class*="gutschein"], [class*="gift"]') ? 'gutschein'
+        : 'page';
+      window.dataLayer = window.dataLayer || [];
+      window.dataLayer.push({
+        event: 'click_whatsapp',
+        click_whatsapp_source: section,
+        event_label: 'click_whatsapp_' + section,
+        page_location: loc,
+        cta_location: section,
+      });
+    }
+    // Phone
+    if (href.startsWith('tel:')) {
+      var section2 = a.closest('[class*="crn1"], [class*="header"]') ? 'header'
+        : a.closest('[class*="crf"], [class*="footer"]') ? 'footer'
+        : 'page';
+      window.dataLayer = window.dataLayer || [];
+      window.dataLayer.push({
+        event: 'click_phone',
+        cta_location: section2,
+        page_location: loc,
+      });
+    }
+    // Gutschein external links
+    if (a.classList.contains('nra1__btn') || a.closest('[class*="gutschein"]')) {
+      // handled separately
+    }
+  }
+  document.addEventListener('click', trackExternalClick, true);
+})();
 document.getElementById('crocus-close').addEventListener('click', crocusClose);
 document.getElementById('cw-back1').addEventListener('click', function(){ goStep(1); });
 document.getElementById('cw-back2').addEventListener('click', function(){ goStep(2); });
