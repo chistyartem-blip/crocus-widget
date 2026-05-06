@@ -632,6 +632,9 @@ function crocusOpen() {
   if (window.history && window.history.pushState) {
     window.history.pushState({ crocusOpen: true }, '');
   }
+  // Tracking
+  window.dataLayer = window.dataLayer || [];
+  window.dataLayer.push({ event: 'open_booking_widget', page_location: window.location.href });
 }
 
 function crocusClose() {
@@ -785,6 +788,9 @@ function renderMasters() {
 function selectMaster(m, meta) {
   cw.master = m;
   cw.master._meta = meta;
+  // Tracking
+  window.dataLayer = window.dataLayer || [];
+  window.dataLayer.push({ event: 'booking_master_selected', master_name: m.name, page_location: window.location.href });
   document.getElementById('cw-sel-master-name').textContent = m.name;
   goStep(2);
   // Загружаем услуги с ценами конкретного мастера
@@ -838,6 +844,9 @@ function renderCategories(masterId) {
 function selectCategory(cat) {
   cw.category = cat;
   cw.service = null;
+  // Tracking
+  window.dataLayer = window.dataLayer || [];
+  window.dataLayer.push({ event: 'booking_category_selected', category: cat.label, master_name: cw.master ? cw.master.name : '', page_location: window.location.href });
   document.getElementById('cw-step3-title').textContent = cat.label;
   document.getElementById('cw-step3-sub').innerHTML = 'Meisterin: <strong style="color:#fdfaf8">'+cw.master.name+'</strong>';
   renderServices(cat);
@@ -890,6 +899,9 @@ function renderServices(cat) {
 function selectService(s) {
   cw.service = s;
   cw.addon = null;
+  // Tracking
+  window.dataLayer = window.dataLayer || [];
+  window.dataLayer.push({ event: 'booking_service_selected', service_name: s.title, category: cw.category ? cw.category.label : '', master_name: cw.master ? cw.master.name : '', page_location: window.location.href });
   // Для ресниц — всегда пропускаем допы
   if (cw.category.key === 'wimpern') {
     buildStep5Sub();
@@ -960,6 +972,16 @@ function renderAddons() {
 }
 
 function proceedFromAddon() {
+  // Tracking — calendar step reached = booking started
+  window.dataLayer = window.dataLayer || [];
+  window.dataLayer.push({
+    event: 'booking_started',
+    service_name: cw.service ? cw.service.title : '',
+    category: cw.category ? cw.category.label : '',
+    master_name: cw.master ? cw.master.name : '',
+    addon_name: cw.addon ? cw.addon.title : '',
+    page_location: window.location.href,
+  });
   buildStep5Sub();
   goStep(5);
   renderCalendar();
@@ -1212,6 +1234,19 @@ function submitBooking(e) {
           addon:       cw.addon ? { id: cw.addon.id, title: cw.addon.title, price: cw.addon.price_min || 0 } : null,
         }));
       } catch(ex) {}
+      // Tracking — booking_success
+      window.dataLayer = window.dataLayer || [];
+      window.dataLayer.push({
+        event: 'booking_success',
+        service_name: cw.service ? cw.service.title : '',
+        category: cw.category ? cw.category.label : '',
+        master_name: cw.master ? cw.master.name : '',
+        addon_name: cw.addon ? cw.addon.title : '',
+        booking_date: cw.date || '',
+        booking_time: cw.time || '',
+        source: 'widget',
+        page_location: window.location.href,
+      });
       goStep('success');
       document.getElementById('crocus-progress').style.display = 'none';
     })
