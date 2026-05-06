@@ -96,14 +96,15 @@ var ADDON_IDS_BY_SERVICE = {
   13485752: [],                                              // Hygienische Maniküre — нет допов
   13485753: [13485758, 13485757, 13485756, 13502359, 13502360], // Maniküre+Gel — Stiletto, Babyboomer, French, Gel-Lack, Design
   13485754: [13485756, 13485757, 13485758, 13502360, 13502395], // Nagelkorrektur — French, Babyboomer, Stiletto, Design, Mandel
-  13485755: [13485759, 13485757, 13485756, 13502360, 13502395], // Nagelverlängerung — Nageldesign, Babyboomer, French, Design, Mandel
+  13485755: [13485758, 13485759, 13485757, 13485756, 13502360, 13502395], // Nagelverlängerung — Stiletto(Diana only), Nageldesign, Babyboomer, French, Design, Mandel
   13485760: [],                                              // Hygienische Pediküre — нет допов
   13485761: [13493666],                                      // Pediküre+Gel — только French Pediküre
   13485762: [13493666, 13485756, 13485759, 13485758, 13485757, 13502360], // Kombi — без Länge, без Mandel
 };
 
 // Mandel доступен только для этих мастеров
-var MANDEL_STAFF_IDS = [3020186, 3020187]; // Nelia, Sofia
+var MANDEL_STAFF_IDS   = [3020186, 3020187]; // Nelia, Sofia
+var STILETTO_STAFF_IDS = [3020185];          // Diana only (Nagelverlängerung)
 
 // ── API ────────────────────────────────────────────────────────
 function apiGet(path, params) {
@@ -919,6 +920,7 @@ function selectService(s) {
   // Фильтруем с учётом мастера (Mandel только для Nelia/Sofia)
   var effectiveIds = (allowedIds || []).filter(function(id){
     if (id === 13502395 && cw.master && MANDEL_STAFF_IDS.indexOf(cw.master.id) === -1) return false;
+    if (id === 13485758 && s.id === 13485755 && cw.master && STILETTO_STAFF_IDS.indexOf(cw.master.id) === -1) return false;
     return true;
   });
   if (!effectiveIds.length) {
@@ -943,6 +945,8 @@ function renderAddons() {
     if (allowedIds.indexOf(s.id) === -1) return false;
     // Mandel — только для Nelia и Sofia
     if (s.id === 13502395 && cw.master && MANDEL_STAFF_IDS.indexOf(cw.master.id) === -1) return false;
+    // Stiletto в Nagelverlängerung — только для Diana
+    if (s.id === 13485758 && cw.service && cw.service.id === 13485755 && cw.master && STILETTO_STAFF_IDS.indexOf(cw.master.id) === -1) return false;
     return true;
   });
   // Сохраняем порядок как в allowedIds
