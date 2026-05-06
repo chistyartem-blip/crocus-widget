@@ -87,19 +87,23 @@ var CATEGORIES = [
   },
 ];
 
-// Все возможные допы (French, Babyboomer, Stiletto, Design, Länge über 2, Länge über 3, French Pediküre)
-var ADDON_IDS = [13485756, 13485757, 13485758, 13485759, 13493659, 13493664, 13493666];
+// Все возможные допы (French, Babyboomer, Stiletto, Design, Gel-Lack, Mandel, French Pediküre)
+// Länge über 2 (13493659) и Länge über 3 (13493664) — отключены
+var ADDON_IDS = [13485756, 13485757, 13485758, 13485759, 13502359, 13502360, 13502395, 13493666];
 
 // Какие допы показывать для конкретной услуги (по service.id)
 var ADDON_IDS_BY_SERVICE = {
   13485752: [],                                              // Hygienische Maniküre — нет допов
-  13485753: [13485758, 13485757, 13485756, 13485759],        // Maniküre+Gel — Stiletto, Babyboomer, French, Design
-  13485754: [13485756, 13485757, 13485758, 13485759, 13493659, 13493664], // Nagelkorrektur — все кроме French Pedi
-  13485755: [13493659, 13493664, 13485759, 13485757, 13485756], // Nagelverlängerung — Länge2, Länge3, Design, Babyboomer, French
+  13485753: [13485758, 13485757, 13485756, 13502359, 13502360], // Maniküre+Gel — Stiletto, Babyboomer, French, Gel-Lack, Design
+  13485754: [13485756, 13485757, 13485758, 13502360, 13502395], // Nagelkorrektur — French, Babyboomer, Stiletto, Design, Mandel
+  13485755: [13485759, 13485757, 13485756, 13502360, 13502395], // Nagelverlängerung — Nageldesign, Babyboomer, French, Design, Mandel
   13485760: [],                                              // Hygienische Pediküre — нет допов
   13485761: [13493666],                                      // Pediküre+Gel — только French Pediküre
-  13485762: [13493666, 13485756, 13485759, 13485758, 13485757, 13493659, 13493664], // Kombi — все
+  13485762: [13493666, 13485756, 13485759, 13485758, 13485757, 13502360], // Kombi — без Länge, без Mandel
 };
+
+// Mandel доступен только для этих мастеров
+var MANDEL_STAFF_IDS = [3020186, 3020187]; // Nelia, Sofia
 
 // ── API ────────────────────────────────────────────────────────
 function apiGet(path, params) {
@@ -912,7 +916,12 @@ function selectService(s) {
   }
   // Для остальных — смотрим по конкретной услуге
   var allowedIds = ADDON_IDS_BY_SERVICE[s.id];
-  if (!allowedIds || allowedIds.length === 0) {
+  // Фильтруем с учётом мастера (Mandel только для Nelia/Sofia)
+  var effectiveIds = (allowedIds || []).filter(function(id){
+    if (id === 13502395 && cw.master && MANDEL_STAFF_IDS.indexOf(cw.master.id) === -1) return false;
+    return true;
+  });
+  if (!effectiveIds.length) {
     buildStep5Sub();
     goStep(5);
     renderCalendar();
@@ -930,7 +939,12 @@ function renderAddons() {
   cw.addon = null;
 
   var allowedIds = (cw.service && ADDON_IDS_BY_SERVICE[cw.service.id]) || [];
-  var filteredAddons = _addonObjs.filter(function(s){ return allowedIds.indexOf(s.id) !== -1; });
+  var filteredAddons = _addonObjs.filter(function(s){
+    if (allowedIds.indexOf(s.id) === -1) return false;
+    // Mandel — только для Nelia и Sofia
+    if (s.id === 13502395 && cw.master && MANDEL_STAFF_IDS.indexOf(cw.master.id) === -1) return false;
+    return true;
+  });
   // Сохраняем порядок как в allowedIds
   filteredAddons.sort(function(a, b){ return allowedIds.indexOf(a.id) - allowedIds.indexOf(b.id); });
 
