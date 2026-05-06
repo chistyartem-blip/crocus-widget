@@ -47,6 +47,13 @@ var CATEGORIES = [
     desc: 'Maniküre & Pediküre in einem Termin — Zeit sparen, doppelt strahlen.',
     serviceIds: [13485762],
   },
+  {
+    key: 'wimpern',
+    label: 'Wimpern',
+    img: null,
+    desc: 'Classic · Volumen 4D/6D · Wispy Look — natürlich oder dramatisch.',
+    serviceIds: [13485763,13485764,13485765,13485766,13485767,13485768,13485769,13485770,13485771,13485772,13485773],
+  },
 ];
 
 // Все возможные допы (French, Babyboomer, Stiletto, Design, Gel-Lack, Mandel, French Pediküre)
@@ -397,87 +404,10 @@ wrap.innerHTML =
         + '<h2 class="cw-title">Wähle deine Meisterin</h2>'
         + '<p class="cw-sub">Jede Meisterin hat ihre eigene Stärke — lies kurz rein und wähle die Richtige für dich.</p>'
         + '<div class="cw-masters" id="cw-masters-list"></div>'
-        + '<div class="cw-gift-divider"><span>oder</span></div>'
-        + '<button class="cw-gift-cta" id="cw-btn-gift">'
-          + '<div class="cw-gift-cta-icon">🎁</div>'
-          + '<div class="cw-gift-cta-text">'
-            + '<span class="cw-gift-cta-title">Geschenkgutschein kaufen</span>'
-            + '<span class="cw-gift-cta-sub">30 € · 50 € · 100 € — per E-Mail zugeschickt</span>'
-          + '</div>'
-          + '<span class="cw-gift-cta-arrow">›</span>'
         + '</button>'
       + '</div>'
 
       // Gift Step 1 — Nominale
-      + '<div class="cw-step" id="cw-gift1">'
-        + '<div class="cw-nav"><button class="cw-back" id="cw-gift-back1">← Zurück</button></div>'
-        + '<div class="cw-gift-progress">'
-          + '<div class="cw-gp-step active" id="cgp1"><div class="cw-gp-dot">1</div><span class="cw-gp-label">Betrag</span></div>'
-          + '<div class="cw-gp-line" id="cgpline1"></div>'
-          + '<div class="cw-gp-step" id="cgp2"><div class="cw-gp-dot">2</div><span class="cw-gp-label">Daten</span></div>'
-          + '<div class="cw-gp-line" id="cgpline2"></div>'
-          + '<div class="cw-gp-step" id="cgp3"><div class="cw-gp-dot">3</div><span class="cw-gp-label">Fertig</span></div>'
-        + '</div>'
-        + '<div style="text-align:center;margin-bottom:6px">'
-          + '<h2 class="cw-title" style="margin-bottom:4px">Verschenke echte Schönheit</h2>'
-          + '<p class="cw-sub" style="margin-bottom:0">Ein Gutschein von Morris Nails — das schönste Geschenk,<br>das man machen kann.</p>'
-        + '</div>'
-        + '<div style="background:linear-gradient(135deg,rgba(139,105,20,.07) 0%,rgba(61,43,31,.07) 100%);border:1px solid rgba(139,105,20,.18);border-radius:12px;padding:10px 14px;margin:14px 0 16px">'
-          + '<span style="font-family:DM Sans,sans-serif;font-size:11px;color:rgba(253,250,248,.55);line-height:1.7;display:block">Persönliche Übergabe oder per <strong style="color:#8b6914">E-Mail</strong> · 12 Monate gültig · Zahlung bar oder per Überweisung — bequem &amp; unkompliziert</span>'
-          + '<span style="font-family:DM Sans,sans-serif;font-size:10.5px;color:rgba(139,105,20,.65);line-height:1.6;display:block;margin-top:5px;font-style:italic">Wir sorgen dafür, dass Ihr Geschenk unvergesslich wird.</span>'
-        + '</div>'
-        + '<div class="cw-gift-amounts" id="cw-gift-amounts">'
-          + '<button type="button" class="cw-gift-amount-btn" data-gift-id="25366593" data-gift-cert="303583" data-gift-amount="30">'
-            + '<img class="cw-gift-amount-img" src="https://raw.githubusercontent.com/chistyartem-blip/morris-widget/main/gift-30-opt.jpg" alt="Geschenkgutschein 30 €" loading="lazy">'
-            + '<div class="cw-gift-amount-inner"><div class="cw-gift-amount-meta"><span class="cw-gift-amount-value">30 €</span><span class="cw-gift-amount-desc">Perfekt für den ersten Besuch — Maniküre oder Behandlung nach Wahl</span></div><span style="font-size:18px;color:rgba(139,105,20,.55)">›</span></div>'
-          + '</button>'
-          + '<button type="button" class="cw-gift-amount-btn" data-gift-id="25378965" data-gift-cert="303876" data-gift-amount="50">'
-            + '<img class="cw-gift-amount-img" src="https://raw.githubusercontent.com/chistyartem-blip/morris-widget/main/gift-50-opt.jpg" alt="Geschenkgutschein 50 €" loading="lazy">'
-            + '<div class="cw-gift-amount-inner"><div class="cw-gift-amount-meta"><span class="cw-gift-amount-value">50 €</span><span class="cw-gift-amount-desc">Maniküre, Pediküre oder Kombi — unsere meistgekaufte Wahl</span></div><span style="font-size:18px;color:rgba(139,105,20,.55)">›</span></div>'
-          + '</button>'
-          + '<button type="button" class="cw-gift-amount-btn" data-gift-id="25378978" data-gift-cert="303878" data-gift-amount="100">'
-            + '<img class="cw-gift-amount-img" src="https://raw.githubusercontent.com/chistyartem-blip/morris-widget/main/gift-100-opt.jpg" alt="Geschenkgutschein 100 €" loading="lazy">'
-            + '<div class="cw-gift-amount-inner"><div class="cw-gift-amount-meta"><span class="cw-gift-amount-value">100 €</span><span class="cw-gift-amount-desc">Das komplette Verwöhnprogramm — für Menschen, die es wert sind</span></div><span style="font-size:18px;color:rgba(139,105,20,.55)">›</span></div>'
-          + '</button>'
-        + '</div>'
-      + '</div>'
-
-      // Gift Step 2 — Form
-      + '<div class="cw-step" id="cw-gift2">'
-        + '<div class="cw-nav"><button class="cw-back" id="cw-gift-back2">← Zurück</button></div>'
-        + '<div class="cw-gift-progress">'
-          + '<div class="cw-gp-step done" id="cgp1b"><div class="cw-gp-dot">✓</div><span class="cw-gp-label">Betrag</span></div>'
-          + '<div class="cw-gp-line cgpline-filled" id="cgpline1b"></div>'
-          + '<div class="cw-gp-step active" id="cgp2b"><div class="cw-gp-dot">2</div><span class="cw-gp-label">Daten</span></div>'
-          + '<div class="cw-gp-line" id="cgpline2b"></div>'
-          + '<div class="cw-gp-step" id="cgp3b"><div class="cw-gp-dot">3</div><span class="cw-gp-label">Fertig</span></div>'
-        + '</div>'
-        + '<h2 class="cw-title">Ihre Kontaktdaten</h2>'
-        + '<p class="cw-sub">Gutschein: <strong id="cw-gift-selected-label">50 €</strong> — wird per E-Mail bestätigt</p>'
-        + '<form class="cw-form" id="cw-gift-form">'
-          + '<div class="cw-field"><label>Ihr Name</label><input type="text" id="cw-gift-name" placeholder="Ihr Name" required autocomplete="name"></div>'
-          + '<div class="cw-field"><label>Ihre E-Mail</label><input type="email" id="cw-gift-email" placeholder="ihre@email.de" required autocomplete="email"></div>'
-          + '<div class="cw-field"><label>Telefon / WhatsApp</label><input type="tel" id="cw-gift-phone" placeholder="+49 172 …" autocomplete="tel"></div>'
-          + '<div class="cw-field"><label>Für wen ist der Gutschein? <span style="opacity:.45;font-size:9px">(optional)</span></label><input type="text" id="cw-gift-recipient" placeholder="z.B. für Maria zum Geburtstag"></div>'
-          + '<div class="cw-gift-info-box">'
-            + '<div class="cw-gift-info-icon">ℹ</div>'
-            + '<p>Nach Ihrer Anfrage melden wir uns per E-Mail oder WhatsApp und besprechen gemeinsam alle Details.</p>'
-          + '</div>'
-          + '<button type="submit" class="cw-btn-confirm" id="cw-gift-submit">Gutschein anfragen →</button>'
-          + '<p class="cw-form-note">Wir melden uns innerhalb einer Stunde</p>'
-        + '</form>'
-      + '</div>'
-
-      // Gift Success
-      + '<div class="cw-step" id="cw-gift-success">'
-        + '<div class="cw-success">'
-          + '<div class="cw-success-icon">🎁</div>'
-          + '<h2>Anfrage eingegangen!</h2>'
-          + '<p id="cw-gift-success-text">Wir melden uns in Kürze per E-Mail mit den Zahlungsdetails.</p>'
-          + '<p class="cw-success-note">Nach Zahlungseingang erhalten Sie Ihren Gutschein per E-Mail.</p>'
-          + '<button class="cw-btn-new" id="cw-gift-btn-new">Termin buchen</button>'
-        + '</div>'
-      + '</div>'
 
       // Step 2 — Category
       + '<div class="cw-step" id="cw-step2">'
@@ -703,7 +633,7 @@ function loadInitialData(cb) {
     var staffRes = results[0];
     var svcRes   = results[1];
     if (!staffRes.success || !svcRes.success) throw new Error('API error');
-    _allMasters  = staffRes.data || [];
+    _allMasters  = (staffRes.data || []).filter(function(s){ return s.id === 3020185; });
     _allServices = (svcRes.data && svcRes.data.services) ? svcRes.data.services : [];
     // cache addon objects
     _addonObjs = _allServices.filter(function(s){ return ADDON_IDS.indexOf(s.id) !== -1; });
@@ -721,9 +651,9 @@ function renderMasters() {
   _allMasters.forEach(function(m) {
     var meta = MASTERS_META[m.id] || {
       level: 'Master',
-      levelColor: '#c9748e',
-      levelBg: 'rgba(201,116,142,0.13)',
-      levelBorder: 'rgba(201,116,142,0.32)',
+      levelColor: '#8b6914',
+      levelBg: 'rgba(139,105,20,0.13)',
+      levelBorder: 'rgba(139,105,20,0.35)',
       tagline: 'Erfahrene Meisterin',
       bio: 'Professionelle Behandlungen auf hohem Niveau.',
       skills: [],
@@ -1310,107 +1240,6 @@ function morrisReset() {
   document.getElementById('morris-body').scrollTop = 0;
 }
 
-// ── Gift flow ──────────────────────────────────────────────────
-function openGiftMode() {
-  // Hide main progress bar, show gift steps
-  document.getElementById('morris-progress').style.display = 'none';
-  document.querySelectorAll('.cw-step').forEach(function(el){ el.classList.remove('active'); });
-  document.getElementById('cw-gift1').classList.add('active');
-  document.getElementById('morris-body').scrollTop = 0;
-  // Reset gift state
-  gift.amount = null;
-  gift.goodId = null;
-  gift.certTypeId = null;
-  // Deselect all amount buttons
-  document.querySelectorAll('.cw-gift-amount-btn').forEach(function(b){ b.classList.remove('sel'); });
-}
-
-function goGiftStep2() {
-  document.querySelectorAll('.cw-step').forEach(function(el){ el.classList.remove('active'); });
-  document.getElementById('cw-gift2').classList.add('active');
-  document.getElementById('cw-gift-selected-label').textContent = gift.amount + ' €';
-  document.getElementById('morris-body').scrollTop = 0;
-}
-
-function goGiftSuccess() {
-  document.querySelectorAll('.cw-step').forEach(function(el){ el.classList.remove('active'); });
-  document.getElementById('cw-gift-success').classList.add('active');
-  var name = (document.getElementById('cw-gift-name').value || '').trim();
-  document.getElementById('cw-gift-success-text').innerHTML =
-    'Vielen Dank' + (name ? ', <strong>' + name + '</strong>' : '') + '! ' +
-    'Wir melden uns in Kürze per E-Mail mit den Zahlungsdetails für Ihren <strong>' + gift.amount + '&nbsp;€ Gutschein</strong>.';
-  document.getElementById('morris-body').scrollTop = 0;
-}
-
-function submitGiftForm(e) {
-  e.preventDefault();
-  var name      = (document.getElementById('cw-gift-name').value || '').trim();
-  var email     = (document.getElementById('cw-gift-email').value || '').trim();
-  var phone     = (document.getElementById('cw-gift-phone').value || '').trim();
-  var recipient = (document.getElementById('cw-gift-recipient').value || '').trim();
-
-  if (!name || !email) {
-    if (!name) document.getElementById('cw-gift-name').classList.add('invalid');
-    if (!email) document.getElementById('cw-gift-email').classList.add('invalid');
-    return;
-  }
-
-  var btn = document.getElementById('cw-gift-submit');
-  btn.disabled = true;
-  btn.textContent = 'Wird gesendet…';
-
-  // Generate voucher code XXXX-XXXX-XXXX-XXXX (only sent to owner, not shown to client)
-  function genCode() {
-    var chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-    var groups = [];
-    for (var g = 0; g < 4; g++) {
-      var part = '';
-      for (var c = 0; c < 4; c++) {
-        part += chars[Math.floor(Math.random() * chars.length)];
-      }
-      groups.push(part);
-    }
-    return groups.join('-');
-  }
-  var voucherCode = genCode();
-
-  // Send via formsubmit.co — no backend needed, delivers to email
-  var payload = {
-    _subject: '🎁 Gutschein-Anfrage ' + gift.amount + ' € — ' + name,
-    _replyto: email,
-    _template: 'table',
-    _captcha: 'false',
-    Betrag: gift.amount + ' €',
-    Gutschein_Code: voucherCode,
-    Name: name,
-    EMail: email,
-    Telefon: phone || '—',
-    Fuer_wen: recipient || '—',
-    Hinweis: 'Code nach Zahlungseingang an Kunden weitergeben',
-  };
-
-  fetch('https://formsubmit.co/ajax/akazadavenka@gmail.com', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-    body: JSON.stringify(payload),
-  })
-  .then(function(r){ return r.json(); })
-  .catch(function(){ return {}; })
-  .then(function(){
-    btn.disabled = false;
-    btn.textContent = 'Gutschein anfragen →';
-    // Tracking — gutschein_lead
-    window.dataLayer = window.dataLayer || [];
-    window.dataLayer.push({
-      event: 'gutschein_lead',
-      gutschein_amount: gift.amount || '',
-      page_location: window.location.href,
-      source: 'widget',
-    });
-    goGiftSuccess();
-  });
-}
-
 // ── Return screen ──────────────────────────────────────────────
 function tryShowReturnScreen() {
   try {
@@ -1484,17 +1313,6 @@ function startRepeatBooking() {
 document.getElementById('morris-fab').addEventListener('click', morrisOpen);
 window.morrisOpen = morrisOpen;
 window.morrisClose = morrisClose;
-window.morrisOpenGutschein = function() {
-  // Tracking — click_gutschein
-  window.dataLayer = window.dataLayer || [];
-  window.dataLayer.push({
-    event: 'click_gutschein',
-    page_location: window.location.href,
-    cta_location: 'widget_fab',
-  });
-  morrisOpen();
-  setTimeout(function(){ openGiftMode(); }, 80);
-};
 
 // Мобильная кнопка — отдельная верстка
 (function(){
@@ -1582,43 +1400,6 @@ document.getElementById('cw-btn-newbook').addEventListener('click', function(){
 });
 document.getElementById('cw-form').addEventListener('submit', submitBooking);
 
-// Gift flow events
-document.getElementById('cw-btn-gift').addEventListener('click', openGiftMode);
-
-document.getElementById('cw-gift-back1').addEventListener('click', function(){
-  document.getElementById('morris-progress').style.display = 'flex';
-  document.querySelectorAll('.cw-step').forEach(function(el){ el.classList.remove('active'); });
-  document.getElementById('cw-step1').classList.add('active');
-  updateProgress(1);
-  document.getElementById('morris-body').scrollTop = 0;
-});
-
-document.getElementById('cw-gift-back2').addEventListener('click', function(){
-  document.querySelectorAll('.cw-step').forEach(function(el){ el.classList.remove('active'); });
-  document.getElementById('cw-gift1').classList.add('active');
-  document.getElementById('morris-body').scrollTop = 0;
-});
-
-// Amount button clicks — direct listeners on each button
-document.querySelectorAll('.cw-gift-amount-btn').forEach(function(amtBtn){
-  amtBtn.addEventListener('click', function(e){
-    e.preventDefault();
-    e.stopPropagation();
-    document.querySelectorAll('.cw-gift-amount-btn').forEach(function(b){ b.classList.remove('sel'); });
-    amtBtn.classList.add('sel');
-    gift.amount     = parseInt(amtBtn.getAttribute('data-gift-amount'), 10);
-    gift.goodId     = amtBtn.getAttribute('data-gift-id');
-    gift.certTypeId = amtBtn.getAttribute('data-gift-cert');
-    setTimeout(goGiftStep2, 220);
-  });
-});
-
-document.getElementById('cw-gift-form').addEventListener('submit', submitGiftForm);
-
-document.getElementById('cw-gift-btn-new').addEventListener('click', function(){
-  morrisReset();
-  document.getElementById('morris-progress').style.display = 'flex';
-});
 
 // Clear invalid state on input
 ['cw-gift-name','cw-gift-email'].forEach(function(id){
