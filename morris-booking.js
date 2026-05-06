@@ -118,7 +118,7 @@ var css = `
 #morris-modal *{box-sizing:border-box;}
 
 #morris-fab-wrap{position:fixed;bottom:32px;right:32px;z-index:2147483638;width:58px;height:58px;display:flex;align-items:center;justify-content:center}
-#morris-fab{position:absolute;right:0;top:0;width:58px;height:58px;border-radius:50px;background:linear-gradient(145deg,#1c0d16 0%,#2e1222 100%);border:1px solid rgba(61,43,31,.13);cursor:pointer;box-shadow:0 4px 28px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.07);transition:width .5s cubic-bezier(.4,0,.2,1),border-color .3s,box-shadow .3s;animation:fabIn .7s cubic-bezier(.34,1.56,.64,1) both;overflow:hidden;display:flex;align-items:center;justify-content:flex-end;padding:0}
+#morris-fab{position:absolute;right:0;top:0;width:58px;height:58px;border-radius:50px;background:linear-gradient(145deg,#3d2b1f 0%,#5c3d2a 100%);border:1px solid rgba(61,43,31,.13);cursor:pointer;box-shadow:0 4px 28px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.07);transition:width .5s cubic-bezier(.4,0,.2,1),border-color .3s,box-shadow .3s;animation:fabIn .7s cubic-bezier(.34,1.56,.64,1) both;overflow:hidden;display:flex;align-items:center;justify-content:flex-end;padding:0}
 #morris-fab:hover{width:196px;border-color:rgba(139,105,20,.5);box-shadow:0 8px 36px rgba(61,43,31,.5),inset 0 1px 0 rgba(255,255,255,.09)}
 #morris-fab:hover .morris-fab-text{opacity:1;transform:translateX(0)}
 #morris-fab:hover + .morris-fab-rings .morris-fab-ring{animation-play-state:paused;opacity:0;transition:opacity .4s}
@@ -138,7 +138,7 @@ var css = `
 @media(max-width:600px){
   #morris-fab-wrap{display:none!important}
   #morris-fab-mobile{display:flex!important;position:fixed;bottom:28px;right:14px;z-index:2147483638;width:52px;flex-direction:column;align-items:center;gap:4px}
-  #morris-fab-mobile-btn{position:relative;z-index:1;width:38px;height:38px;min-width:38px;min-height:38px;border-radius:50%;background:linear-gradient(145deg,#1c0d16 0%,#2e1222 100%);border:1px solid rgba(61,43,31,.13);cursor:pointer;display:grid;place-items:center;box-shadow:0 4px 20px rgba(0,0,0,.5);animation:fabIn .7s cubic-bezier(.34,1.56,.64,1) both;flex-shrink:0;padding:0;box-sizing:border-box;margin-top:6px}
+  #morris-fab-mobile-btn{position:relative;z-index:1;width:38px;height:38px;min-width:38px;min-height:38px;border-radius:50%;background:linear-gradient(145deg,#3d2b1f 0%,#5c3d2a 100%);border:1px solid rgba(61,43,31,.13);cursor:pointer;display:grid;place-items:center;box-shadow:0 4px 20px rgba(0,0,0,.5);animation:fabIn .7s cubic-bezier(.34,1.56,.64,1) both;flex-shrink:0;padding:0;box-sizing:border-box;margin-top:6px}
   #morris-fab-mobile-btn img{width:28px;height:28px;object-fit:contain;filter:brightness(0) invert(1) drop-shadow(0 0 8px rgba(255,255,255,.8)) drop-shadow(0 0 18px rgba(255,255,255,.35));display:block}
   .cfm-ring{position:absolute;border-radius:50%;animation:cwRing 3.6s ease-out infinite}
   .cfm-ring:nth-child(1){inset:0;border:0.8px solid rgba(61,43,31,.80);animation-delay:0s}
@@ -370,7 +370,7 @@ wrap.innerHTML =
   + '<div id="morris-modal">'
     + '<div id="morris-modal-header">'
       + '<div class="morris-modal-brand">'
-        + '<div class=\"morris-modal-logo\" style=\"display:flex;align-items:center;justify-content:center;background:#3d2b1f;border-radius:10px;width:40px;height:40px;flex-shrink:0\"><svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" width=\"22\" height=\"22\" fill=\"none\" stroke=\"#f5f0e8\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M7 3.5C7 2.67 7.67 2 8.5 2h7C16.33 2 17 2.67 17 3.5V6c0 5-2 9-5 10C9 15 7 11 7 6V3.5z\"/><path d=\"M9 2.5C9 2.5 10 4 12 4s3-1.5 3-1.5\"/></svg></div>'
+        + '<img src=\"https://static.tildacdn.com/tild3663-6666-4739-b536-653563623037/logo_with_f8f7f2_bg.png\" alt=\"Morris Nails\" class=\"morris-modal-logo\" style=\"width:40px;height:40px;border-radius:10px;object-fit:contain;flex-shrink:0\">'
         + '<div><span class="morris-modal-title">Morris Nails Studio</span><span class="morris-modal-sub">Göppingen · Online-Buchung</span></div>'
       + '</div>'
       + '<button id="morris-close">✕</button>'
