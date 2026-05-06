@@ -363,7 +363,7 @@ var DAYS   = ['Mo','Di','Mi','Do','Fr','Sa','So'];
 var wrap = document.createElement('div');
 wrap.innerHTML =
   '<div id="morris-fab-wrap">'
-  + '<button id="morris-fab"><span class="morris-fab-text">Termin buchen</span><div class="morris-fab-icon"><div class=\"morris-modal-logo\" style=\"display:flex;align-items:center;justify-content:center;background:#3d2b1f;border-radius:10px;width:40px;height:40px;flex-shrink:0\"><svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" width=\"22\" height=\"22\" fill=\"none\" stroke=\"#f5f0e8\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M7 3.5C7 2.67 7.67 2 8.5 2h7C16.33 2 17 2.67 17 3.5V6c0 5-2 9-5 10C9 15 7 11 7 6V3.5z\"/><path d=\"M9 2.5C9 2.5 10 4 12 4s3-1.5 3-1.5\"/></svg></div></div></button>'
+  + '<button id="morris-fab"><span class="morris-fab-text">Termin buchen</span><div class="morris-fab-icon"><svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" width=\"24\" height=\"24\" fill=\"none\" stroke=\"#f5f0e8\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><rect x=\"4\" y=\"3\" width=\"14\" height=\"18\" rx=\"2\"/><path d=\"M8 3v18\"/><path d=\"M11 8h4\"/><path d=\"M11 12h4\"/><path d=\"M11 16h4\"/></svg></div></button>'
   + '<div class="morris-fab-rings"><span class="morris-fab-ring"></span><span class="morris-fab-ring"></span><span class="morris-fab-ring"></span></div>'
   + '</div>'
   + '<div id="morris-backdrop"></div>'
@@ -1322,7 +1322,7 @@ window.morrisClose = morrisClose;
     '<span class="cfm-ring"></span>'
     + '<span class="cfm-ring"></span>'
     + '<span class="cfm-ring"></span>'
-    + '<button id="morris-fab-mobile-btn"><div class=\"morris-modal-logo\" style=\"display:flex;align-items:center;justify-content:center;background:#3d2b1f;border-radius:10px;width:40px;height:40px;flex-shrink:0\"><svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" width=\"22\" height=\"22\" fill=\"none\" stroke=\"#f5f0e8\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M7 3.5C7 2.67 7.67 2 8.5 2h7C16.33 2 17 2.67 17 3.5V6c0 5-2 9-5 10C9 15 7 11 7 6V3.5z\"/><path d=\"M9 2.5C9 2.5 10 4 12 4s3-1.5 3-1.5\"/></svg></div></button>'
+    + '<button id=\"morris-fab-mobile-btn\"><svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" width=\"24\" height=\"24\" fill=\"none\" stroke=\"#f5f0e8\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><rect x=\"4\" y=\"3\" width=\"14\" height=\"18\" rx=\"2\"/><path d=\"M8 3v18\"/><path d=\"M11 8h4\"/><path d=\"M11 12h4\"/><path d=\"M11 16h4\"/></svg></button>'
     + '<span style="font-family:DM Sans,sans-serif;font-size:7.5px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:#fff;text-align:center;white-space:nowrap;text-shadow:0 1px 3px rgba(0,0,0,1),0 0 8px rgba(0,0,0,.9)">Online · Termin</span>';
   document.body.appendChild(mwrap);
   document.getElementById('morris-fab-mobile-btn').addEventListener('click', morrisOpen);
@@ -1509,7 +1509,7 @@ if (document.readyState === 'loading') {
   if (isHome) {
     var homeOverride = '#morris-modal{background:#2d1520!important;}' +
       '#morris-body{background:#2d1520!important;}' +
-      '#morris-modal-header{rgba(61,43,31,0.04)!important;}';
+      '#morris-modal-header{rgba(61,43,31,0.29)!important;}';
     function injectHomeTheme(){
       if (document.getElementById('morris-home-theme')) return;
       var s = document.createElement('style');
@@ -1944,8 +1944,8 @@ if (document.readyState === 'loading') {
     var isDiana  = key === 'diana';
     var isKarina = key === 'karina';
     var accent       = (isDiana || isKarina) ? '#b8924a' : '#3d2b1f';
-    var accentLight  = (isDiana || isKarina) ? 'rgba(139,105,20,0.13)' : 'rgba(61,43,31,0.08)';
-    var accentBorder = (isDiana || isKarina) ? 'rgba(139,105,20,0.35)' : 'rgba(61,43,31,0.18)';
+    var accentLight  = (isDiana || isKarina) ? 'rgba(139,105,20,0.13)' : 'rgba(61,43,31,0.33)';
+    var accentBorder = (isDiana || isKarina) ? 'rgba(139,105,20,0.35)' : 'rgba(61,43,31,0.43)';
     var headerBg     = isDiana
       ? 'linear-gradient(160deg,#2a1f10 0%,#1a0d12 100%)'
       : 'linear-gradient(160deg,#2a0d1a 0%,#1a0d12 100%)';
@@ -1962,7 +1962,7 @@ if (document.readyState === 'loading') {
     h += '<div style="position:absolute;bottom:20px;left:24px;right:24px;">';
     h += '<span style="display:inline-block;font-family:\'DM Sans\',sans-serif;font-size:8px;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;color:' + accent + ';background:rgba(10,3,12,0.65);border:1px solid ' + accentBorder + ';padding:3px 10px;border-radius:50px;margin-bottom:8px;backdrop-filter:blur(4px);">' + d.badge + '</span><br>';
     h += '<div style="font-family:\'Cormorant Garamond\',Georgia,serif;font-size:36px;font-weight:300;color:#fff;letter-spacing:-0.02em;line-height:1;">' + d.title + '</div>';
-    h += '<p style="font-family:\'DM Sans\',sans-serif;font-size:9.5px;font-weight:500;letter-spacing:0.08em;text-transform:uppercase;color:rgba(61,43,31,0.45);margin:5px 0 0;">' + d.sub + '</p>';
+    h += '<p style="font-family:\'DM Sans\',sans-serif;font-size:9.5px;font-weight:500;letter-spacing:0.08em;text-transform:uppercase;color:rgba(61,43,31,0.7);margin:5px 0 0;">' + d.sub + '</p>';
     h += '</div></div>';
 
     // ── Контент ────────────────────────────────────────────────────────────
@@ -1989,7 +1989,7 @@ if (document.readyState === 'loading') {
 
     // ── CTA ───────────────────────────────────────────────────────────────
     h += '<div style="margin-top:24px;padding-top:20px;border-top:1px solid ' + accentBorder + ';display:flex;flex-direction:column;gap:8px;">';
-    h += '<button data-crl2-minfo-book style="width:100%;padding:14px 20px;border:none;border-radius:12px;cursor:pointer;font-family:\'DM Sans\',sans-serif;font-size:12px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:#fff;background:' + ((isDiana || isKarina) ? 'linear-gradient(135deg,#8b6914,#8c6020)' : 'linear-gradient(135deg,#9b3660,#3d2b1f)') + ';display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:' + ((isDiana || isKarina) ? '0 4px 18px rgba(139,105,20,0.35)' : '0 4px 18px rgba(61,43,31,0.38)') + ';box-sizing:border-box;">'
+    h += '<button data-crl2-minfo-book style="width:100%;padding:14px 20px;border:none;border-radius:12px;cursor:pointer;font-family:\'DM Sans\',sans-serif;font-size:12px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:#fff;background:' + ((isDiana || isKarina) ? 'linear-gradient(135deg,#8b6914,#8c6020)' : 'linear-gradient(135deg,#9b3660,#3d2b1f)') + ';display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:' + ((isDiana || isKarina) ? '0 4px 18px rgba(139,105,20,0.35)' : '0 4px 18px rgba(61,43,31,0.63)') + ';box-sizing:border-box;">'
       + '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" style="flex-shrink:0"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>'
       + 'Termin buchen</button>';
     h += '<button data-crl2-select="' + key + '" style="width:100%;padding:12px 20px;border:1.5px solid ' + accentBorder + ';border-radius:12px;cursor:pointer;font-family:\'DM Sans\',sans-serif;font-size:12px;font-weight:600;letter-spacing:0.04em;color:' + accent + ';background:transparent;display:flex;align-items:center;justify-content:center;gap:8px;box-sizing:border-box;">'
