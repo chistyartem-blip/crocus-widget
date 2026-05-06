@@ -163,7 +163,7 @@ var css = `
 .crocus-fab-ring:nth-child(2){border:1px solid rgba(123,45,78,.50);animation-delay:1.2s}
 .crocus-fab-ring:nth-child(3){border:1px solid rgba(201,168,124,.30);animation-delay:2.4s}
 @keyframes cwRing{0%{transform:scale(1);opacity:.85}55%{opacity:.25}100%{transform:scale(2.5);opacity:0}}
-@keyframes logoPulse{0%,100%{filter:drop-shadow(0 0 4px rgba(255,255,255,.55)) drop-shadow(0 0 10px rgba(123,45,78,.60))}50%{filter:drop-shadow(0 0 8px rgba(255,255,255,.90)) drop-shadow(0 0 20px rgba(123,45,78,.90))}}
+.cw-phone-wrap{display:flex;align-items:stretch;background:rgba(61,43,31,.04);border:1px solid rgba(61,43,31,.09);border-radius:10px;overflow:hidden;transition:border-color .15s}.cw-phone-wrap:focus-within{border-color:#3d2b1f}.cw-phone-prefix{font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;color:#3d2b1f;padding:11px 10px 11px 13px;background:rgba(61,43,31,.06);border-right:1px solid rgba(61,43,31,.09);white-space:nowrap;user-select:none;flex-shrink:0}.cw-phone-wrap input{background:transparent;border:none;border-radius:0;padding:11px 13px;color:#3d2b1f;font-family:'DM Sans',sans-serif;font-size:14px;outline:none;width:100%;box-sizing:border-box}@keyframes logoPulse{0%,100%{filter:drop-shadow(0 0 4px rgba(255,255,255,.55)) drop-shadow(0 0 10px rgba(123,45,78,.60))}50%{filter:drop-shadow(0 0 8px rgba(255,255,255,.90)) drop-shadow(0 0 20px rgba(123,45,78,.90))}}
 @keyframes fabIn{from{opacity:0;transform:translateY(24px) scale(.78)}to{opacity:1;transform:translateY(0) scale(1)}}
 #crocus-fab-mobile{display:none!important}
 @media(max-width:600px){
@@ -564,7 +564,7 @@ wrap.innerHTML =
         + '<div class="cw-summary" id="cw-summary"></div>'
         + '<form class="cw-form" id="cw-form">'
           + '<div class="cw-field"><label>Name</label><input type="text" id="cw-name" placeholder="Ihr Name" required autocomplete="name"></div>'
-          + '<div class="cw-field"><label>Telefon / WhatsApp</label><input type="tel" id="cw-phone" placeholder="+49 172 …" required autocomplete="tel"></div>'
+          + '<div class="cw-field"><label>Telefon / WhatsApp</label><div class="cw-phone-wrap"><span class="cw-phone-prefix">+49</span><input type="tel" id="cw-phone" placeholder="172 1234567" required autocomplete="tel" inputmode="numeric"></div></div>'
           + '<div class="cw-field"><label>E-Mail</label><input type="email" id="cw-email" placeholder="ihre@email.de" required autocomplete="email"></div>'
           + '<label class="cw-consent"><input type="checkbox" id="cw-consent" checked><span>Ich stimme den <a href="https://alteg.io/en/info/terms" target="_blank" rel="noopener">Nutzungsbedingungen</a> und der <a href="https://alteg.io/en/info/privacy" target="_blank" rel="noopener">Datenschutzerklärung</a> zu und willige in die Verarbeitung meiner Daten zur Terminbuchung ein.</span></label>'
           + '<label class="cw-consent" style="margin-top:6px"><input type="checkbox" id="cw-email-remind" checked><span>E-Mail-Erinnerung 1 Stunde vor dem Termin erhalten</span></label>'
@@ -1112,7 +1112,7 @@ function renderTimesLoaded(slots) {
         try {
           var saved = JSON.parse(localStorage.getItem('crocus_client') || '{}');
           if (saved.name)  { var fn = document.getElementById('cw-name');  if (fn && !fn.value) fn.value = saved.name; }
-          if (saved.phone) { var fp = document.getElementById('cw-phone'); if (fp && !fp.value) fp.value = saved.phone; }
+          if (saved.phone) { var fp = document.getElementById('cw-phone'); if (fp && !fp.value) fp.value = saved.phone.replace(/^\+49/,''); }
           if (saved.email) { var fe = document.getElementById('cw-email'); if (fe && !fe.value) fe.value = saved.email; }
         } catch(ex) {}
       }, 180);
@@ -1163,7 +1163,8 @@ function renderSummary() {
 function submitBooking(e) {
   e.preventDefault();
   var name  = document.getElementById('cw-name').value.trim();
-  var phone = document.getElementById('cw-phone').value.trim();
+  var phoneRaw = document.getElementById('cw-phone').value.trim().replace(/^0+/,'');
+  var phone = '+49' + phoneRaw;
   var email = document.getElementById('cw-email').value.trim();
   var consent = document.getElementById('cw-consent').checked;
   var emailRemind = document.getElementById('cw-email-remind') ? document.getElementById('cw-email-remind').checked : true;
@@ -1191,8 +1192,8 @@ function submitBooking(e) {
   if (!nameOk) valid = false;
 
   // Phone — min 7 digits, allowed: +, digits, spaces, hyphens, brackets
-  var phoneDigits = phone.replace(/\D/g,'');
-  var phoneOk = phoneDigits.length >= 7 && phoneDigits.length <= 15;
+  var phoneDigits = phoneRaw.replace(/\D/g,'');
+  var phoneOk = phoneDigits.length >= 6 && phoneDigits.length <= 13;
   setFieldState('cw-phone', phoneOk, 'Bitte gültige Telefonnummer eingeben (mind. 7 Ziffern).');
   if (!phoneOk) valid = false;
 
