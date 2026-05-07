@@ -486,7 +486,7 @@ wrap.innerHTML =
           + '</button>'
           + '<button type="button" class="cw-gift-amount-btn" data-gift-flexible="true">'
             + '<img class="cw-gift-amount-img" src="https://raw.githubusercontent.com/chistyartem-blip/crocus-widget/main/gift-flex-opt.jpg" alt="Flexible Gutschein" loading="lazy">'
-            + '<div class="cw-gift-amount-inner"><div class="cw-gift-amount-meta"><span class="cw-gift-amount-value" style="font-size:20px;letter-spacing:.04em">Flexible</span><span class="cw-gift-amount-desc">Betrag oder Behandlung nach Wunsch — wir klären alles gemeinsam</span></div><span style="font-size:18px;color:rgba(201,168,124,.55)">›</span></div>'
+            + '<div class="cw-gift-amount-inner"><div class="cw-gift-amount-meta"><span class="cw-gift-amount-value">Flexible</span><span class="cw-gift-amount-desc">Betrag oder Behandlung nach Wunsch — wir klären alles gemeinsam</span></div><span style="font-size:18px;color:rgba(201,168,124,.55)">›</span></div>'
           + '</button>'
 
         + '</div>'
