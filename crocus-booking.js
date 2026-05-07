@@ -382,6 +382,11 @@ body.crocus-open{overflow:hidden!important;touch-action:none;}
 .cw-gift-info-box{display:flex;align-items:flex-start;gap:10px;background:rgba(201,168,124,.06);border:1px solid rgba(201,168,124,.15);border-radius:11px;padding:12px 13px;margin-bottom:2px}
 .cw-gift-info-icon{font-size:14px;flex-shrink:0;opacity:.55;margin-top:1px}
 .cw-gift-info-box p{font-family:'DM Sans',sans-serif;font-size:11.5px;color:rgba(253,250,248,.45);line-height:1.6;margin:0}
+/* ── Gift step 1 info banner ── */
+.cw-gift1-info{background:linear-gradient(135deg,rgba(201,168,124,.07) 0%,rgba(123,45,78,.07) 100%);border:1px solid rgba(201,168,124,.18);border-radius:12px;padding:10px 14px;margin:14px 0 16px}
+.cw-gift1-info-text{font-family:'DM Sans',sans-serif;font-size:11px;color:rgba(253,250,248,.55);line-height:1.7;display:block}
+.cw-gift1-info-accent{color:#c9a87c}
+.cw-gift1-info-italic{font-family:'DM Sans',sans-serif;font-size:10.5px;color:rgba(201,168,124,.65);line-height:1.6;display:block;margin-top:5px;font-style:italic}
 `;
 
 var styleEl = document.createElement('style');
@@ -462,9 +467,9 @@ wrap.innerHTML =
           + '<h2 class="cw-title" style="margin-bottom:4px">Verschenke echte Schönheit</h2>'
           + '<p class="cw-sub" style="margin-bottom:0">Ein Gutschein von Crocus — das schönste Geschenk,<br>das man machen kann.</p>'
         + '</div>'
-        + '<div style="background:linear-gradient(135deg,rgba(201,168,124,.07) 0%,rgba(123,45,78,.07) 100%);border:1px solid rgba(201,168,124,.18);border-radius:12px;padding:10px 14px;margin:14px 0 16px">'
-          + '<span style="font-family:DM Sans,sans-serif;font-size:11px;color:rgba(253,250,248,.55);line-height:1.7;display:block">Wird per <strong style="color:#c9a87c">E-Mail</strong> zugeschickt · 12 Monate gültig · unkompliziert &amp; persönlich</span>'
-          + '<span style="font-family:DM Sans,sans-serif;font-size:10.5px;color:rgba(201,168,124,.65);line-height:1.6;display:block;margin-top:5px;font-style:italic">Wir sorgen dafür, dass Ihr Geschenk unvergesslich wird.</span>'
+        + '<div id="cw-gift1-info" class="cw-gift1-info">'
+          + '<span class="cw-gift1-info-text">Wird per <strong class="cw-gift1-info-accent">E-Mail</strong> zugeschickt · 12 Monate gültig · unkompliziert &amp; persönlich</span>'
+          + '<span class="cw-gift1-info-italic">Wir sorgen dafür, dass Ihr Geschenk unvergesslich wird.</span>'
         + '</div>'
         + '<div class="cw-gift-amounts" id="cw-gift-amounts">'
           + '<button type="button" class="cw-gift-amount-btn" data-gift-amount="30">'
@@ -2020,6 +2025,11 @@ if (document.readyState === 'loading') {
     '.cw-gift-info-box p{color:rgba(26,8,16,.55)!important;}' +
     '#cw-gift-step2-sub{color:rgba(26,8,16,.45)!important;}' +
     '#cw-gift-step2-sub strong{color:#c03468!important;}' +
+    '.cw-gift1-info{background:rgba(192,52,104,.06)!important;border-color:rgba(192,52,104,.20)!important;}' +
+    '.cw-gift1-info-text{color:rgba(26,8,16,.60)!important;}' +
+    '.cw-gift1-info-accent{color:#c03468!important;}' +
+    '.cw-gift1-info-italic{color:rgba(192,52,104,.70)!important;}' +
+    '.cw-gift-amount-inner span[style]{color:rgba(192,52,104,.55)!important;}' +
 
     /* Success */
     '.cw-success-icon{background:rgba(192,52,104,.08)!important;border-color:rgba(192,52,104,.25)!important;color:#c03468!important;}' +
