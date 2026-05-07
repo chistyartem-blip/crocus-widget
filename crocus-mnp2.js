@@ -382,7 +382,7 @@
         if(!card) return;
         var badge = card.querySelector('.mnp2__badge');
         if(!badge) return;
-        badge.textContent = badge.textContent.replace(/·\s*[\d,]+\s*(Min\.|Std\.)/g, '· '+dur);
+        badge.textContent = badge.textContent.replace(/·.*/g, '· '+dur);
       });
     }).catch(function(){});
   }
