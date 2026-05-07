@@ -238,6 +238,10 @@ var css = `
 .cw-master-bio-wrap{padding:7px 12px 10px}
 .cw-master-bio{font-family:'DM Sans',sans-serif;font-size:11px;color:rgba(253,250,248,.42);line-height:1.5;margin:0 0 6px}
 .cw-master-skills{display:flex;flex-wrap:wrap;gap:4px}
+.cw-master-slot{display:flex;align-items:center;gap:5px;margin-top:7px;font-family:'DM Sans',sans-serif;font-size:10.5px;color:rgba(253,250,248,0.55);min-height:16px}
+.cw-master-slot-dot{width:6px;height:6px;border-radius:50%;background:#2ecc71;flex-shrink:0}
+.cw-master-slot-dot.orange{background:#e67e22}
+.cw-master-slot-dot.grey{background:rgba(255,255,255,0.25)}
 .cw-skill-tag{font-family:'DM Sans',sans-serif;font-size:10px;color:rgba(253,250,248,.38);background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.07);border-radius:20px;padding:2px 9px}
 
 /* ── Step 2: Categories ── */
@@ -797,10 +801,68 @@ function renderMasters() {
         + '<div class="cw-master-skills">'
           + meta.skills.map(function(s){ return '<span class="cw-skill-tag">'+s+'</span>'; }).join('')
         + '</div>'
-      + '</div>';
+        + '<div class="cw-master-slot" id="cw-slot-'+m.id+'"><span style="opacity:0.35;font-size:10px;">lädt…</span></div>'
+      + '</div>'
+    + '</div>';
 
     card.addEventListener('click', function(){ selectMaster(m, meta); });
     list.appendChild(card);
+  });
+
+  // Загружаем слоты для каждого мастера
+  _allMasters.forEach(function(m) {
+    loadMasterSlot(m.id);
+  });
+}
+
+var _SLOT_SERVICE = { 3020185: 13485754, 3020186: 13485753, 3020187: 13485753, 3020188: 13485756 };
+
+function loadMasterSlot(staffId) {
+  var serviceId = _SLOT_SERVICE[staffId];
+  if (!serviceId) return;
+  var el = document.getElementById('cw-slot-' + staffId);
+  if (!el) return;
+
+  var dates = [];
+  var now = new Date();
+  for (var i = 0; i < 30; i++) {
+    var d = new Date(now.getTime() + i * 86400000);
+    dates.push(d.getFullYear() + '-' + pad2(d.getMonth()+1) + '-' + pad2(d.getDate()));
+  }
+
+  function pad2(n) { return n < 10 ? '0'+n : String(n); }
+  function fmtDate(ds) {
+    var today = dates[0]; var tom = dates[1];
+    if (ds === today) return 'heute';
+    if (ds === tom)   return 'morgen';
+    var days = ['So','Mo','Di','Mi','Do','Fr','Sa'];
+    var dt = new Date(ds); return days[dt.getDay()]+', '+pad2(dt.getDate())+'.'+pad2(dt.getMonth()+1)+'.';
+  }
+
+  // последовательно ищем первую дату со слотами
+  dates.reduce(function(p, date) {
+    return p.then(function(found) {
+      if (found) return found;
+      return apiGet('/book_times/' + CONFIG.locationId + '/' + staffId + '/' + date, { 'service_ids[]': serviceId })
+        .then(function(res) {
+          var slots = (res.success && Array.isArray(res.data)) ? res.data : [];
+          return slots.length ? { date: date, slots: slots } : null;
+        }).catch(function(){ return null; });
+    });
+  }, Promise.resolve(null)).then(function(result) {
+    if (!el) return;
+    if (!result) {
+      el.innerHTML = '<span class="cw-master-slot-dot grey"></span><span>Auf Anfrage</span>';
+    } else {
+      var label = fmtDate(result.date);
+      var first = result.slots[0] ? result.slots[0].time : '';
+      var count = result.slots.length;
+      var isToday = result.date === dates[0];
+      var dotCls = (isToday && count <= 3) ? 'orange' : '';
+      var txt = first ? label + ' · ab ' + first + ' Uhr' : label;
+      if (isToday && count <= 3) txt += ' · letzter Platz';
+      el.innerHTML = '<span class="cw-master-slot-dot ' + dotCls + '"></span><span>' + txt + '</span>';
+    }
   });
 }
 
