@@ -2237,7 +2237,6 @@ if (document.readyState === 'loading') {
         }
       ]
     },
-,
     sofia: {
       badge: '✦ Master · Crocus Beauty Studio',
       title: '<em>Sofia</em>',
