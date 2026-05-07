@@ -1569,16 +1569,16 @@ function tryShowReturnScreen() {
     var priceStr = price ? price + ' €' : '—';
     var meta = last.masterMeta || {};
     var avatarHtml = meta.avatar
-      ? '<div style="display:flex;align-items:center;gap:12px;padding-bottom:12px;border-bottom:1px solid rgba(255,255,255,.07);margin-bottom:10px">' +
+      ? '<div class="cw-return-master-divider" style="display:flex;align-items:center;gap:12px;padding-bottom:12px;border-bottom:1px solid rgba(255,255,255,.07);margin-bottom:10px">' +
           '<div style="position:relative;flex-shrink:0">' +
             '<img src="' + meta.avatar + '" style="width:52px;height:52px;border-radius:50%;object-fit:cover;border:2px solid rgba(201,168,124,.35);display:block"/>' +
             '<div style="position:absolute;bottom:-1px;right:-1px;width:14px;height:14px;border-radius:50%;background:#2b6344;border:2px solid rgba(13,6,18,.9)"></div>' +
           '</div>' +
           '<div style="flex:1;min-width:0">' +
-            '<div style="font-family:\'DM Sans\',sans-serif;font-size:14px;font-weight:600;color:#fdfaf8;display:flex;align-items:center;gap:7px;flex-wrap:wrap">' + last.masterName +
+            '<div class="cw-return-master-name" style="font-family:\'DM Sans\',sans-serif;font-size:14px;font-weight:600;color:#fdfaf8;display:flex;align-items:center;gap:7px;flex-wrap:wrap">' + last.masterName +
               (meta.level ? '<span style="font-size:9px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:1px 7px;border-radius:20px;color:'+(meta.levelColor||'#c9a87c')+';background:'+(meta.levelBg||'rgba(201,168,124,.1)')+';border:1px solid '+(meta.levelBorder||'rgba(201,168,124,.3)') + '">' + meta.level + '</span>' : '') +
             '</div>' +
-            (meta.tagline ? '<div style="font-family:\'DM Sans\',sans-serif;font-size:11px;color:rgba(253,250,248,.38);margin-top:2px">' + meta.tagline + '</div>' : '') +
+            (meta.tagline ? '<div class="cw-return-master-tagline" style="font-family:\'DM Sans\',sans-serif;font-size:11px;color:rgba(253,250,248,.38);margin-top:2px">' + meta.tagline + '</div>' : '') +
           '</div>' +
         '</div>'
       : '';
@@ -1980,12 +1980,12 @@ if (document.readyState === 'loading') {
     '.cw-times-title{color:rgba(26,8,16,.40)!important;}' +
 
     /* Master cards */
-    '.cw-master-card{background:#fff!important;border-color:rgba(26,8,16,.08)!important;}' +
-    '.cw-master-card:hover{border-color:rgba(192,52,104,.35)!important;background:#fff!important;box-shadow:0 8px 28px rgba(192,52,104,.15)!important;}' +
+    '.cw-master-card{background:#fff!important;border-color:rgba(26,8,16,.08)!important;box-shadow:0 2px 12px rgba(192,52,104,.08)!important;}' +
+    '.cw-master-card:hover{border-color:rgba(192,52,104,.35)!important;background:#fff!important;box-shadow:0 8px 28px rgba(192,52,104,.20)!important;}' +
     '.cw-master-name{color:#1a0810!important;}' +
-    '.cw-master-tagline{color:rgba(26,8,16,.50)!important;}' +
-    '.cw-master-bio{color:rgba(26,8,16,.55)!important;}' +
-    '.cw-skill-tag{color:rgba(26,8,16,.45)!important;background:rgba(192,52,104,.07)!important;border-color:rgba(192,52,104,.15)!important;}' +
+    '.cw-master-tagline{color:rgba(26,8,16,.55)!important;}' +
+    '.cw-master-bio{color:rgba(26,8,16,.60)!important;}' +
+    '.cw-skill-tag{color:rgba(26,8,16,.55)!important;background:rgba(192,52,104,.07)!important;border-color:rgba(192,52,104,.15)!important;}' +
 
     /* Category cards */
     '.cw-cat-card{background:#fff!important;border-color:rgba(26,8,16,.08)!important;}' +
@@ -2035,10 +2035,15 @@ if (document.readyState === 'loading') {
 
     /* Summary & form */
     '.cw-summary{background:#fff!important;border-color:rgba(192,52,104,.18)!important;}' +
-    '.cw-return-card{background:#fff!important;border-color:rgba(192,52,104,.18)!important;}' +
-    '.cw-return-row span{color:rgba(26,8,16,.38)!important;}' +
+    '.cw-return-card{background:#fff!important;border-color:rgba(192,52,104,.18)!important;box-shadow:0 4px 18px rgba(192,52,104,.12)!important;}' +
+    '.cw-return-row span{color:rgba(26,8,16,.45)!important;}' +
     '.cw-return-row strong{color:#1a0810!important;}' +
     '.cw-return-price{color:#c03468!important;}' +
+    '.cw-return-master-name{color:#1a0810!important;}' +
+    '.cw-return-master-tagline{color:rgba(26,8,16,.45)!important;}' +
+    '.cw-return-master-divider{border-bottom-color:rgba(26,8,16,.08)!important;}' +
+    '.cw-master-slot{color:rgba(26,8,16,.55)!important;}' +
+    '.cw-master-slot-dot.grey{background:rgba(26,8,16,.20)!important;}' +
     '.cw-sum-row span{color:rgba(26,8,16,.38)!important;}' +
     '.cw-sum-row strong{color:#1a0810!important;}' +
     '.cw-sum-price strong{color:#c03468!important;}' +
