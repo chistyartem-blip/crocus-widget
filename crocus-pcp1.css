@@ -80,7 +80,7 @@
 .pcp1__mc-check svg{display:block;}
 
 /* Фото */
-.pcp1__mc-photo{width:100%;height:220px;overflow:hidden;flex-shrink:0;position:relative;}
+.pcp1__mc-photo{width:100%;height:280px;overflow:hidden;flex-shrink:0;position:relative;}
 .pcp1__mc-photo img{width:100%;height:100%;object-fit:cover;object-position:center top;display:block;transition:transform .5s cubic-bezier(0.16,1,0.3,1);}
 .pcp1__mc-btn:hover .pcp1__mc-photo img{transform:scale(1.05);}
 
@@ -226,7 +226,7 @@
   .pcp1__wrap{padding:0 16px;}
   .pcp1__mc-grid{grid-template-columns:1fr 1fr;gap:8px;}
   .pcp1__mc-grid > .pcp1__mc-btn:nth-child(3):last-child{grid-column:1 / -1;max-width:calc(50% - 4px);margin:0 auto;}
-  .pcp1__mc-photo{height:175px;}
+  .pcp1__mc-photo{height:200px;}
   .pcp1__mc-overlay-name{font-size:20px;}
   .pcp1__mc-info{padding:10px 10px 12px;gap:7px;}
   .pcp1__mc-desc{font-size:10px;}

@@ -381,12 +381,10 @@
 
       reveal.classList.add('pcp1__reveal--open');
 
-      // Скролл к reveal
+      // Скролл к reveal — всегда
       setTimeout(function(){
         var rect = reveal.getBoundingClientRect();
-        if(rect.top > window.innerHeight * 0.85){
-          window.scrollTo({top: window.scrollY + rect.top - 80, behavior:'smooth'});
-        }
+        window.scrollTo({top: window.scrollY + rect.top - 80, behavior:'smooth'});
       }, 120);
 
       // Анимация карточек
