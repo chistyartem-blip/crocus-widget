@@ -511,7 +511,7 @@ wrap.innerHTML =
         + '<form class="cw-form" id="cw-gift-form">'
           + '<div class="cw-field"><label>Ihr Name</label><input type="text" id="cw-gift-name" placeholder="Ihr Name" required autocomplete="name"></div>'
           + '<div class="cw-field"><label>Ihre E-Mail</label><input type="email" id="cw-gift-email" placeholder="ihre@email.de" required autocomplete="email"></div>'
-          + '<div class="cw-field"><label>Telefon / WhatsApp</label><input type="tel" id="cw-gift-phone" placeholder="+49 172 …" autocomplete="tel"></div>'
+          + '<div class="cw-field"><label>Telefon / WhatsApp</label><div class="cw-phone-wrap"><span class="cw-phone-prefix">+49</span><input type="tel" id="cw-gift-phone" placeholder="172 1234567" autocomplete="tel" inputmode="numeric"></div></div>'
           + '<div class="cw-field"><label>Für wen ist der Gutschein? <span style="opacity:.45;font-size:9px">(optional)</span></label><input type="text" id="cw-gift-recipient" placeholder="z.B. für Maria zum Geburtstag"></div>'
           + '<div class="cw-field" id="cw-gift-wish-wrap" style="display:none"><label>Gewünschte Behandlung oder Wunschbetrag <span style="opacity:.45;font-size:9px">(optional)</span></label><input type="text" id="cw-gift-wish" placeholder="z.B. Maniküre + Gellack, ca. 40 €"></div>'
           + '<div class="cw-gift-info-box">'
@@ -1478,7 +1478,8 @@ function submitGiftForm(e) {
   e.preventDefault();
   var name      = (document.getElementById('cw-gift-name').value || '').trim();
   var email     = (document.getElementById('cw-gift-email').value || '').trim();
-  var phone     = (document.getElementById('cw-gift-phone').value || '').trim();
+  var phoneRawG = (document.getElementById('cw-gift-phone').value || '').trim().replace(/^0+/,'').replace(/^\+49/,'');
+  var phone     = phoneRawG ? '+49' + phoneRawG : '';
   var recipient = (document.getElementById('cw-gift-recipient').value || '').trim();
   var wish      = (document.getElementById('cw-gift-wish') ? document.getElementById('cw-gift-wish').value || '' : '').trim();
 
