@@ -1,20 +1,6 @@
 (function(){
 
   /* ══ POPUP DATA ══ */
-  var EXTRAS_GEL = [
-    {name:'French',price:'+ 5 €'},
-    {name:'Babyboomer',price:'+ 10 €'},
-    {name:'Stiletto-Form',price:'+ 10 €'},
-    {name:'Nail-Art Design',price:'ab + 10 €'}
-  ];
-  var EXTRAS_KORREKTUR = [
-    {name:'French',price:'+ 5 €'},
-    {name:'Babyboomer',price:'+ 10 €'},
-    {name:'Stiletto-Form',price:'+ 10 €'},
-    {name:'Nail-Art Design',price:'ab + 10 €'},
-    {name:'Länge über 2',price:'+ 5 €'},
-    {name:'Länge über 3',price:'+ 10 €'}
-  ];
 
   var POPUPS = {
     n_basis:{
@@ -33,8 +19,7 @@
       sub:'Russische Maniküre mit Gel-Verstärkung — bis zu 4 Wochen Haltbarkeit.',
       sections:[
         {title:'Leistungen',rows:[{name:'Verstärkung & Gel · 1,5 Std.',old:'40 €',price:'35 €'}]},
-        {title:'Enthalten',rows:[{name:'Nagelhautbehandlung',price:'✓'},{name:'Verstärkung mit Gel',price:'✓'},{name:'Gel-Lack + leichtes Design',price:'✓'},{name:'Pflege mit Öl',price:'✓'}]},
-        {title:'Extras & Aufpreise',rows:EXTRAS_GEL}
+        {title:'Enthalten',rows:[{name:'Nagelhautbehandlung',price:'✓'},{name:'Verstärkung mit Gel',price:'✓'},{name:'Gel-Lack + leichtes Design',price:'✓'},{name:'Pflege mit Öl',price:'✓'}]}
       ],
       note:'3–4 Wochen Haltbarkeit. HEMA-freie Materialien.'
     },
@@ -55,8 +40,7 @@
       sub:'Entfernung des alten Materials, Neuaufbau und Gel-Lack.',
       sections:[
         {title:'Leistungen',rows:[{name:'Nagelkorrektur · 2 Std.',old:'50 €',price:'40 €'}]},
-        {title:'Enthalten',rows:[{name:'Entfernung des alten Materials',price:'✓'},{name:'Nagelhautbehandlung',price:'✓'},{name:'Verstärkung / Modellierung',price:'✓'},{name:'Gel-Lack + leichtes Design',price:'✓'},{name:'Pflege mit Öl',price:'✓'}]},
-        {title:'Extras & Aufpreise',rows:EXTRAS_KORREKTUR}
+        {title:'Enthalten',rows:[{name:'Entfernung des alten Materials',price:'✓'},{name:'Nagelhautbehandlung',price:'✓'},{name:'Verstärkung / Modellierung',price:'✓'},{name:'Gel-Lack + leichtes Design',price:'✓'},{name:'Pflege mit Öl',price:'✓'}]}
       ],
       note:'Sterilisierte Instrumente. Premiummaterialien inklusive.'
     },
@@ -76,8 +60,7 @@
       sub:'Erstbehandlung ohne vorhandenes Material — Verstärkung, Gel-Lack, bis 4 Wochen.',
       sections:[
         {title:'Leistungen',rows:[{name:'Maniküre + Verstärkung + Gel · 1,5 Std.',price:'45 €'}]},
-        {title:'Enthalten',rows:[{name:'Nagelhautbehandlung',price:'✓'},{name:'Verstärkung mit Gel',price:'✓'},{name:'Gel-Lack + leichtes Design',price:'✓'},{name:'Pflege mit Öl',price:'✓'}]},
-        {title:'Extras & Aufpreise',rows:EXTRAS_GEL}
+        {title:'Enthalten',rows:[{name:'Nagelhautbehandlung',price:'✓'},{name:'Verstärkung mit Gel',price:'✓'},{name:'Gel-Lack + leichtes Design',price:'✓'},{name:'Pflege mit Öl',price:'✓'}]}
       ],
       note:'HEMA-freie Materialien. 3–4 Wochen Haltbarkeit.'
     },
@@ -87,8 +70,7 @@
       sub:'Mit vorhandenem Material — Entfernung, Neuaufbau, Gel-Lack.',
       sections:[
         {title:'Leistungen',rows:[{name:'Nagelkorrektur · 2 Std.',price:'55 €'}]},
-        {title:'Enthalten',rows:[{name:'Entfernung des alten Materials',price:'✓'},{name:'Nagelhautbehandlung',price:'✓'},{name:'Verstärkung / Modellierung',price:'✓'},{name:'Gel-Lack + leichtes Design',price:'✓'},{name:'Pflege mit Öl',price:'✓'}]},
-        {title:'Extras & Aufpreise',rows:EXTRAS_KORREKTUR}
+        {title:'Enthalten',rows:[{name:'Entfernung des alten Materials',price:'✓'},{name:'Nagelhautbehandlung',price:'✓'},{name:'Verstärkung / Modellierung',price:'✓'},{name:'Gel-Lack + leichtes Design',price:'✓'},{name:'Pflege mit Öl',price:'✓'}]}
       ],
       note:'Premiummaterialien inklusive.'
     },
@@ -98,8 +80,7 @@
       sub:'Preis abhängig von Länge und Form. Beratung kostenlos.',
       sections:[
         {title:'Leistungen',rows:[{name:'Nagelverlängerung · 2,5 Std.',price:'ab 75 €'}]},
-        {title:'Enthalten',rows:[{name:'Entfernung altes Material (falls vorhanden)',price:'✓'},{name:'Nagelhautbehandlung',price:'✓'},{name:'Verlänger. mit Gel',price:'✓'},{name:'Modellierung der Form',price:'✓'},{name:'Gel-Lack + leichtes Design',price:'✓'},{name:'Pflege mit Öl',price:'✓'}]},
-        {title:'Extras & Aufpreise',rows:EXTRAS_KORREKTUR}
+        {title:'Enthalten',rows:[{name:'Entfernung altes Material (falls vorhanden)',price:'✓'},{name:'Nagelhautbehandlung',price:'✓'},{name:'Verlänger. mit Gel',price:'✓'},{name:'Modellierung der Form',price:'✓'},{name:'Gel-Lack + leichtes Design',price:'✓'},{name:'Pflege mit Öl',price:'✓'}]}
       ],
       note:'Endpreis nach Länge und Design.'
     }
@@ -152,6 +133,41 @@
     }
   };
 
+
+  /* ══ ADDON DATA (из API) ══ */
+  var MNP2_ADDON_IDS_BY_SVC = {
+    13485753: [13485757, 13485756, 13502359, 13502360],          // Gel: Babyboomer, French, Gel-Lack, Design (+ Stiletto только Diana)
+    13485754: [13485756, 13485757, 13502360, 13502395],          // Korrektur: French, Babyboomer, Design, Mandel (+ Stiletto только Diana)
+    13485755: [13485759, 13485757, 13485756, 13502360, 13502395] // Verlängerung: Design, Babyboomer, French, Design, Mandel (+ Stiletto только Diana)
+  };
+  var MNP2_STILETTO_STAFF = [3020185]; // только Diana
+  var MNP2_ADDON_NAMES = {
+    13485756: {name:'French', price:'+ 5 €'},
+    13485757: {name:'Babyboomer', price:'+ 10 €'},
+    13485758: {name:'Stiletto-Form', price:'+ 10 €'},
+    13485759: {name:'Nail-Art Design', price:'ab + 10 €'},
+    13502359: {name:'Gel-Lack (Farbe)', price:'+ 5 €'},
+    13502360: {name:'Design', price:'ab + 5 €'},
+    13502395: {name:'Mandel-Form', price:'+ 5 €'}
+  };
+  var MNP2_SVC_FOR_POPUP = {
+    n_gel:13485753, n_korrektur:13485754, n_verlaengerung:13485755,
+    d_gel:13485753, d_korrektur:13485754, d_verlaengerung:13485755
+  };
+  var MNP2_STAFF_FOR_POPUP = {
+    n_gel:3020186, n_korrektur:3020186, n_verlaengerung:3020186,
+    d_gel:3020185, d_korrektur:3020185, d_verlaengerung:3020185
+  };
+
+  function mnp2BuildAddons(popupKey){
+    var staffId = MNP2_STAFF_FOR_POPUP[popupKey];
+    var svcId   = MNP2_SVC_FOR_POPUP[popupKey];
+    if(!staffId || !svcId) return [];
+    var ids = (MNP2_ADDON_IDS_BY_SVC[svcId] || []).slice();
+    if(MNP2_STILETTO_STAFF.indexOf(staffId) !== -1) ids.splice(0,0,13485758); // Stiletto первым у Diana
+    return ids.map(function(id){ return MNP2_ADDON_NAMES[id]; }).filter(Boolean);
+  }
+
   /* ══ RENDER DETAILS POPUP ══ */
   function buildDetailsPopup(key){
     var d = POPUPS[key]; if(!d) return '';
@@ -170,6 +186,14 @@
       });
       h += '</div>';
     });
+    var addons = mnp2BuildAddons(key);
+    if(addons.length){
+      h += '<div class="mnp2-popup__section"><div class="mnp2-popup__section-title">Extras & Aufpreise</div>';
+      addons.forEach(function(a){
+        h += '<div class="mnp2-popup__row"><span class="mnp2-popup__row-name">'+a.name+'</span><span class="mnp2-popup__row-price"><span class="mnp2-popup__price-only">'+a.price+'</span></span></div>';
+      });
+      h += '</div>';
+    }
     if(d.note) h += '<p class="mnp2-popup__note">'+d.note+'</p>';
     h += '<button class="mnp2-popup__cta-btn" onclick="mnp2CloseDetailsPopup();crocusOpen();">';
     h += '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg> Jetzt buchen</button>';
