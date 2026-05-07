@@ -130,7 +130,7 @@
       badge:'Master · Crocus Beauty',
       name:'',
       nameFull:'<em>Sofia</em>',
-      desc:'Sofia wurde persönlich von Nelia empfohlen und arbeitet vollständig nach ihren Methoden, Standards und Qualitätsprinzipien.\n\nSie ist eine qualifizierte Fachkraft, die nach denselben hohen Anforderungen an Hygiene, Technik und Ästhetik arbeitet. Jede Behandlung erfolgt nach den Standards von Crocus Beauty Studio: präzise Technik, saubere und sorgfältige Arbeit und ein gepflegtes Ergebnis.\n\nDer Unterschied liegt hauptsächlich in der Erfahrung — was sich in einem attraktiveren Preis widerspiegelt. Die ideale Wahl für Kundinnen, die Premium-Qualität zu einem sehr guten Preis-Leistungs-Verhältnis suchen.',
+      desc:'Sofia ist eine eigenständige Nagelkünstlerin im Crocus Beauty Studio — mit eigenem Stil und persönlichem Ansatz.\n\nSie arbeitet nach den hohen Standards des Studios: sterilisierte Instrumente, präzise Nagelhautpflege mit elektrischer Fräse und langlebiger Gellack. Jede Behandlung ist sorgfältig, sauber und ästhetisch.\n\nSofia ist die ideale Wahl für Kundinnen, die ein gepflegtes Ergebnis auf Studio-Niveau zu einem attraktiven Preis schätzen — mit persönlicher Betreuung und Liebe zum Detail.',
       facts:[
         {icon:'🎓',text:'Von Master Nelia persönlich empfohlen und ausgebildet'},
         {icon:'💎',text:'Gleiche Technik · Gleiche Standards · Gleiche Materialien'},
@@ -290,6 +290,17 @@
     placeholder.style.display = 'none';
     reveal.classList.add('mnp2__reveal--open');
 
+    /* скролл к reveal */
+    setTimeout(function(){
+      var revealEl = document.getElementById('mnp2-reveal');
+      if(revealEl){
+        var rect = revealEl.getBoundingClientRect();
+        var scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+        var offset = rect.top + scrollTop - 80;
+        window.scrollTo({top: offset, behavior: 'smooth'});
+      }
+    }, 80);
+
     /* анимация карточек */
     var panel = document.getElementById('mnp2-sub-'+key);
     panel.querySelectorAll('.mnp2__card').forEach(function(c,i){
@@ -317,5 +328,53 @@
   } else {
     document.querySelectorAll('.mnp2__card').forEach(function(c){ c.classList.add('mnp2--visible'); });
   }
+
+
+  /* ══ API: ЗАГРУЗКА ДЛИТЕЛЬНОСТЕЙ ══ */
+  var MNP2_API_TOKEN = 'u8xzkdpkgfc73uektn64';
+  var MNP2_LOC = '1357963';
+  var MNP2_API_BASE = 'https://api.alteg.io/api/v1';
+
+  var MNP2_SERVICE_IDS = {
+    n_basis:13485752, n_gel:13485753, n_korrektur:13485754,
+    d_basis:13485752, d_gel:13485753, d_korrektur:13485754, d_verlaengerung:13485755
+  };
+  var MNP2_STAFF_FOR_DUR = { nelia:3020186, diana:3020185, sofia:3020187 };
+
+  function mnp2FmtDur(sec){
+    if(!sec) return '';
+    var m = Math.round(sec/60);
+    if(m < 60) return m+' Min.';
+    var h = Math.floor(m/60), rm = m%60;
+    return rm > 0 ? h+','+Math.round(rm/6)+' Std.' : h+' Std.';
+  }
+
+  function mnp2LoadDurations(masterKey){
+    var staffId = MNP2_STAFF_FOR_DUR[masterKey];
+    if(!staffId) return;
+    fetch(MNP2_API_BASE+'/book_services/'+MNP2_LOC+'?staff_id='+staffId, {
+      headers:{'Authorization':'Bearer '+MNP2_API_TOKEN,'Accept':'application/vnd.api.v2+json','Accept-Language':'de'}
+    }).then(function(r){ return r.json(); }).then(function(data){
+      var svcs = (data.data && data.data.services) ? data.data.services : [];
+      var durMap = {};
+      svcs.forEach(function(s){ if(s.seance_length) durMap[s.id] = s.seance_length; });
+      var panel = document.getElementById('mnp2-sub-'+masterKey);
+      if(!panel) return;
+      panel.querySelectorAll('[data-mnp2-popup]').forEach(function(el){
+        var popKey = el.getAttribute('data-mnp2-popup');
+        var svcId = MNP2_SERVICE_IDS[popKey];
+        if(!svcId || !durMap[svcId]) return;
+        var dur = mnp2FmtDur(durMap[svcId]);
+        if(!dur) return;
+        var card = el.closest ? el.closest('.mnp2__card') : (function(){ var n=el; while(n && !(n.className||'').match(/mnp2__card/)) n=n.parentNode; return n; })();
+        if(!card) return;
+        var badge = card.querySelector('.mnp2__badge');
+        if(!badge) return;
+        badge.textContent = badge.textContent.replace(/·\s*[\d,]+\s*(Min\.|Std\.)/g, '· '+dur);
+      });
+    }).catch(function(){});
+  }
+
+  ['nelia','diana','sofia'].forEach(function(m){ mnp2LoadDurations(m); });
 
 })();
