@@ -618,9 +618,11 @@ var gift = {
 // ── Open/Close ─────────────────────────────────────────────────
 var _scrollY = 0;
 function crocusOpen() {
-  document.getElementById('crocus-backdrop').classList.add('open');
-  // iOS scroll lock: save position, fix body
+  // Capture scroll position immediately — before any anchor navigation
+  // (important when called from <a href="#section"> onclick)
   _scrollY = window.scrollY || window.pageYOffset || 0;
+  document.getElementById('crocus-backdrop').classList.add('open');
+  // iOS scroll lock: fix body at captured position
   document.body.classList.add('crocus-open');
   document.body.style.overflow = 'hidden';
   document.body.style.position = 'fixed';
@@ -1549,6 +1551,22 @@ window.crocusOpenGutschein = function() {
   document.getElementById('crocus-fab-mobile-btn').addEventListener('click', crocusOpen);
 })();
 document.getElementById('crocus-backdrop').addEventListener('click', crocusClose);
+
+// ── Intercept anchor links that open the widget ────────────────
+// Prevents href="#section" from jumping before/after scroll lock
+(function(){
+  document.addEventListener('click', function(e){
+    var a = e.target.closest('a[href]');
+    if (!a) return;
+    var onclick = a.getAttribute('onclick') || '';
+    if (onclick.indexOf('crocusOpen') === -1) return;
+    var href = a.getAttribute('href') || '';
+    // Only intercept non-empty anchors (not "#" — already harmless)
+    if (href && href !== '#' && href.charAt(0) === '#') {
+      e.preventDefault();
+    }
+  }, true); // capture phase — fires before href navigation
+})();
 
 // ── WhatsApp / Phone click tracking ────────────────────────────
 (function() {
