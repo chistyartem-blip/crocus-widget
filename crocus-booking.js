@@ -648,12 +648,12 @@ function crocusClose() {
   document.body.classList.remove('crocus-open');
   setTimeout(function(){
     document.getElementById('crocus-backdrop').classList.remove('open');
-    // iOS scroll lock: restore position
+    // iOS scroll lock: restore position without jump
+    document.body.style.overflow = '';
     document.body.style.position = '';
     document.body.style.top = '';
     document.body.style.width = '';
-    document.body.style.overflow = '';
-    window.scrollTo(0, _scrollY);
+    window.scrollTo({ top: _scrollY, behavior: 'instant' });
     crocusReset();
   }, 320);
   // Clean up history entry if it's still there
