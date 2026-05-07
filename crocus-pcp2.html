@@ -1,6 +1,6 @@
 <!-- ══ pcp2 · Warum Crocus Pediküre ══ -->
 <!-- SHA заменяется при коммите -->
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/chistyartem-blip/crocus-widget@COMMIT_SHA/crocus-pcp2.css"/>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/chistyartem-blip/crocus-widget@45d066d/crocus-pcp2.css"/>
 
 <section class="pcp2" id="warum-pediküre">
 <div class="pcp2__wrap">
@@ -73,7 +73,7 @@
         <div class="pcp2__cta-btn-wrap">
           <div class="pcp2__cta-btn-ring"></div>
           <div class="pcp2__cta-btn-ring"></div>
-          <a href="#" onclick="event.preventDefault();crocusOpen()" class="pcp2__cta-btn" style="color:#fff!important;text-decoration:none!important;display:inline-flex;">
+          <a href="#" onclick="event.preventDefault();pcp2TryOpen()" class="pcp2__cta-btn" style="color:#fff!important;text-decoration:none!important;display:inline-flex;">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="4" width="18" height="18" rx="2.5"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
             Jetzt Termin buchen
           </a>
@@ -88,7 +88,7 @@
       <!-- Master cards — nur Pediküre-Meisterinnen -->
       <div class="pcp2__masters pcp2-reveal">
 
-        <div class="pcp2__master-card" onclick="if(typeof crocusOpen==='function')crocusOpen();">
+        <div class="pcp2__master-card" onclick="pcp2CardClick()">
           <div class="pcp2__master-avatar">
             <img src="https://cdn.jsdelivr.net/gh/chistyartem-blip/crocus-widget@b803e8c/assets/diana.jpg" alt="Diana" loading="lazy">
           </div>
@@ -101,7 +101,7 @@
           </div>
         </div>
 
-        <div class="pcp2__master-card" onclick="if(typeof crocusOpen==='function')crocusOpen();">
+        <div class="pcp2__master-card" onclick="pcp2CardClick()">
           <div class="pcp2__master-avatar">
             <img src="https://cdn.jsdelivr.net/gh/chistyartem-blip/crocus-widget@b803e8c/assets/nelia.jpg" alt="Nelia" loading="lazy">
           </div>
@@ -114,7 +114,7 @@
           </div>
         </div>
 
-        <div class="pcp2__master-card" onclick="if(typeof crocusOpen==='function')crocusOpen();">
+        <div class="pcp2__master-card" onclick="pcp2CardClick()">
           <div class="pcp2__master-avatar">
             <img src="https://cdn.jsdelivr.net/gh/chistyartem-blip/crocus-widget@413e27d/assets/sofia.jpg" alt="Sofia" loading="lazy" style="object-position:center 20%;">
           </div>
@@ -341,10 +341,35 @@ window.pcp2PickMood=function(el){
   document.getElementById('pcp2MoodBtn').setAttribute('data-action',d.action);
   document.getElementById('pcp2MoodResult').classList.add('show');
   pcp2Confetti(el);
+  // Скролл к CTA-боксу после выбора
+  setTimeout(function(){
+    var cta=document.querySelector('.pcp2__cta-box');
+    if(cta){
+      var top=window.scrollY+cta.getBoundingClientRect().top-80;
+      window.scrollTo({top:top,behavior:'smooth'});
+    }
+  },200);
 };
 
+function pcp2TryOpen(){
+  if(typeof crocusOpen==='function'){ crocusOpen(); return; }
+  window.open('https://wa.me/491728118528?text=Hallo%2C%20ich%20m%C3%B6chte%20einen%20Termin%20f%C3%BCr%20Pediküre%20buchen.','_blank');
+}
+
+// Клик по карточке мастера — скролл к финале-кнопке, потом открыть виджет
+function pcp2CardClick(){
+  var finale=document.querySelector('.pcp2__finale');
+  if(finale){
+    var top=window.scrollY+finale.getBoundingClientRect().top-60;
+    window.scrollTo({top:top,behavior:'smooth'});
+    setTimeout(pcp2TryOpen,500);
+  } else {
+    pcp2TryOpen();
+  }
+}
+
 window.pcp2MoodAction=function(){
-  if(typeof crocusOpen==='function') crocusOpen();
+  pcp2TryOpen();
 };
 
 /* ── Confetti ── */
@@ -395,7 +420,7 @@ function pcp2TypeFinale(){
 setInterval(pcp2TypeFinale,4500);
 
 window.pcp2FinaleClick=function(){
-  if(typeof crocusOpen==='function') crocusOpen();
+  pcp2TryOpen();
   pcp2Confetti(document.querySelector('.pcp2__finale-btn'));
 };
 
