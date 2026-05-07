@@ -2227,12 +2227,38 @@ if (document.readyState === 'loading') {
             'Präzise Technik nach Diana-Standard',
             'Saubere, sorgfältige Arbeit auf hohem Niveau',
             'Perfekte Nagelarchitektur & modernes Design',
-            'Sterilisierte Instrumente — Hygiene auf medizinischem Niveau'
+            'Sterilisierte Instrumente — Hygiene auf medizinischem Niveau',
+            'Nagelverlängerung — professionell mit Gel'
           ]
         },
         {
           heading: 'Warum Nelia wählen?',
           text: 'Der Unterschied zu Diana liegt hauptsächlich in der Erfahrung und Arbeitsgeschwindigkeit — was sich direkt im Preis widerspiegelt. Die ideale Wahl für Kundinnen, die Premium-Qualität zu einem besseren Preis-Leistungs-Verhältnis suchen. Kein Kompromiss bei der Qualität — nur ein fairerer Einstieg.'
+        }
+      ]
+    },
+,
+    sofia: {
+      badge: '✦ Master · Crocus Beauty Studio',
+      title: '<em>Sofia</em>',
+      sub: 'Ausgebildete Fachkraft · Maniküre & Pediküre · Attraktiver Preis',
+      sections: [
+        {
+          heading: 'Sorgfältige Arbeit mit Herz',
+          text: 'Sofia ist eine ausgebildete Maniküristin, die nach den Standards von Crocus Beauty Studio arbeitet. Herzlich, präzise und geduldig — man geht mit perfekten Nägeln und guter Laune raus.'
+        },
+        {
+          heading: 'Was dich erwartet',
+          points: [
+            'Russische Technik mit Fräse — kein Einweichen',
+            'Saubere, sorgfältige Arbeit auf hohem Niveau',
+            'Maniküre, Pediküre & Kombi-Behandlungen',
+            'Sterilisierte Instrumente — Hygiene auf medizinischem Niveau'
+          ]
+        },
+        {
+          heading: 'Warum Sofia wählen?',
+          text: 'Sofia ist die perfekte Wahl für Kundinnen, die Premium-Qualität zu einem fairem Preis suchen. Gleiche Materialien, gleiche Standards — und ein entspanntes Erlebnis mit persönlicher Betreuung.'
         }
       ]
     },
@@ -2289,7 +2315,8 @@ if (document.readyState === 'loading') {
   var MASTER_PHOTO = {
     nelia: 'https://static.tildacdn.com/tild3537-3733-4430-b466-336537373738/WhatsApp_Image_2026-.jpeg',
     diana: 'https://static.tildacdn.com/tild3565-3731-4564-a536-376463363936/WhatsApp_Image_2026-.jpeg',
-    karina: 'https://static.tildacdn.com/tild6538-3366-4130-b062-666165616361/WhatsApp_Image_2026-.jpeg'
+    karina: 'https://static.tildacdn.com/tild6538-3366-4130-b062-666165616361/WhatsApp_Image_2026-.jpeg',
+    sofia: 'https://cdn.jsdelivr.net/gh/chistyartem-blip/crocus-widget@413e27d/assets/sofia.jpg'
 
   };
 
