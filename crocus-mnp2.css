@@ -65,19 +65,19 @@
 /* Фото */
 .mnp2__mc-photo{width:100%;height:220px;overflow:hidden;flex-shrink:0;position:relative;}
 .mnp2__mc-photo img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .5s cubic-bezier(0.16,1,0.3,1);}
-.mnp2__mc-photo--nelia img{object-position:center top;}
+.mnp2__mc-photo--nelia img{object-position:center 15%;}
 .mnp2__mc-photo--diana img{object-position:center 18%;}
 .mnp2__mc-photo--sofia img{object-position:center 20%;}
 .mnp2__mc-btn:hover .mnp2__mc-photo img{transform:scale(1.04);}
 
 /* Overlay */
-.mnp2__mc-overlay{position:absolute;bottom:0;left:0;right:0;padding:40px 12px 10px;background:linear-gradient(to top,rgba(14,5,10,0.82) 0%,rgba(14,5,10,0.35) 55%,transparent 100%);pointer-events:none;}
-.mnp2__mc-overlay-badge{display:inline-block;font-family:'DM Sans',Arial,sans-serif;font-size:7px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;padding:2px 7px;border-radius:50px;margin-bottom:4px;}
+.mnp2__mc-overlay{position:absolute;bottom:0;left:0;right:0;padding:30px 12px 10px;background:linear-gradient(to top,rgba(14,5,10,0.82) 0%,rgba(14,5,10,0.35) 55%,transparent 100%);pointer-events:none;display:flex;align-items:flex-end;justify-content:space-between;gap:6px;}
+.mnp2__mc-overlay-badge{display:none;}
 .mnp2__mc-overlay-badge--rose{background:rgba(192,52,104,0.85);color:#fff;}
 .mnp2__mc-overlay-badge--gold{background:rgba(10,4,8,0.85);color:#d4aa60;border:1px solid rgba(212,170,96,0.35);}
 .mnp2__mc-overlay-name{font-family:'Cormorant Garamond',Georgia,serif;font-size:22px;font-weight:300;color:#fff;letter-spacing:-0.01em;line-height:1;text-shadow:0 1px 8px rgba(0,0,0,0.40);}
 .mnp2__mc-overlay-name--gold{background:linear-gradient(135deg,#fff,#e8c97a);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
-.mnp2__mc-overlay-stats{font-family:'DM Sans',Arial,sans-serif;font-size:9px;color:rgba(255,230,210,0.65);margin-top:2px;}
+.mnp2__mc-overlay-stats{font-family:'DM Sans',Arial,sans-serif;font-size:9px;font-weight:600;letter-spacing:0.10em;text-transform:uppercase;color:rgba(255,230,210,0.60);white-space:nowrap;align-self:flex-end;padding-bottom:2px;}
 
 /* Инфо */
 .mnp2__mc-info{padding:12px 14px 14px;background:#fff;display:flex;flex-direction:column;gap:8px;flex:1;}
@@ -146,7 +146,7 @@
 .mnp2__card:hover{box-shadow:0 12px 40px rgba(212,84,122,0.10);transform:translateY(-2px);border-color:rgba(212,84,122,0.20);}
 .mnp2__card--featured{border-color:rgba(212,84,122,0.22);background:linear-gradient(160deg,#fff 0%,#fdf0f4 100%);}
 .mnp2__card--featured::after{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(to right,transparent,rgba(212,84,122,0.50),transparent);}
-.mnp2__card-img{width:100%;height:120px;object-fit:cover;object-position:center top;display:block;border-radius:20px 20px 0 0;overflow:hidden;filter:brightness(0.92) saturate(0.88);transition:filter .4s,transform .5s;flex-shrink:0;cursor:pointer;}
+.mnp2__card-img{width:100%;height:175px;object-fit:cover;object-position:center top;display:block;border-radius:20px 20px 0 0;overflow:hidden;filter:brightness(0.92) saturate(0.88);transition:filter .4s,transform .5s;flex-shrink:0;cursor:pointer;}
 .mnp2__card:hover .mnp2__card-img{filter:brightness(0.86) saturate(0.94);transform:scale(1.03);}
 .mnp2__card-body{padding:12px 12px 12px;display:flex;flex-direction:column;flex:1;}
 .mnp2__badge{display:block;width:100%;box-sizing:border-box;font-family:'DM Sans',Arial,sans-serif;font-size:8px;font-weight:700;letter-spacing:0.16em;text-transform:uppercase;color:rgba(122,21,48,0.55);margin-bottom:8px;background:rgba(212,84,122,0.09);border:1px solid rgba(212,84,122,0.18);border-radius:6px;padding:3px 8px;text-align:left;}
@@ -262,7 +262,7 @@
   .mnp2__mc-photo--diana img{object-position:center 30%;}
   .mnp2__mc-photo--sofia img{object-position:center 25%;}
   .mnp2__grid--4{grid-template-columns:repeat(2,1fr);}
-  .mnp2__card-img{height:110px;}
+  .mnp2__card-img{height:145px;}
   .mnp2-overlay{padding:50px 12px 30px;}
   .mnp2-popup{padding:40px 18px 28px;border-radius:18px;}
   .mnp2-minfo-header{height:300px;}
