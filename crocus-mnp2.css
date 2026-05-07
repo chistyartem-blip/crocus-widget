@@ -39,7 +39,7 @@
 .mnp2__gutschein:hover .mnp2__gb-arrow{background:rgba(212,84,122,0.18);transform:translateX(2px);}
 
 /* ─── HERO LAYOUT ─── */
-.mnp2__hero{display:grid;grid-template-columns:minmax(520px,560px) 1fr;gap:36px;align-items:start;}
+.mnp2__hero{display:flex;flex-direction:column;gap:28px;}
 
 /* ─── ЛЕВАЯ КОЛОНКА ─── */
 .mnp2__hero-left{display:flex;flex-direction:column;}
@@ -48,7 +48,7 @@
 .mnp2__mc-label{font-family:'DM Sans',Arial,sans-serif;font-size:9px;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;color:rgba(122,21,48,0.55);margin-bottom:10px;text-align:center;}
 
 /* ─── MC GRID ─── */
-.mnp2__mc-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;}
+.mnp2__mc-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;max-width:900px;}
 
 /* ─── MASTER CARD ─── */
 .mnp2__mc-btn{display:flex;flex-direction:column;width:100%;border-radius:18px;cursor:pointer;border:2px solid rgba(212,84,122,0.15);background:#fff;transition:border-color .25s,box-shadow .25s,transform .20s;position:relative;overflow:hidden;}
@@ -63,7 +63,7 @@
 .mnp2__mc-btn--diana.mnp2__mc-btn--active .mnp2__mc-check{background:linear-gradient(135deg,#d4aa60,#a07030);}
 
 /* Фото */
-.mnp2__mc-photo{width:100%;height:195px;overflow:hidden;flex-shrink:0;position:relative;}
+.mnp2__mc-photo{width:100%;height:220px;overflow:hidden;flex-shrink:0;position:relative;}
 .mnp2__mc-photo img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .5s cubic-bezier(0.16,1,0.3,1);}
 .mnp2__mc-photo--nelia img{object-position:center top;}
 .mnp2__mc-photo--diana img{object-position:center 18%;}
@@ -245,10 +245,10 @@
 
 /* ─── RESPONSIVE ─── */
 @media(max-width:1024px){
-  .mnp2__hero{grid-template-columns:minmax(480px,520px) 1fr;gap:20px;}
+  .mnp2__hero{flex-direction:column;gap:20px;}
 }
 @media(max-width:800px){
-  .mnp2__hero{grid-template-columns:1fr;gap:28px;}
+  .mnp2__hero{flex-direction:column;gap:20px;}
   .mnp2__mc-grid{grid-template-columns:1fr 1fr;gap:12px;}
   .mnp2__grid{grid-template-columns:repeat(2,1fr);}
   .mnp2__grid--4{grid-template-columns:repeat(2,1fr);}
@@ -273,7 +273,7 @@
 /* === MNP2 DESKTOP + MOBILE FIX === */
 #mnp2, #manikure-preis,.mnp2, .mnp2 *{box-sizing:border-box!important;}
 @media (min-width: 801px){
-  .mnp2__hero{grid-template-columns:minmax(520px,580px) minmax(0,1fr)!important;}
+  .mnp2__hero{flex-direction:column!important;}
   .mnp2__hero-right,.mnp2__reveal,.mnp2__sub-panel{min-width:0!important;max-width:100%!important;overflow:hidden!important;}
   .mnp2__grid{grid-template-columns:repeat(3,minmax(0,1fr))!important;}
   .mnp2__grid--4{grid-template-columns:repeat(4,minmax(0,1fr))!important;}
@@ -281,13 +281,13 @@
   .mnp2__btn-primary,.mnp2__btn-secondary{width:100%!important;white-space:normal!important;text-align:center!important;line-height:1.2!important;}
 }
 @media (max-width: 1024px) and (min-width: 801px){
-  .mnp2__hero{grid-template-columns:minmax(480px,520px) minmax(0,1fr)!important;gap:20px!important;}
+  .mnp2__hero{flex-direction:column!important;gap:20px!important;}
   .mnp2__grid--4{grid-template-columns:repeat(2,minmax(0,1fr))!important;}
 }
 @media (max-width: 800px){
   .mnp2{overflow:hidden!important;}
   .mnp2__wrap{padding-left:16px!important;padding-right:16px!important;max-width:100%!important;}
-  .mnp2__hero{display:block!important;}
+  .mnp2__hero{flex-direction:column!important;}
   .mnp2__grid,.mnp2__grid--4{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:12px!important;width:100%!important;}
   .mnp2__card,.mnp2__btn-primary,.mnp2__btn-secondary{width:100%!important;max-width:100%!important;}
   .mnp2__card-img{height:auto!important;aspect-ratio:1/1!important;}

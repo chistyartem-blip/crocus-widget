@@ -18,7 +18,7 @@
 
   var POPUPS = {
     n_basis:{
-      badge:'Master Spezialistin · Basis',
+      badge:'Nelia · Basis',
       title:'Hygienische <em>Maniküre</em>',
       sub:'Russische Technik mit elektrischer Fräse — kein Einweichen, präzise Nagelhautpflege.',
       sections:[
@@ -28,7 +28,7 @@
       note:'Sterilisierte Instrumente. Premiummaterialien inklusive.'
     },
     n_gel:{
-      badge:'Master Spezialistin · Beliebt',
+      badge:'Nelia · Beliebt',
       title:'Maniküre + <em>Gel</em>',
       sub:'Russische Maniküre mit Gel-Verstärkung — bis zu 4 Wochen Haltbarkeit.',
       sections:[
@@ -39,7 +39,7 @@
       note:'3–4 Wochen Haltbarkeit. HEMA-freie Materialien.'
     },
     n_korrektur:{
-      badge:'Master Spezialistin · Korrektur',
+      badge:'Nelia · Korrektur',
       title:'Nagel<em>korrektur</em>',
       sub:'Entfernung des alten Materials, Neuaufbau und Gel-Lack.',
       sections:[
@@ -99,9 +99,9 @@
     nelia:{
       photo:'https://static.tildacdn.com/tild3537-3733-4430-b466-336537373738/WhatsApp_Image_2026-.jpeg',
       photoClass:'mnp2-minfo-header--nelia',
-      badge:'Master Spezialistin · Crocus Beauty',
-      name:'Master',
-      nameFull:'<em>Spezialistin</em>',
+      badge:'Nelia · Crocus Beauty',
+      name:'',
+      nameFull:'<em>Nelia</em>',
       desc:'Die Master-Spezialistin wurde persönlich von Diana ausgebildet und arbeitet vollständig nach ihren Methoden, Standards und Qualitätsprinzipien.\n\nEs handelt sich nicht um eine Anfängerin, sondern um eine qualifizierte Fachkraft, die nach denselben hohen Anforderungen an Hygiene, Technik und Ästhetik arbeitet wie der Top-Master. Jede Behandlung erfolgt nach den Standards von Crocus Beauty Studio: präzise Technik, saubere und sorgfältige Arbeit, perfekte Nagelarchitektur und modernes Design.\n\nDer Unterschied liegt hauptsächlich in der Erfahrung und Geschwindigkeit — was sich in einem attraktiveren Preis widerspiegelt. Die ideale Wahl für Kundinnen, die Premium-Qualität zu einem besseren Preis-Leistungs-Verhältnis suchen.',
       facts:[
         {icon:'🎓',text:'Persönlich von Top-Master Diana ausgebildet'},
@@ -128,7 +128,7 @@
       photo:'https://cdn.jsdelivr.net/gh/chistyartem-blip/crocus-widget@413e27d/assets/sofia.jpg',
       photoClass:'mnp2-minfo-header--sofia',
       badge:'Master · Crocus Beauty',
-      name:'Master',
+      name:'',
       nameFull:'<em>Sofia</em>',
       desc:'Sofia wurde persönlich von Nelia empfohlen und arbeitet vollständig nach ihren Methoden, Standards und Qualitätsprinzipien.\n\nSie ist eine qualifizierte Fachkraft, die nach denselben hohen Anforderungen an Hygiene, Technik und Ästhetik arbeitet. Jede Behandlung erfolgt nach den Standards von Crocus Beauty Studio: präzise Technik, saubere und sorgfältige Arbeit und ein gepflegtes Ergebnis.\n\nDer Unterschied liegt hauptsächlich in der Erfahrung — was sich in einem attraktiveren Preis widerspiegelt. Die ideale Wahl für Kundinnen, die Premium-Qualität zu einem sehr guten Preis-Leistungs-Verhältnis suchen.',
       facts:[
