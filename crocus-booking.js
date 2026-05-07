@@ -2357,7 +2357,12 @@ if (document.readyState === 'loading') {
     if (!minfoCont || !minfoOv) return;
     minfoCont.innerHTML = h;
     minfoOv.classList.add('crl2-open');
+    var _minfoScrollY = window.scrollY || window.pageYOffset || 0;
     document.body.style.overflow = 'hidden';
+    document.body.style.position = 'fixed';
+    document.body.style.top = '-' + _minfoScrollY + 'px';
+    document.body.style.width = '100%';
+    minfoOv._scrollY = _minfoScrollY;
   }
 
   function selectMaster(key) {
@@ -2394,7 +2399,14 @@ if (document.readyState === 'loading') {
     // закрыть minfo попап — прямой обработчик на крестик и фон
     function closeMinfo() {
       var ov = document.getElementById('crl2-minfo-overlay');
-      if (ov) { ov.classList.remove('crl2-open'); document.body.style.overflow = ''; }
+      if (!ov) return;
+      ov.classList.remove('crl2-open');
+      var sy = ov._scrollY || 0;
+      document.body.style.overflow = '';
+      document.body.style.position = '';
+      document.body.style.top = '';
+      document.body.style.width = '';
+      window.scrollTo({ top: sy, behavior: 'instant' });
     }
     var minfoOverlay = document.getElementById('crl2-minfo-overlay');
     if (minfoOverlay) {
