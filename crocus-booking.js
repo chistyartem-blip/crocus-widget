@@ -1370,6 +1370,10 @@ function openGiftMode() {
   gift.isFlexible = false;
   // Deselect all amount buttons
   document.querySelectorAll('.cw-gift-amount-btn').forEach(function(b){ b.classList.remove('sel'); });
+  // Push state so mobile back button returns here, not to previous page
+  if (window.history && window.history.pushState) {
+    window.history.pushState({ crocusOpen: true }, '');
+  }
 }
 
 function goGiftStep2() {
@@ -1386,6 +1390,9 @@ function goGiftStep2() {
     if (wishWrap) wishWrap.style.display = 'none';
   }
   document.getElementById('crocus-body').scrollTop = 0;
+  if (window.history && window.history.pushState) {
+    window.history.pushState({ crocusOpen: true }, '');
+  }
 }
 
 function goGiftSuccess() {
