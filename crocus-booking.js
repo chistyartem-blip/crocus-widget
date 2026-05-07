@@ -461,7 +461,7 @@ wrap.innerHTML =
           + '<p class="cw-sub" style="margin-bottom:0">Ein Gutschein von Crocus — das schönste Geschenk,<br>das man machen kann.</p>'
         + '</div>'
         + '<div style="background:linear-gradient(135deg,rgba(201,168,124,.07) 0%,rgba(123,45,78,.07) 100%);border:1px solid rgba(201,168,124,.18);border-radius:12px;padding:10px 14px;margin:14px 0 16px">'
-          + '<span style="font-family:DM Sans,sans-serif;font-size:11px;color:rgba(253,250,248,.55);line-height:1.7;display:block">Persönliche Übergabe oder per <strong style="color:#c9a87c">E-Mail</strong> · 12 Monate gültig · Zahlung bar oder per Überweisung — bequem &amp; unkompliziert</span>'
+          + '<span style="font-family:DM Sans,sans-serif;font-size:11px;color:rgba(253,250,248,.55);line-height:1.7;display:block">Wird per <strong style="color:#c9a87c">E-Mail</strong> zugeschickt · 12 Monate gültig · unkompliziert &amp; persönlich</span>'
           + '<span style="font-family:DM Sans,sans-serif;font-size:10.5px;color:rgba(201,168,124,.65);line-height:1.6;display:block;margin-top:5px;font-style:italic">Wir sorgen dafür, dass Ihr Geschenk unvergesslich wird.</span>'
         + '</div>'
         + '<div class="cw-gift-amounts" id="cw-gift-amounts">'
@@ -477,10 +477,7 @@ wrap.innerHTML =
             + '<img class="cw-gift-amount-img" src="https://raw.githubusercontent.com/chistyartem-blip/crocus-widget/main/gift-100-opt.jpg" alt="Geschenkgutschein 100 €" loading="lazy">'
             + '<div class="cw-gift-amount-inner"><div class="cw-gift-amount-meta"><span class="cw-gift-amount-value">100 €</span><span class="cw-gift-amount-desc">Das komplette Verwöhnprogramm — für Menschen, die es wert sind</span></div><span style="font-size:18px;color:rgba(201,168,124,.55)">›</span></div>'
           + '</button>'
-          + '<button type="button" class="cw-gift-amount-btn" data-gift-flexible="true">'
-            + '<img class="cw-gift-amount-img" src="https://raw.githubusercontent.com/chistyartem-blip/crocus-widget/main/gift-flex-opt.jpg" alt="Flexible Gutschein" loading="lazy">'
-            + '<div class="cw-gift-amount-inner"><div class="cw-gift-amount-meta"><span class="cw-gift-amount-value" style="font-size:20px;letter-spacing:.04em">Flexible</span><span class="cw-gift-amount-desc">Betrag oder Behandlung nach Wunsch — wir klären alles gemeinsam</span></div><span style="font-size:18px;color:rgba(201,168,124,.55)">›</span></div>'
-          + '</button>'
+
         + '</div>'
       + '</div>'
 
