@@ -58,13 +58,13 @@
 .pcp1__gutschein-mobile-sub{font-family:'DM Sans',Arial,sans-serif;font-size:10px;font-weight:300;color:rgba(220,200,255,0.52);}
 
 /* ── HERO LAYOUT ── */
-.pcp1__hero{display:grid;grid-template-columns:1fr 1fr;gap:48px;align-items:start;margin-bottom:40px;}
-.pcp1__hero-left{display:flex;flex-direction:column;}
-.pcp1__hero-right{padding-top:8px;}
+.pcp1__hero{display:flex;flex-direction:column;gap:40px;margin-bottom:40px;}
+.pcp1__hero-left{display:flex;flex-direction:column;max-width:640px;}
+.pcp1__hero-right{width:100%;}
 
 /* ── MASTER CARDS GRID — 3 колонки ── */
 .pcp1__mc-label{font-family:'DM Sans',sans-serif;font-size:9px;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;color:rgba(94,58,140,0.55);margin-bottom:10px;text-align:center;}
-.pcp1__mc-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;max-width:900px;margin:0 auto;}
+.pcp1__mc-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;max-width:960px;margin:0 auto;}
 
 /* Карточка мастера */
 .pcp1__mc-btn{display:flex;flex-direction:column;width:100%;border-radius:18px;cursor:pointer;border:2px solid rgba(94,58,140,0.10);background:#fff;transition:border-color .25s,box-shadow .25s,transform .20s;position:relative;box-sizing:border-box;overflow:hidden;}
@@ -217,9 +217,8 @@
 
 /* ── RESPONSIVE ── */
 @media(max-width:1000px){
-  .pcp1__hero{grid-template-columns:1fr;gap:20px;}
-  .pcp1__hero-right{padding-top:0;}
-  .pcp1__mc-grid{grid-template-columns:repeat(3,1fr);gap:10px;}
+  .pcp1__hero{gap:24px;}
+  .pcp1__mc-grid{grid-template-columns:repeat(3,1fr);gap:12px;}
   .pcp1__grid{grid-template-columns:repeat(2,1fr);}
 }
 @media(max-width:640px){
