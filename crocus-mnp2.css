@@ -1,0 +1,297 @@
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500;600&display=swap');
+
+/* ─── RESET ─── */
+.mnp2,.mnp2*,.mnp2*::before,.mnp2*::after{box-sizing:border-box;margin:0;padding:0;}
+
+/* ─── СЕКЦИЯ ─── */
+.mnp2{position:relative;width:100%;padding:100px 0 120px;background:radial-gradient(ellipse 70% 50% at 100% 0%,rgba(212,84,122,0.07) 0%,transparent 60%),radial-gradient(ellipse 50% 40% at 0% 100%,rgba(192,52,104,0.05) 0%,transparent 55%),#f9e8ef;overflow:hidden;}
+.mnp2::before{content:'';position:absolute;top:0;left:0;right:0;height:1.5px;background:linear-gradient(to right,transparent,rgba(212,84,122,0.30),transparent);}
+.mnp2::after{content:'';position:absolute;bottom:0;left:0;right:0;height:1px;background:linear-gradient(to right,transparent,rgba(212,84,122,0.15),transparent);}
+.mnp2__orb{position:absolute;pointer-events:none;border-radius:50%;}
+.mnp2__orb--1{right:-200px;top:30%;width:600px;height:600px;background:radial-gradient(circle,rgba(212,84,122,0.06) 0%,transparent 65%);animation:mnp2orb 12s ease-in-out infinite;}
+.mnp2__orb--2{left:-150px;bottom:-100px;width:450px;height:450px;background:radial-gradient(circle,rgba(192,52,104,0.05) 0%,transparent 65%);}
+@keyframes mnp2orb{0%,100%{transform:scale(1)}50%{transform:scale(1.08)}}
+
+/* ─── ОБЁРТКА ─── */
+.mnp2__wrap{max-width:1140px;margin:0 auto;padding:0 48px;position:relative;z-index:2;}
+
+/* ─── PILL ─── */
+.mnp2__pill{display:inline-flex;align-items:center;gap:8px;background:rgba(212,84,122,0.10);border:1px solid rgba(212,84,122,0.25);border-radius:50px;padding:6px 14px;margin-bottom:20px;}
+.mnp2__pill-dot{width:6px;height:6px;border-radius:50%;background:#d4547a;box-shadow:0 0 6px rgba(212,84,122,0.6);animation:mnp2pulse 2s ease-in-out infinite;}
+@keyframes mnp2pulse{0%,100%{opacity:1}50%{opacity:0.4}}
+.mnp2__pill-text{font-family:'DM Sans',Arial,sans-serif;font-size:11px;font-weight:600;letter-spacing:0.18em;text-transform:uppercase;color:#7a1530;}
+
+/* ─── ЗАГОЛОВОК ─── */
+.mnp2__title{font-family:'Cormorant Garamond',Georgia,serif;font-size:clamp(36px,4vw,56px);font-weight:400;line-height:1.0;color:#1a0810;letter-spacing:-0.02em;margin-bottom:10px;}
+.mnp2__title em{font-style:italic;background:linear-gradient(135deg,#7a1530 0%,#c03468 40%,#e8638a 65%,#c03468 100%);background-size:200% auto;-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;animation:mnp2shimmer 5s linear infinite;}
+@keyframes mnp2shimmer{0%{background-position:0% center}100%{background-position:200% center}}
+.mnp2__subtitle{font-family:'DM Sans',Arial,sans-serif;font-size:15px;font-weight:400;color:rgba(26,8,16,0.52);line-height:1.7;margin-bottom:28px;max-width:520px;}
+
+/* ─── GUTSCHEIN ─── */
+.mnp2__gutschein{display:inline-flex;align-items:center;gap:14px;width:auto;max-width:320px;background:linear-gradient(135deg,rgba(122,21,48,0.08),rgba(212,84,122,0.06));border:1px solid rgba(212,84,122,0.22);border-radius:14px;padding:12px 16px;margin-bottom:32px;text-decoration:none!important;transition:border-color .22s,background .22s,transform .18s,box-shadow .22s;cursor:pointer;animation:mnp2float 5s ease-in-out infinite;}
+.mnp2__gutschein:hover{border-color:rgba(212,84,122,0.42);background:linear-gradient(135deg,rgba(122,21,48,0.12),rgba(212,84,122,0.09));transform:translateY(-1px);box-shadow:0 8px 24px rgba(212,84,122,0.12);}
+@keyframes mnp2float{0%,100%{transform:translateY(0)}40%{transform:translateY(-4px)}70%{transform:translateY(-2px)}}
+.mnp2__gb-icon{width:38px;height:38px;border-radius:10px;flex-shrink:0;background:linear-gradient(135deg,#7a1530,#c03468);display:flex;align-items:center;justify-content:center;}
+.mnp2__gb-title{font-family:'Cormorant Garamond',Georgia,serif;font-size:15px;font-weight:500;color:#1a0810!important;-webkit-text-fill-color:#1a0810!important;line-height:1.2;}
+.mnp2__gb-title em{font-style:italic;background:linear-gradient(135deg,#7a1530,#c03468);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.mnp2__gb-sub{font-family:'DM Sans',Arial,sans-serif;font-size:11px;color:rgba(26,8,16,0.55)!important;-webkit-text-fill-color:rgba(26,8,16,0.55)!important;margin-top:2px;}
+.mnp2__gb-arrow{margin-left:auto;flex-shrink:0;width:28px;height:28px;border-radius:50%;background:rgba(212,84,122,0.10);border:1px solid rgba(212,84,122,0.20);display:flex;align-items:center;justify-content:center;color:#c03468;transition:background .2s,transform .2s;}
+.mnp2__gutschein:hover .mnp2__gb-arrow{background:rgba(212,84,122,0.18);transform:translateX(2px);}
+
+/* ─── HERO LAYOUT ─── */
+.mnp2__hero{display:grid;grid-template-columns:360px 1fr;gap:36px;align-items:start;}
+
+/* ─── ЛЕВАЯ КОЛОНКА ─── */
+.mnp2__hero-left{display:flex;flex-direction:column;}
+
+/* ─── MC LABEL ─── */
+.mnp2__mc-label{font-family:'DM Sans',Arial,sans-serif;font-size:9px;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;color:rgba(122,21,48,0.55);margin-bottom:10px;text-align:center;}
+
+/* ─── MC GRID ─── */
+.mnp2__mc-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+
+/* ─── MASTER CARD ─── */
+.mnp2__mc-btn{display:flex;flex-direction:column;width:100%;border-radius:18px;cursor:pointer;border:2px solid rgba(212,84,122,0.15);background:#fff;transition:border-color .25s,box-shadow .25s,transform .20s;position:relative;overflow:hidden;}
+.mnp2__mc-btn:hover{transform:translateY(-3px);box-shadow:0 12px 36px rgba(212,84,122,0.14);}
+.mnp2__mc-btn--active{border-color:rgba(212,84,122,0.50)!important;box-shadow:0 4px 20px rgba(212,84,122,0.16);}
+.mnp2__mc-btn--diana{border-color:rgba(201,168,124,0.30);}
+.mnp2__mc-btn--diana.mnp2__mc-btn--active{border-color:rgba(201,168,124,0.70)!important;}
+
+/* Чекмарк */
+.mnp2__mc-check{position:absolute;top:10px;right:10px;width:22px;height:22px;border-radius:50%;background:linear-gradient(135deg,#c03468,#7a1530);display:flex;align-items:center;justify-content:center;opacity:0;transform:scale(0.4) rotate(-20deg);transition:opacity .22s,transform .28s cubic-bezier(0.34,1.56,0.64,1);z-index:10;box-shadow:0 2px 10px rgba(192,52,104,0.45);}
+.mnp2__mc-btn--active .mnp2__mc-check{opacity:1;transform:scale(1) rotate(0deg);}
+.mnp2__mc-btn--diana.mnp2__mc-btn--active .mnp2__mc-check{background:linear-gradient(135deg,#d4aa60,#a07030);}
+
+/* Фото */
+.mnp2__mc-photo{width:100%;height:195px;overflow:hidden;flex-shrink:0;position:relative;}
+.mnp2__mc-photo img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .5s cubic-bezier(0.16,1,0.3,1);}
+.mnp2__mc-photo--nelia img{object-position:center top;}
+.mnp2__mc-photo--diana img{object-position:center 18%;}
+.mnp2__mc-photo--sofia img{object-position:center 20%;}
+.mnp2__mc-btn:hover .mnp2__mc-photo img{transform:scale(1.04);}
+
+/* Overlay */
+.mnp2__mc-overlay{position:absolute;bottom:0;left:0;right:0;padding:40px 12px 10px;background:linear-gradient(to top,rgba(14,5,10,0.82) 0%,rgba(14,5,10,0.35) 55%,transparent 100%);pointer-events:none;}
+.mnp2__mc-overlay-badge{display:inline-block;font-family:'DM Sans',Arial,sans-serif;font-size:7px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;padding:2px 7px;border-radius:50px;margin-bottom:4px;}
+.mnp2__mc-overlay-badge--rose{background:rgba(192,52,104,0.85);color:#fff;}
+.mnp2__mc-overlay-badge--gold{background:rgba(10,4,8,0.85);color:#d4aa60;border:1px solid rgba(212,170,96,0.35);}
+.mnp2__mc-overlay-name{font-family:'Cormorant Garamond',Georgia,serif;font-size:22px;font-weight:300;color:#fff;letter-spacing:-0.01em;line-height:1;text-shadow:0 1px 8px rgba(0,0,0,0.40);}
+.mnp2__mc-overlay-name--gold{background:linear-gradient(135deg,#fff,#e8c97a);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.mnp2__mc-overlay-stats{font-family:'DM Sans',Arial,sans-serif;font-size:9px;color:rgba(255,230,210,0.65);margin-top:2px;}
+
+/* Инфо */
+.mnp2__mc-info{padding:12px 14px 14px;background:#fff;display:flex;flex-direction:column;gap:8px;flex:1;}
+.mnp2__mc-btn--diana .mnp2__mc-info{background:#fdf9f3;}
+.mnp2__mc-desc{font-family:'DM Sans',Arial,sans-serif;font-size:11px;color:rgba(26,8,16,0.52);line-height:1.55;}
+
+/* Теги */
+.mnp2__mc-tags{display:flex;gap:4px;flex-wrap:wrap;}
+.mnp2__mc-tag{font-family:'DM Sans',Arial,sans-serif;font-size:8px;font-weight:500;color:rgba(192,52,104,0.75);background:rgba(212,84,122,0.08);border:1px solid rgba(212,84,122,0.16);border-radius:50px;padding:2px 7px;}
+.mnp2__mc-btn--diana .mnp2__mc-tag{color:rgba(130,86,20,0.80);background:rgba(201,168,124,0.10);border-color:rgba(201,168,124,0.22);}
+
+/* Кнопки карточки */
+.mnp2__mc-actions{display:flex;flex-direction:column;gap:6px;margin-top:auto;}
+@keyframes mnp2mcbounce{0%,70%,100%{transform:translateY(0)}73%{transform:translateY(-7px)}78%{transform:translateY(-2px)}83%{transform:translateY(-6px)}87%{transform:translateY(-1px)}}
+.mnp2__mc-prices-btn{display:flex;align-items:center;justify-content:center;gap:4px;width:100%;padding:9px 8px;border-radius:50px;font-family:'DM Sans',Arial,sans-serif;font-size:9.5px;font-weight:700;letter-spacing:0.03em;cursor:pointer;border:none;background:linear-gradient(135deg,#7a1530,#c03468);color:#fff!important;-webkit-text-fill-color:#fff!important;box-shadow:0 3px 10px rgba(192,52,104,0.22);transition:box-shadow .2s;position:relative;overflow:hidden;animation:mnp2mcbounce 1.5s ease-in-out infinite;}
+.mnp2__mc-prices-btn::after{content:'';position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.12),transparent);transform:translateX(-100%);transition:transform .5s;}
+.mnp2__mc-prices-btn:hover::after{transform:translateX(100%);}
+.mnp2__mc-prices-btn:hover,.mnp2__mc-prices-btn:active{animation-play-state:paused;box-shadow:0 6px 18px rgba(192,52,104,0.36);}
+.mnp2__mc-btn--diana .mnp2__mc-prices-btn{background:linear-gradient(135deg,#c9a87c,#8c6020);}
+.mnp2__mc-arrow{transition:transform .22s;display:inline-block;}
+.mnp2__mc-btn--active .mnp2__mc-arrow{transform:rotate(180deg);}
+.mnp2__mc-about{display:flex;align-items:center;justify-content:center;gap:4px;padding:8px 8px;border-radius:50px;font-family:'DM Sans',Arial,sans-serif;font-size:9.5px;font-weight:600;cursor:pointer;background:transparent;color:rgba(122,21,48,0.75);border:1.5px solid rgba(212,84,122,0.25);transition:all .2s;width:100%;}
+.mnp2__mc-about:hover{background:rgba(212,84,122,0.06);border-color:rgba(212,84,122,0.45);}
+.mnp2__mc-about--gold{color:rgba(130,86,20,0.90);border-color:rgba(201,168,124,0.40);}
+.mnp2__mc-about--gold:hover{background:rgba(201,168,124,0.08);border-color:rgba(201,168,124,0.60);}
+
+/* ─── ПРАВАЯ КОЛОНКА ─── */
+.mnp2__hero-right{min-height:100px;}
+
+/* ─── PLACEHOLDER (пока мастер не выбран) ─── */
+.mnp2__placeholder{display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:60px 32px;background:rgba(212,84,122,0.04);border:1.5px dashed rgba(212,84,122,0.20);border-radius:22px;height:100%;}
+.mnp2__placeholder-icon{font-size:32px;margin-bottom:14px;opacity:0.5;}
+.mnp2__placeholder-text{font-family:'Cormorant Garamond',Georgia,serif;font-size:20px;font-weight:400;color:rgba(26,8,16,0.35);line-height:1.4;}
+.mnp2__placeholder-sub{font-family:'DM Sans',Arial,sans-serif;font-size:12px;color:rgba(26,8,16,0.28);margin-top:8px;}
+
+/* ─── REVEAL (прайс) ─── */
+.mnp2__reveal{display:none;}
+.mnp2__reveal--open{display:block;}
+
+/* ─── SUB-PANEL ─── */
+.mnp2__sub-panel{display:none;}
+.mnp2__sub-panel--active{display:block;}
+
+/* ─── MASTER BAR ─── */
+.mnp2__master-bar{display:flex;align-items:center;gap:14px;background:rgba(255,255,255,0.70);border:1px solid rgba(212,84,122,0.12);border-radius:14px;padding:12px 18px;margin-bottom:24px;backdrop-filter:blur(4px);flex-wrap:wrap;}
+.mnp2__master-bar-avatar{width:46px;height:46px;border-radius:50%;border:2px solid rgba(212,84,122,0.28);flex-shrink:0;overflow:hidden;background:rgba(212,84,122,0.06);}
+.mnp2__master-bar-avatar img{width:100%;height:100%;object-fit:cover;object-position:center top;display:block;}
+.mnp2__master-bar-name{font-family:'Cormorant Garamond',Georgia,serif;font-size:18px;font-weight:400;color:#1a0810;line-height:1.2;}
+.mnp2__master-bar-name em{font-style:italic;background:linear-gradient(135deg,#7a1530,#c03468,#e8638a);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.mnp2__master-bar-desc{font-family:'DM Sans',Arial,sans-serif;font-size:11px;color:rgba(26,8,16,0.45);margin-top:2px;}
+.mnp2__master-bar-badge{margin-left:auto;flex-shrink:0;background:linear-gradient(135deg,#7a1530,#c03468);color:#fff;font-family:'DM Sans',Arial,sans-serif;font-size:9px;font-weight:700;letter-spacing:0.10em;text-transform:uppercase;padding:4px 12px;border-radius:50px;box-shadow:0 4px 12px rgba(192,52,104,0.25);white-space:nowrap;}
+.mnp2__master-bar-badge--soft{background:rgba(122,21,48,0.10);color:#7a1530;box-shadow:none;border:1px solid rgba(212,84,122,0.22);}
+.mnp2__master-bar-badge--gold{background:linear-gradient(135deg,#c9a87c,#8c6020);box-shadow:0 4px 12px rgba(180,140,80,0.25);}
+
+/* ─── SECTION LABEL ─── */
+.mnp2__section-label{font-family:'DM Sans',Arial,sans-serif;font-size:10px;font-weight:700;letter-spacing:0.20em;text-transform:uppercase;color:rgba(122,21,48,0.50);margin:0 0 14px;display:flex;align-items:center;gap:8px;}
+.mnp2__section-label::after{content:'';flex:1;height:1px;background:linear-gradient(to right,rgba(212,84,122,0.15),transparent);}
+
+/* ─── CARDS GRID ─── */
+.mnp2__grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:24px;align-items:stretch;}
+.mnp2__grid--4{grid-template-columns:repeat(4,1fr);}
+
+/* ─── CARD ─── */
+.mnp2__card{background:#fff;border:1px solid rgba(212,84,122,0.10);border-radius:20px;padding:0;display:flex;flex-direction:column;min-width:0;position:relative;opacity:0;transform:translateY(20px);transition:opacity .55s cubic-bezier(0.16,1,0.3,1),transform .55s cubic-bezier(0.16,1,0.3,1),box-shadow .25s,border-color .25s;}
+.mnp2__card.mnp2--visible{opacity:1;transform:translateY(0);}
+.mnp2__card:hover{box-shadow:0 12px 40px rgba(212,84,122,0.10);transform:translateY(-2px);border-color:rgba(212,84,122,0.20);}
+.mnp2__card--featured{border-color:rgba(212,84,122,0.22);background:linear-gradient(160deg,#fff 0%,#fdf0f4 100%);}
+.mnp2__card--featured::after{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(to right,transparent,rgba(212,84,122,0.50),transparent);}
+.mnp2__card-img{width:100%;height:120px;object-fit:cover;object-position:center top;display:block;border-radius:20px 20px 0 0;overflow:hidden;filter:brightness(0.92) saturate(0.88);transition:filter .4s,transform .5s;flex-shrink:0;cursor:pointer;}
+.mnp2__card:hover .mnp2__card-img{filter:brightness(0.86) saturate(0.94);transform:scale(1.03);}
+.mnp2__card-body{padding:12px 12px 12px;display:flex;flex-direction:column;flex:1;}
+.mnp2__badge{display:inline-block;font-family:'DM Sans',Arial,sans-serif;font-size:8px;font-weight:700;letter-spacing:0.16em;text-transform:uppercase;color:rgba(122,21,48,0.55);margin-bottom:8px;background:rgba(212,84,122,0.09);border:1px solid rgba(212,84,122,0.18);border-radius:6px;padding:2px 8px;}
+.mnp2__badge--featured{background:rgba(212,84,122,0.15);border-color:rgba(212,84,122,0.30);}
+.mnp2__card-title{font-family:'Cormorant Garamond',Georgia,serif;font-size:18px;font-weight:400;color:#1a0810;letter-spacing:-0.02em;line-height:1.1;margin-bottom:4px;}
+.mnp2__card-title em{font-style:italic;background:linear-gradient(135deg,#7a1530,#c03468);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.mnp2__card-desc{font-family:'DM Sans',Arial,sans-serif;font-size:11px;font-weight:300;color:rgba(26,8,16,0.48);line-height:1.6;margin:0 0 12px;}
+.mnp2__divider{width:28px;height:1px;background:linear-gradient(90deg,rgba(212,84,122,0.35),transparent);margin-bottom:12px;flex-shrink:0;}
+.mnp2__prices{display:flex;flex-direction:column;gap:6px;margin-bottom:12px;}
+.mnp2__price-row{display:flex;justify-content:space-between;align-items:baseline;gap:8px;}
+.mnp2__price-name{font-family:'DM Sans',Arial,sans-serif;font-size:11.5px;font-weight:400;color:rgba(26,8,16,0.55);flex:1 1 auto;min-width:0;word-break:break-word;}
+.mnp2__price-val{display:inline-flex;align-items:center;gap:5px;border-left:2px solid rgba(212,84,122,0.30);padding-left:8px;white-space:nowrap;flex-shrink:0;}
+.mnp2__price-old{font-family:'DM Sans',Arial,sans-serif;font-size:11px;font-weight:400;color:rgba(26,8,16,0.30);position:relative;}
+.mnp2__price-old::after{content:'';position:absolute;left:-1px;right:-1px;top:50%;height:1.5px;background:rgba(212,84,122,0.50);transform:rotate(-12deg);transform-origin:center;}
+.mnp2__price-new{color:#c03468!important;font-weight:700!important;font-size:14px!important;font-family:'DM Sans',Arial,sans-serif!important;}
+.mnp2__price-only{font-family:'DM Sans',Arial,sans-serif;font-size:14px;font-weight:700;color:#1a0810;}
+.mnp2__price-note{font-family:'DM Sans',Arial,sans-serif;font-size:10px;color:rgba(26,8,16,0.30);font-style:italic;margin-top:2px;}
+
+/* ─── КНОПКИ КАРТОЧЕК ─── */
+.mnp2__btns{display:flex;flex-direction:column;gap:6px;margin-top:auto;padding-top:12px;}
+.mnp2__btn-primary{display:flex;align-items:center;justify-content:center;gap:5px;background:linear-gradient(135deg,#7a1530 0%,#c03468 100%);color:#fff!important;font-family:'DM Sans',Arial,sans-serif;font-size:10px;font-weight:700;letter-spacing:0.05em;text-transform:uppercase;padding:10px 10px;border-radius:50px;text-decoration:none!important;border:none;cursor:pointer;box-shadow:0 4px 14px rgba(192,52,104,0.22);transition:transform .22s,box-shadow .22s;width:100%;position:relative;overflow:hidden;}
+.mnp2__btn-primary::before{content:'';position:absolute;top:0;left:-100%;width:55%;height:100%;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.14),transparent);transition:left .5s ease;}
+.mnp2__btn-primary:hover::before{left:160%;}
+.mnp2__btn-primary:hover{transform:translateY(-1px);box-shadow:0 8px 24px rgba(192,52,104,0.36);}
+.mnp2__btn-secondary{display:flex;align-items:center;justify-content:center;background:transparent;color:#7a1530!important;font-family:'DM Sans',Arial,sans-serif;font-size:10px;font-weight:600;letter-spacing:0.05em;text-transform:uppercase;padding:9px 10px;border-radius:50px;border:1px solid rgba(212,84,122,0.25)!important;cursor:pointer;text-decoration:none!important;transition:all .22s;width:100%;}
+.mnp2__btn-secondary:hover{background:rgba(212,84,122,0.06);border-color:rgba(212,84,122,0.45)!important;transform:translateY(-1px);}
+
+/* ─── CTA ─── */
+.mnp2__cta{margin-top:52px;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:12px;text-align:center;}
+.mnp2__cta-label{font-family:'DM Sans',Arial,sans-serif;font-size:10px;font-weight:600;letter-spacing:0.18em;text-transform:uppercase;color:rgba(122,21,48,0.50);margin-bottom:4px;}
+.mnp2__cta-btn{display:inline-flex;align-items:center;gap:10px;background:linear-gradient(110deg,#3a0a1a 0%,#7a1530 18%,#c03468 32%,#e8638a 44%,#f0b0c4 50%,#e8638a 56%,#c03468 68%,#7a1530 84%,#3a0a1a 100%);background-size:300% 100%;color:#fff!important;font-family:'DM Sans',Arial,sans-serif;font-size:13px;font-weight:700;letter-spacing:0.10em;text-transform:uppercase;padding:17px 40px;border-radius:50px;text-decoration:none!important;border:none;cursor:pointer;box-shadow:0 8px 32px rgba(120,20,50,0.30);transition:transform .2s,box-shadow .2s;position:relative;overflow:hidden;white-space:nowrap;animation:mnp2goldflow 50s ease-in-out infinite;}
+@keyframes mnp2goldflow{0%{background-position:200% 0}100%{background-position:-200% 0}}
+.mnp2__cta-btn::before{content:'';position:absolute;top:0;left:-100%;width:55%;height:100%;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.16),transparent);transition:left .5s ease;}
+.mnp2__cta-btn:hover::before{left:160%;}
+.mnp2__cta-btn:hover{transform:translateY(-2px) scale(1.02);box-shadow:0 14px 40px rgba(150,30,70,0.40);}
+.mnp2__cta-sub{font-family:'DM Sans',Arial,sans-serif;font-size:12px;font-weight:400;color:rgba(26,8,16,0.38);letter-spacing:0.04em;}
+.mnp2__cta-sub span{color:#c03468;}
+
+/* ─── DETAILS POPUP (светлый розовый) ─── */
+.mnp2-overlay{display:none;position:fixed;inset:0;background:rgba(120,40,70,0.28);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);z-index:9990;align-items:flex-start;justify-content:center;padding:60px 20px 40px;overflow-y:auto;}
+.mnp2-overlay.is-open{display:flex;}
+.mnp2-popup{position:relative;width:100%;max-width:520px;background:linear-gradient(160deg,#fff5f8 0%,#fce8ef 100%);border:1px solid rgba(212,84,122,0.20);border-radius:24px;box-shadow:0 24px 60px rgba(120,20,50,0.18),0 4px 16px rgba(120,20,50,0.08);padding:44px 32px 36px;animation:mnp2popin .36s cubic-bezier(0.16,1,0.3,1);margin-bottom:20px;box-sizing:border-box;}
+@keyframes mnp2popin{from{opacity:0;transform:scale(0.94) translateY(10px)}to{opacity:1;transform:scale(1) translateY(0)}}
+.mnp2-close{position:absolute;top:14px;right:14px;width:32px;height:32px;border-radius:50%;background:rgba(212,84,122,0.10);border:1px solid rgba(212,84,122,0.22);display:flex;align-items:center;justify-content:center;cursor:pointer;color:#7a1530;font-size:14px;line-height:1;transition:background .2s;z-index:2;}
+.mnp2-close:hover{background:rgba(212,84,122,0.20);}
+.mnp2-popup__badge{display:inline-flex;align-items:center;background:rgba(212,84,122,0.10);border:1px solid rgba(212,84,122,0.25);border-radius:6px;padding:3px 10px;font-family:'DM Sans',Arial,sans-serif;font-size:9px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;color:#7a1530;margin-bottom:10px;}
+.mnp2-popup__title{font-family:'Cormorant Garamond',Georgia,serif;font-size:28px;font-weight:400;color:#1a0810;line-height:1.1;margin-bottom:6px;}
+.mnp2-popup__title em{font-style:italic;background:linear-gradient(135deg,#7a1530 0%,#c03468 45%,#e8638a 70%,#c03468 100%);background-size:200% auto;-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.mnp2-popup__sub{font-family:'DM Sans',Arial,sans-serif;font-size:13px;color:rgba(26,8,16,0.50);line-height:1.6;margin-bottom:20px;}
+.mnp2-popup__divider{width:100%;height:1px;background:linear-gradient(to right,rgba(212,84,122,0.25),transparent);margin-bottom:18px;}
+.mnp2-popup__section{margin-bottom:18px;}
+.mnp2-popup__section-title{font-family:'DM Sans',Arial,sans-serif;font-size:9px;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;color:rgba(122,21,48,0.60);margin-bottom:10px;}
+.mnp2-popup__row{display:flex;justify-content:space-between;align-items:baseline;gap:12px;padding:8px 0;border-bottom:1px solid rgba(212,84,122,0.09);}
+.mnp2-popup__row:last-child{border-bottom:none;}
+.mnp2-popup__row-name{font-family:'DM Sans',Arial,sans-serif;font-size:13px;color:rgba(26,8,16,0.75);}
+.mnp2-popup__row-price{display:inline-flex!important;align-items:center!important;gap:7px!important;white-space:nowrap!important;flex-shrink:0!important;border-left:2px solid rgba(212,84,122,0.35)!important;padding-left:10px!important;font-family:'DM Sans',Arial,sans-serif!important;font-size:13px!important;font-weight:600!important;color:#1a0810!important;}
+.mnp2-popup__price-old{position:relative!important;font-size:11px!important;font-weight:400!important;color:rgba(26,8,16,0.30)!important;}
+.mnp2-popup__price-old::after{content:''!important;position:absolute!important;left:-2px!important;right:-2px!important;top:50%!important;height:1.5px!important;background:rgba(212,84,122,0.45)!important;transform:rotate(-14deg)!important;}
+.mnp2-popup__price-new{color:#c03468!important;font-weight:700!important;font-size:14px!important;}
+.mnp2-popup__price-only{color:#1a0810!important;font-size:14px!important;font-weight:700!important;}
+.mnp2-popup__note{font-family:'DM Sans',Arial,sans-serif;font-size:11.5px;color:rgba(26,8,16,0.38);line-height:1.6;margin-top:12px;margin-bottom:20px;}
+.mnp2-popup__cta-btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;box-sizing:border-box;background:linear-gradient(135deg,#7a1530,#c03468);color:#fff!important;font-family:'DM Sans',Arial,sans-serif;font-size:12px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;padding:15px 20px;border-radius:14px;text-decoration:none!important;border:none;cursor:pointer;box-shadow:0 8px 24px rgba(120,20,50,0.25);transition:transform .2s,box-shadow .2s;}
+.mnp2-popup__cta-btn:hover{transform:translateY(-1px);box-shadow:0 12px 30px rgba(150,30,70,0.38);}
+
+/* ─── MINFO POPUP (розовый стиль страницы) ─── */
+.mnp2-minfo-overlay{position:fixed;inset:0;background:rgba(120,40,70,0.30);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);z-index:99999;display:flex;align-items:center;justify-content:center;padding:20px;opacity:0;pointer-events:none;transition:opacity .28s ease;overflow:hidden;touch-action:none;}
+.mnp2-minfo-overlay.is-open{opacity:1;pointer-events:all;}
+.mnp2-minfo-popup{background:linear-gradient(160deg,#fff5f8 0%,#fce8ef 60%,#f9e0ea 100%);border:1px solid rgba(212,84,122,0.20);border-radius:24px;width:100%;max-width:500px;max-height:90vh;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;position:relative;transform:translateY(16px) scale(0.98);transition:transform .28s cubic-bezier(0.16,1,0.3,1);box-shadow:0 24px 80px rgba(120,20,50,0.22),0 0 0 1px rgba(212,84,122,0.10);scrollbar-width:none;box-sizing:border-box;}
+.mnp2-minfo-popup::-webkit-scrollbar{display:none;}
+.mnp2-minfo-overlay.is-open .mnp2-minfo-popup{transform:translateY(0) scale(1);}
+.mnp2-minfo-close{position:absolute;top:12px;right:12px;width:32px;height:32px;border-radius:50%;border:1px solid rgba(212,84,122,0.30);background:rgba(255,255,255,0.70);cursor:pointer;display:flex;align-items:center;justify-content:center;color:#7a1530;font-size:14px;z-index:20;backdrop-filter:blur(4px);padding:0;transition:background .18s;box-sizing:border-box;}
+.mnp2-minfo-close:hover{background:rgba(212,84,122,0.12);}
+
+/* Шапка minfo */
+.mnp2-minfo-header{border-radius:24px 24px 0 0;overflow:hidden;position:relative;height:380px;flex-shrink:0;}
+.mnp2-minfo-header img{width:100%;height:100%;object-fit:cover;object-position:center 10%;display:block;}
+.mnp2-minfo-header--nelia img{object-position:center 18%;}
+.mnp2-minfo-header--diana img{object-position:center 35%;}
+.mnp2-minfo-header-overlay{position:absolute;bottom:0;left:0;right:0;padding:30px 24px 16px;background:linear-gradient(to top,rgba(100,15,40,0.85) 0%,rgba(100,15,40,0.35) 60%,transparent 100%);}
+.mnp2-minfo-header-badge{font-family:'DM Sans',Arial,sans-serif;font-size:8px;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;color:rgba(255,220,200,0.80);display:block;margin-bottom:5px;}
+.mnp2-minfo-header-name{font-family:'Cormorant Garamond',Georgia,serif;font-size:32px;font-weight:300;color:#fff;line-height:1.0;letter-spacing:-0.02em;}
+.mnp2-minfo-header-name em{font-style:italic;background:linear-gradient(135deg,#fff,#f8c8d8);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;}
+
+/* Тело minfo */
+.mnp2-minfo-body{padding:24px 28px 32px;box-sizing:border-box;}
+.mnp2-minfo-desc{font-family:'DM Sans',Arial,sans-serif;font-size:13.5px;font-weight:400;color:rgba(26,8,16,0.65);line-height:1.75;margin-bottom:22px;}
+.mnp2-minfo-facts{display:flex;flex-direction:column;gap:8px;margin-bottom:24px;}
+.mnp2-minfo-fact{display:flex;align-items:center;gap:10px;font-family:'DM Sans',Arial,sans-serif;font-size:12.5px;color:rgba(26,8,16,0.65);}
+.mnp2-minfo-fact-icon{width:30px;height:30px;border-radius:8px;background:rgba(212,84,122,0.10);border:1px solid rgba(212,84,122,0.18);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:14px;}
+.mnp2-minfo-cta{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;box-sizing:border-box;background:linear-gradient(135deg,#7a1530,#c03468);color:#fff!important;font-family:'DM Sans',Arial,sans-serif;font-size:12px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;padding:15px 24px;border-radius:14px;border:none;cursor:pointer;box-shadow:0 8px 24px rgba(120,20,50,0.25);transition:transform .22s,box-shadow .22s;}
+.mnp2-minfo-cta:hover{transform:translateY(-2px);box-shadow:0 12px 32px rgba(150,30,70,0.38);}
+
+/* ─── TILDA FIX ─── */
+#manikure-preis,.mnp2,.mnp2__wrap{height:auto!important;max-height:none!important;overflow:visible!important;}
+.t396__artboard,.t396__artboard-overflow,.t396__carrier,.t396__filter,.t-records,.t-rec,.t396,.t123{overflow:visible!important;max-height:none!important;}
+
+/* ─── RESPONSIVE ─── */
+@media(max-width:1024px){
+  .mnp2__hero{grid-template-columns:320px 1fr;gap:24px;}
+}
+@media(max-width:800px){
+  .mnp2__hero{grid-template-columns:1fr;gap:28px;}
+  .mnp2__mc-grid{grid-template-columns:1fr 1fr;gap:12px;}
+  .mnp2__grid{grid-template-columns:repeat(2,1fr);}
+  .mnp2__grid--4{grid-template-columns:repeat(2,1fr);}
+  .mnp2__placeholder{min-height:160px;}
+}
+@media(max-width:600px){
+  .mnp2{padding:64px 0 80px;}
+  .mnp2__wrap{padding:0 16px;}
+  .mnp2__mc-photo{height:175px;}
+  .mnp2__mc-photo--nelia img{object-position:center 20%;}
+  .mnp2__mc-photo--diana img{object-position:center 30%;}
+  .mnp2__mc-photo--sofia img{object-position:center 25%;}
+  .mnp2__grid--4{grid-template-columns:repeat(2,1fr);}
+  .mnp2__card-img{height:110px;}
+  .mnp2-overlay{padding:50px 12px 30px;}
+  .mnp2-popup{padding:40px 18px 28px;border-radius:18px;}
+  .mnp2-minfo-header{height:300px;}
+  .mnp2-minfo-header--nelia img{object-position:center 18%;}
+  .mnp2-minfo-header--diana img{object-position:center 35%;}
+  .mnp2-minfo-body{padding:18px 20px 28px;}
+}
+/* === MNP2 DESKTOP + MOBILE FIX === */
+#mnp2, #manikure-preis,.mnp2, .mnp2 *{box-sizing:border-box!important;}
+@media (min-width: 801px){
+  .mnp2__hero{grid-template-columns:minmax(300px,360px) minmax(0,1fr)!important;}
+  .mnp2__hero-right,.mnp2__reveal,.mnp2__sub-panel{min-width:0!important;max-width:100%!important;overflow:hidden!important;}
+  .mnp2__grid{grid-template-columns:repeat(3,minmax(0,1fr))!important;}
+  .mnp2__grid--4{grid-template-columns:repeat(4,minmax(0,1fr))!important;}
+  .mnp2__card,.mnp2__btns,.mnp2__btn-primary,.mnp2__btn-secondary{min-width:0!important;max-width:100%!important;}
+  .mnp2__btn-primary,.mnp2__btn-secondary{width:100%!important;white-space:normal!important;text-align:center!important;line-height:1.2!important;}
+}
+@media (max-width: 1024px) and (min-width: 801px){
+  .mnp2__hero{grid-template-columns:300px minmax(0,1fr)!important;gap:20px!important;}
+  .mnp2__grid--4{grid-template-columns:repeat(2,minmax(0,1fr))!important;}
+}
+@media (max-width: 800px){
+  .mnp2{overflow:hidden!important;}
+  .mnp2__wrap{padding-left:16px!important;padding-right:16px!important;max-width:100%!important;}
+  .mnp2__hero{display:block!important;}
+  .mnp2__grid,.mnp2__grid--4{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:12px!important;width:100%!important;}
+  .mnp2__card,.mnp2__btn-primary,.mnp2__btn-secondary{width:100%!important;max-width:100%!important;}
+  .mnp2__card-img{height:auto!important;aspect-ratio:1/1!important;}
+  .mnp2__price-row{align-items:center!important;}
+  .mnp2__price-name{min-width:0!important;flex:1 1 auto!important;}
+  .mnp2__price-val{flex-shrink:0!important;white-space:nowrap!important;}
+}
