@@ -465,17 +465,21 @@ wrap.innerHTML =
           + '<span style="font-family:DM Sans,sans-serif;font-size:10.5px;color:rgba(201,168,124,.65);line-height:1.6;display:block;margin-top:5px;font-style:italic">Wir sorgen dafür, dass Ihr Geschenk unvergesslich wird.</span>'
         + '</div>'
         + '<div class="cw-gift-amounts" id="cw-gift-amounts">'
-          + '<button type="button" class="cw-gift-amount-btn" data-gift-id="25366593" data-gift-cert="303583" data-gift-amount="30">'
+          + '<button type="button" class="cw-gift-amount-btn" data-gift-amount="30">'
             + '<img class="cw-gift-amount-img" src="https://raw.githubusercontent.com/chistyartem-blip/crocus-widget/main/gift-30-opt.jpg" alt="Geschenkgutschein 30 €" loading="lazy">'
             + '<div class="cw-gift-amount-inner"><div class="cw-gift-amount-meta"><span class="cw-gift-amount-value">30 €</span><span class="cw-gift-amount-desc">Perfekt für den ersten Besuch — Maniküre oder Behandlung nach Wahl</span></div><span style="font-size:18px;color:rgba(201,168,124,.55)">›</span></div>'
           + '</button>'
-          + '<button type="button" class="cw-gift-amount-btn" data-gift-id="25378965" data-gift-cert="303876" data-gift-amount="50">'
+          + '<button type="button" class="cw-gift-amount-btn" data-gift-amount="50">'
             + '<img class="cw-gift-amount-img" src="https://raw.githubusercontent.com/chistyartem-blip/crocus-widget/main/gift-50-opt.jpg" alt="Geschenkgutschein 50 €" loading="lazy">'
             + '<div class="cw-gift-amount-inner"><div class="cw-gift-amount-meta"><span class="cw-gift-amount-value">50 €</span><span class="cw-gift-amount-desc">Maniküre, Pediküre oder Kombi — unsere meistgekaufte Wahl</span></div><span style="font-size:18px;color:rgba(201,168,124,.55)">›</span></div>'
           + '</button>'
-          + '<button type="button" class="cw-gift-amount-btn" data-gift-id="25378978" data-gift-cert="303878" data-gift-amount="100">'
+          + '<button type="button" class="cw-gift-amount-btn" data-gift-amount="100">'
             + '<img class="cw-gift-amount-img" src="https://raw.githubusercontent.com/chistyartem-blip/crocus-widget/main/gift-100-opt.jpg" alt="Geschenkgutschein 100 €" loading="lazy">'
             + '<div class="cw-gift-amount-inner"><div class="cw-gift-amount-meta"><span class="cw-gift-amount-value">100 €</span><span class="cw-gift-amount-desc">Das komplette Verwöhnprogramm — für Menschen, die es wert sind</span></div><span style="font-size:18px;color:rgba(201,168,124,.55)">›</span></div>'
+          + '</button>'
+          + '<button type="button" class="cw-gift-amount-btn" data-gift-flexible="true">'
+            + '<img class="cw-gift-amount-img" src="https://raw.githubusercontent.com/chistyartem-blip/crocus-widget/main/gift-flex-opt.jpg" alt="Flexible Gutschein" loading="lazy">'
+            + '<div class="cw-gift-amount-inner"><div class="cw-gift-amount-meta"><span class="cw-gift-amount-value" style="font-size:20px;letter-spacing:.04em">Flexible</span><span class="cw-gift-amount-desc">Betrag oder Behandlung nach Wunsch — wir klären alles gemeinsam</span></div><span style="font-size:18px;color:rgba(201,168,124,.55)">›</span></div>'
           + '</button>'
         + '</div>'
       + '</div>'
@@ -491,12 +495,13 @@ wrap.innerHTML =
           + '<div class="cw-gp-step" id="cgp3b"><div class="cw-gp-dot">3</div><span class="cw-gp-label">Fertig</span></div>'
         + '</div>'
         + '<h2 class="cw-title">Ihre Kontaktdaten</h2>'
-        + '<p class="cw-sub">Gutschein: <strong id="cw-gift-selected-label">50 €</strong> — wird per E-Mail bestätigt</p>'
+        + '<p class="cw-sub" id="cw-gift-step2-sub">Gutschein: <strong id="cw-gift-selected-label">50 €</strong> — wird per E-Mail bestätigt</p>'
         + '<form class="cw-form" id="cw-gift-form">'
           + '<div class="cw-field"><label>Ihr Name</label><input type="text" id="cw-gift-name" placeholder="Ihr Name" required autocomplete="name"></div>'
           + '<div class="cw-field"><label>Ihre E-Mail</label><input type="email" id="cw-gift-email" placeholder="ihre@email.de" required autocomplete="email"></div>'
           + '<div class="cw-field"><label>Telefon / WhatsApp</label><input type="tel" id="cw-gift-phone" placeholder="+49 172 …" autocomplete="tel"></div>'
           + '<div class="cw-field"><label>Für wen ist der Gutschein? <span style="opacity:.45;font-size:9px">(optional)</span></label><input type="text" id="cw-gift-recipient" placeholder="z.B. für Maria zum Geburtstag"></div>'
+          + '<div class="cw-field" id="cw-gift-wish-wrap" style="display:none"><label>Gewünschte Behandlung oder Wunschbetrag <span style="opacity:.45;font-size:9px">(optional)</span></label><input type="text" id="cw-gift-wish" placeholder="z.B. Maniküre + Gellack, ca. 40 €"></div>'
           + '<div class="cw-gift-info-box">'
             + '<div class="cw-gift-info-icon">ℹ</div>'
             + '<p>Nach Ihrer Anfrage melden wir uns per E-Mail oder WhatsApp und besprechen gemeinsam alle Details.</p>'
@@ -610,9 +615,8 @@ var _addonObjs   = [];
 
 // Gift state
 var gift = {
-  amount: null,       // 30 | 50 | 100
-  goodId: null,
-  certTypeId: null,
+  amount: null,       // 30 | 50 | 100 | null (flexible)
+  isFlexible: false,
 };
 
 // ── Open/Close ─────────────────────────────────────────────────
@@ -1360,8 +1364,7 @@ function openGiftMode() {
   document.getElementById('crocus-body').scrollTop = 0;
   // Reset gift state
   gift.amount = null;
-  gift.goodId = null;
-  gift.certTypeId = null;
+  gift.isFlexible = false;
   // Deselect all amount buttons
   document.querySelectorAll('.cw-gift-amount-btn').forEach(function(b){ b.classList.remove('sel'); });
 }
@@ -1369,7 +1372,16 @@ function openGiftMode() {
 function goGiftStep2() {
   document.querySelectorAll('.cw-step').forEach(function(el){ el.classList.remove('active'); });
   document.getElementById('cw-gift2').classList.add('active');
-  document.getElementById('cw-gift-selected-label').textContent = gift.amount + ' €';
+  var wishWrap = document.getElementById('cw-gift-wish-wrap');
+  if (gift.isFlexible) {
+    document.getElementById('cw-gift-selected-label').textContent = 'Flexible';
+    document.getElementById('cw-gift-step2-sub').innerHTML = 'Gutschein: <strong id="cw-gift-selected-label">Flexible</strong> — wird per E-Mail bestätigt';
+    if (wishWrap) wishWrap.style.display = '';
+  } else {
+    document.getElementById('cw-gift-selected-label').textContent = gift.amount + ' €';
+    document.getElementById('cw-gift-step2-sub').innerHTML = 'Gutschein: <strong id="cw-gift-selected-label">' + gift.amount + ' €</strong> — wird per E-Mail bestätigt';
+    if (wishWrap) wishWrap.style.display = 'none';
+  }
   document.getElementById('crocus-body').scrollTop = 0;
 }
 
@@ -1377,9 +1389,11 @@ function goGiftSuccess() {
   document.querySelectorAll('.cw-step').forEach(function(el){ el.classList.remove('active'); });
   document.getElementById('cw-gift-success').classList.add('active');
   var name = (document.getElementById('cw-gift-name').value || '').trim();
-  document.getElementById('cw-gift-success-text').innerHTML =
-    'Vielen Dank' + (name ? ', <strong>' + name + '</strong>' : '') + '! ' +
-    'Wir melden uns in Kürze per E-Mail mit den Zahlungsdetails für Ihren <strong>' + gift.amount + '&nbsp;€ Gutschein</strong>.';
+  document.getElementById('cw-gift-success-text').innerHTML = gift.isFlexible
+    ? 'Vielen Dank' + (name ? ', <strong>' + name + '</strong>' : '') + '! ' +
+      'Wir melden uns in Kürze und klären gemeinsam alle Details zu Ihrem <strong>Flexible Gutschein</strong>.'
+    : 'Vielen Dank' + (name ? ', <strong>' + name + '</strong>' : '') + '! ' +
+      'Wir melden uns in Kürze per E-Mail mit den Zahlungsdetails für Ihren <strong>' + gift.amount + '&nbsp;€ Gutschein</strong>.';
   document.getElementById('crocus-body').scrollTop = 0;
 }
 
@@ -1389,6 +1403,7 @@ function submitGiftForm(e) {
   var email     = (document.getElementById('cw-gift-email').value || '').trim();
   var phone     = (document.getElementById('cw-gift-phone').value || '').trim();
   var recipient = (document.getElementById('cw-gift-recipient').value || '').trim();
+  var wish      = (document.getElementById('cw-gift-wish') ? document.getElementById('cw-gift-wish').value || '' : '').trim();
 
   if (!name || !email) {
     if (!name) document.getElementById('cw-gift-name').classList.add('invalid');
@@ -1416,7 +1431,20 @@ function submitGiftForm(e) {
   var voucherCode = genCode();
 
   // Send via formsubmit.co — no backend needed, delivers to email
-  var payload = {
+  var payload = gift.isFlexible ? {
+    _subject: '✨ Flexible Gutschein-Anfrage — ' + name,
+    _replyto: email,
+    _template: 'table',
+    _captcha: 'false',
+    Typ: 'Flexible Gutschein',
+    Gutschein_Code: voucherCode,
+    Name: name,
+    EMail: email,
+    Telefon: phone || '—',
+    Fuer_wen: recipient || '—',
+    Wunsch_Behandlung_Betrag: wish || '—',
+    Hinweis: 'Flexible: Details mit Kunden klären, Code nach Bezahlung weitergeben',
+  } : {
     _subject: '🎁 Gutschein-Anfrage ' + gift.amount + ' € — ' + name,
     _replyto: email,
     _template: 'table',
@@ -1444,7 +1472,8 @@ function submitGiftForm(e) {
     window.dataLayer = window.dataLayer || [];
     window.dataLayer.push({
       event: 'gutschein_lead',
-      gutschein_amount: gift.amount || '',
+      gutschein_amount: gift.isFlexible ? 'flexible' : (gift.amount || ''),
+      gutschein_type: gift.isFlexible ? 'flexible' : 'fixed',
       page_location: window.location.href,
       source: 'widget',
     });
@@ -1663,9 +1692,13 @@ document.querySelectorAll('.cw-gift-amount-btn').forEach(function(amtBtn){
     e.stopPropagation();
     document.querySelectorAll('.cw-gift-amount-btn').forEach(function(b){ b.classList.remove('sel'); });
     amtBtn.classList.add('sel');
-    gift.amount     = parseInt(amtBtn.getAttribute('data-gift-amount'), 10);
-    gift.goodId     = amtBtn.getAttribute('data-gift-id');
-    gift.certTypeId = amtBtn.getAttribute('data-gift-cert');
+    if (amtBtn.getAttribute('data-gift-flexible') === 'true') {
+      gift.amount = null;
+      gift.isFlexible = true;
+    } else {
+      gift.amount = parseInt(amtBtn.getAttribute('data-gift-amount'), 10);
+      gift.isFlexible = false;
+    }
     setTimeout(goGiftStep2, 220);
   });
 });
