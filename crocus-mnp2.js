@@ -38,6 +38,17 @@
       ],
       note:'3–4 Wochen Haltbarkeit. HEMA-freie Materialien.'
     },
+    n_verlaengerung:{
+      badge:'Nelia · Verlänger.',
+      title:'Nagel<em>verlängerung</em>',
+      sub:'Verlängerung mit Gel, Modellierung, Gel-Lack. Preis je nach Länge.',
+      sections:[
+        {title:'Leistungen',rows:[{name:'Nagelverlängerung · 3 Std.',old:'85 €',price:'75 €'}]},
+        {title:'Enthalten',rows:[{name:'Entfernung altes Material (falls vorhanden)',price:'✓'},{name:'Nagelhautbehandlung',price:'✓'},{name:'Verlänger. mit Gel',price:'✓'},{name:'Modellierung der Form',price:'✓'},{name:'Gel-Lack + leichtes Design',price:'✓'},{name:'Pflege mit Öl',price:'✓'}]},
+        {title:'Extras & Aufpreise',rows:[{name:'French',price:'+ 5 €'},{name:'Babyboomer',price:'+ 10 €'},{name:'Nail-Art Design',price:'ab + 10 €'},{name:'Länge über 2',price:'+ 5 €'},{name:'Länge über 3',price:'+ 10 €'}]}
+      ],
+      note:'Endpreis nach Länge und Design. Sterilisierte Instrumente.'
+    },
     n_korrektur:{
       badge:'Nelia · Korrektur',
       title:'Nagel<em>korrektur</em>',
@@ -102,10 +113,11 @@
       badge:'Nelia · Crocus Beauty',
       name:'',
       nameFull:'<em>Nelia</em>',
-      desc:'Die Master-Spezialistin wurde persönlich von Diana ausgebildet und arbeitet vollständig nach ihren Methoden, Standards und Qualitätsprinzipien.\n\nEs handelt sich nicht um eine Anfängerin, sondern um eine qualifizierte Fachkraft, die nach denselben hohen Anforderungen an Hygiene, Technik und Ästhetik arbeitet wie der Top-Master. Jede Behandlung erfolgt nach den Standards von Crocus Beauty Studio: präzise Technik, saubere und sorgfältige Arbeit, perfekte Nagelarchitektur und modernes Design.\n\nDer Unterschied liegt hauptsächlich in der Erfahrung und Geschwindigkeit — was sich in einem attraktiveren Preis widerspiegelt. Die ideale Wahl für Kundinnen, die Premium-Qualität zu einem besseren Preis-Leistungs-Verhältnis suchen.',
+      desc:'Nelia wurde persönlich von Top-Master Diana ausgebildet und arbeitet vollständig nach deren Methoden, Standards und Qualitätsprinzipien.\n\nSie ist eine qualifizierte Fachkraft — keine Anfängerin — die nach denselben hohen Anforderungen an Hygiene, Technik und Ästhetik arbeitet. Zu ihrem Leistungsspektrum gehören Maniküre, Pediküre, Gel-Lack sowie Nagelverlängerung mit Gel.\n\nDer Unterschied liegt hauptsächlich in der Erfahrung und Geschwindigkeit — was sich in einem attraktiveren Preis widerspiegelt. Die ideale Wahl für Kundinnen, die Premium-Qualität zu einem besseren Preis-Leistungs-Verhältnis suchen.',
       facts:[
         {icon:'🎓',text:'Persönlich von Top-Master Diana ausgebildet'},
         {icon:'💎',text:'Gleiche Technik · Gleiche Standards · Gleiche Materialien'},
+        {icon:'💅',text:'Nagelverlängerung mit Gel · Maniküre · Pediküre'},
         {icon:'🩺',text:'Sterilisierte Instrumente · Medizinische Hygiene'},
         {icon:'⭐',text:'5.0 · Premium-Qualität zum attraktiven Preis'}
       ]
@@ -336,7 +348,7 @@
   var MNP2_API_BASE = 'https://api.alteg.io/api/v1';
 
   var MNP2_SERVICE_IDS = {
-    n_basis:13485752, n_gel:13485753, n_korrektur:13485754,
+    n_basis:13485752, n_gel:13485753, n_korrektur:13485754, n_verlaengerung:13485755,
     d_basis:13485752, d_gel:13485753, d_korrektur:13485754, d_verlaengerung:13485755
   };
   var MNP2_STAFF_FOR_DUR = { nelia:3020186, diana:3020185, sofia:3020187 };

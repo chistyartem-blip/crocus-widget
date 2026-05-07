@@ -29,7 +29,7 @@ var MASTERS_META = {
     levelBorder: 'rgba(201,116,142,0.32)',
     tagline: 'Maniküre & Pediküre',
     bio: 'Sorgfältige Arbeit, bei der jeder Gellack sitzt wie am ersten Tag.',
-    skills: ['Maniküre', 'Pediküre', 'Gellack'],
+    skills: ['Maniküre', 'Pediküre', 'Nagelverlängerung', 'Gellack'],
     cats: ['manikuere', 'pediküre', 'kombi'],
     avatar: 'https://static.tildacdn.com/tild6566-3434-4635-b363-656462633738/__2026-04-28_175455.png',
   },
