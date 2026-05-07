@@ -1,0 +1,510 @@
+<!-- ══ pcp2 · Warum Crocus Pediküre ══ -->
+<!-- SHA заменяется при коммите -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/chistyartem-blip/crocus-widget@COMMIT_SHA/crocus-pcp2.css"/>
+
+<section class="pcp2" id="warum-pediküre">
+<div class="pcp2__wrap">
+
+  <div class="pcp2__pill pcp2-reveal"><span class="pcp2__pill-dot"></span>Russische Pediküre · Göppingen</div>
+  <h2 class="pcp2__title pcp2-reveal">Füße, die sich<br><em>traumhaft anfühlen</em></h2>
+  <p class="pcp2__subtitle pcp2-reveal">Russische Methode ohne Schneiden — elektrische Fräse statt Messer. 3–5 Wochen Haltbarkeit, Fußmassage inklusive.</p>
+
+  <div class="pcp2__layout">
+
+    <!-- LINKS: Gründe + CTA -->
+    <div>
+      <div class="pcp2__reasons pcp2-reveal">
+
+        <div class="pcp2__reason" onclick="pcp2ToggleReason(this)">
+          <div class="pcp2__reason-num">01</div>
+          <div style="flex:1;min-width:0;">
+            <div class="pcp2__reason-title">Russische Methode — ohne Schneiden</div>
+            <div class="pcp2__reason-text">Elektrische Fräse statt Messer — schonend, präzise, kein Einwachsen.</div>
+            <div class="pcp2__reason-expand">
+              <div class="pcp2__reason-detail">Wir arbeiten ausschließlich mit der <strong>elektrischen Fräse</strong> — keine Schere, kein Messer. Das verhindert Mikrotraumata, schützt die Haut und sorgt dafür, dass Nägel gleichmäßig nachwachsen. Kein Einwachsen mehr.</div>
+            </div>
+          </div>
+          <div class="pcp2__reason-toggle">+</div>
+        </div>
+
+        <div class="pcp2__reason" onclick="pcp2ToggleReason(this)">
+          <div class="pcp2__reason-num">02</div>
+          <div style="flex:1;min-width:0;">
+            <div class="pcp2__reason-title">Sterile Instrumente — immer</div>
+            <div class="pcp2__reason-text">Heißluftsterilisation nach jeder Kundin. Kein Kompromiss bei Hygiene.</div>
+            <div class="pcp2__reason-expand">
+              <div class="pcp2__reason-detail">Alle Metallinstrumente werden bei <strong>180°C</strong> nach jeder Behandlung sterilisiert — nicht nur desinfiziert. Du siehst das Sterilisationsgerät und kannst jederzeit fragen. Einweginstrumente wo nötig.</div>
+            </div>
+          </div>
+          <div class="pcp2__reason-toggle">+</div>
+        </div>
+
+        <div class="pcp2__reason" onclick="pcp2ToggleReason(this)">
+          <div class="pcp2__reason-num">03</div>
+          <div style="flex:1;min-width:0;">
+            <div class="pcp2__reason-title">Fußmassage — kostenlos inklusive</div>
+            <div class="pcp2__reason-text">Bei jeder Pediküre: entspannende Fußmassage und Hautpflege ohne Aufpreis.</div>
+            <div class="pcp2__reason-expand">
+              <div class="pcp2__reason-detail">Jede Pediküre endet mit einer <strong>kostenlosen Fußmassage</strong> und einer pflegenden Behandlung für die Haut. Kein Code, kein Antrag — automatisch inklusive. Das ist unser Standard.</div>
+            </div>
+          </div>
+          <div class="pcp2__reason-toggle">+</div>
+        </div>
+
+        <div class="pcp2__reason" onclick="pcp2ToggleReason(this)">
+          <div class="pcp2__reason-num">04</div>
+          <div style="flex:1;min-width:0;">
+            <div class="pcp2__reason-title">3–5 Wochen Haltbarkeit</div>
+            <div class="pcp2__reason-text">Gel-Lack sitzt perfekt — dank Russischer Technik deutlich länger als klassisch.</div>
+            <div class="pcp2__reason-expand">
+              <div class="pcp2__reason-detail">Durch die Fräsentechnik haftet Gel-Lack <strong>3–5 Wochen</strong> ohne Absplittern. Der Unterschied liegt in der Vorbereitung: sauberes Nagelbett, trockene Technik, professionelle Materialien.</div>
+            </div>
+          </div>
+          <div class="pcp2__reason-toggle">+</div>
+        </div>
+
+      </div>
+
+      <!-- CTA Box -->
+      <div class="pcp2__cta-box pcp2-reveal">
+        <div class="pcp2__cta-label">Nächster Schritt</div>
+        <div class="pcp2__cta-headline">Termin in <em>2 Minuten</em> buchen</div>
+        <div class="pcp2__cta-sub">Online — ohne Anruf, ohne Wartezeit.</div>
+        <div class="pcp2__cta-btn-wrap">
+          <div class="pcp2__cta-btn-ring"></div>
+          <div class="pcp2__cta-btn-ring"></div>
+          <a href="#" onclick="event.preventDefault();crocusOpen()" class="pcp2__cta-btn" style="color:#fff!important;text-decoration:none!important;display:inline-flex;">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="4" width="18" height="18" rx="2.5"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+            Jetzt Termin buchen
+          </a>
+        </div>
+        <div class="pcp2__cta-note">★★★★★ 5.0 · 500+ Pediküren · Fußmassage inklusive</div>
+      </div>
+    </div>
+
+    <!-- RECHTS: Live-Daten -->
+    <div class="pcp2__right">
+
+      <!-- Master cards — nur Pediküre-Meisterinnen -->
+      <div class="pcp2__masters pcp2-reveal">
+
+        <div class="pcp2__master-card" onclick="if(typeof crocusOpen==='function')crocusOpen();">
+          <div class="pcp2__master-avatar">
+            <img src="https://cdn.jsdelivr.net/gh/chistyartem-blip/crocus-widget@b803e8c/assets/diana.jpg" alt="Diana" loading="lazy">
+          </div>
+          <div class="pcp2__master-info">
+            <div class="pcp2__master-name">Diana <span style="font-size:9px;background:linear-gradient(135deg,#5e3a8c,#3d1f6e);color:#fff;padding:2px 7px;border-radius:50px;font-family:'DM Sans',sans-serif;font-weight:700;letter-spacing:0.06em;vertical-align:middle;">TOP</span></div>
+            <div class="pcp2__master-spec">Pediküre · Gel-Lack · Kombi · 10+ Jahre</div>
+          </div>
+          <div class="pcp2__master-slot" data-pcp2-slots="3020185">
+            <span style="color:rgba(26,13,46,0.30);font-size:10px;">lädt…</span>
+          </div>
+        </div>
+
+        <div class="pcp2__master-card" onclick="if(typeof crocusOpen==='function')crocusOpen();">
+          <div class="pcp2__master-avatar">
+            <img src="https://cdn.jsdelivr.net/gh/chistyartem-blip/crocus-widget@b803e8c/assets/nelia.jpg" alt="Nelia" loading="lazy">
+          </div>
+          <div class="pcp2__master-info">
+            <div class="pcp2__master-name">Nelia</div>
+            <div class="pcp2__master-spec">Pediküre · Gel-Lack · Maniküre · Kombi</div>
+          </div>
+          <div class="pcp2__master-slot" data-pcp2-slots="3020186">
+            <span style="color:rgba(26,13,46,0.30);font-size:10px;">lädt…</span>
+          </div>
+        </div>
+
+        <div class="pcp2__master-card" onclick="if(typeof crocusOpen==='function')crocusOpen();">
+          <div class="pcp2__master-avatar">
+            <img src="https://cdn.jsdelivr.net/gh/chistyartem-blip/crocus-widget@413e27d/assets/sofia.jpg" alt="Sofia" loading="lazy" style="object-position:center 20%;">
+          </div>
+          <div class="pcp2__master-info">
+            <div class="pcp2__master-name">Sofia</div>
+            <div class="pcp2__master-spec">Pediküre · Gel-Lack · Maniküre · Kombi</div>
+          </div>
+          <div class="pcp2__master-slot" data-pcp2-slots="3020187">
+            <span style="color:rgba(26,13,46,0.30);font-size:10px;">lädt…</span>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Ticker — отзывы про педикюр -->
+      <div class="pcp2__ticker-wrap pcp2-reveal">
+        <div class="pcp2__ticker">
+          <div class="pcp2__ticker-item"><div class="pcp2__ticker-avatar">🦶</div><div><div class="pcp2__ticker-name">Maria K.</div><div class="pcp2__ticker-text">hat gebucht · Pediküre + Gel</div></div><div class="pcp2__ticker-stars">★★★★★</div></div>
+          <div class="pcp2__ticker-item"><div class="pcp2__ticker-avatar">✨</div><div><div class="pcp2__ticker-name">Sandra A.</div><div class="pcp2__ticker-text">hat gebucht · Hygienische Pediküre</div></div><div class="pcp2__ticker-stars">★★★★★</div></div>
+          <div class="pcp2__ticker-item"><div class="pcp2__ticker-avatar">🌸</div><div><div class="pcp2__ticker-name">Laura B.</div><div class="pcp2__ticker-text">hat gebucht · Pediküre + Massage</div></div><div class="pcp2__ticker-stars">★★★★★</div></div>
+          <div class="pcp2__ticker-item"><div class="pcp2__ticker-avatar">💅</div><div><div class="pcp2__ticker-name">Clara W.</div><div class="pcp2__ticker-text">hat gebucht · Kombi Mani + Pedi</div></div><div class="pcp2__ticker-stars">★★★★★</div></div>
+          <div class="pcp2__ticker-item"><div class="pcp2__ticker-avatar">💜</div><div><div class="pcp2__ticker-name">Nina F.</div><div class="pcp2__ticker-text">hat gebucht · Pediküre + Gel-Lack</div></div><div class="pcp2__ticker-stars">★★★★★</div></div>
+          <div class="pcp2__ticker-item"><div class="pcp2__ticker-avatar">🦋</div><div><div class="pcp2__ticker-name">Julia R.</div><div class="pcp2__ticker-text">hat gebucht · Russische Pediküre</div></div><div class="pcp2__ticker-stars">★★★★★</div></div>
+          <div class="pcp2__ticker-item"><div class="pcp2__ticker-avatar">🌿</div><div><div class="pcp2__ticker-name">Sophie M.</div><div class="pcp2__ticker-text">hat gebucht · Hygienische Pediküre</div></div><div class="pcp2__ticker-stars">★★★★★</div></div>
+          <!-- дубль для бесшовного скролла -->
+          <div class="pcp2__ticker-item"><div class="pcp2__ticker-avatar">🦶</div><div><div class="pcp2__ticker-name">Maria K.</div><div class="pcp2__ticker-text">hat gebucht · Pediküre + Gel</div></div><div class="pcp2__ticker-stars">★★★★★</div></div>
+          <div class="pcp2__ticker-item"><div class="pcp2__ticker-avatar">✨</div><div><div class="pcp2__ticker-name">Sandra A.</div><div class="pcp2__ticker-text">hat gebucht · Hygienische Pediküre</div></div><div class="pcp2__ticker-stars">★★★★★</div></div>
+          <div class="pcp2__ticker-item"><div class="pcp2__ticker-avatar">🌸</div><div><div class="pcp2__ticker-name">Laura B.</div><div class="pcp2__ticker-text">hat gebucht · Pediküre + Massage</div></div><div class="pcp2__ticker-stars">★★★★★</div></div>
+          <div class="pcp2__ticker-item"><div class="pcp2__ticker-avatar">💅</div><div><div class="pcp2__ticker-name">Clara W.</div><div class="pcp2__ticker-text">hat gebucht · Kombi Mani + Pedi</div></div><div class="pcp2__ticker-stars">★★★★★</div></div>
+          <div class="pcp2__ticker-item"><div class="pcp2__ticker-avatar">💜</div><div><div class="pcp2__ticker-name">Nina F.</div><div class="pcp2__ticker-text">hat gebucht · Pediküre + Gel-Lack</div></div><div class="pcp2__ticker-stars">★★★★★</div></div>
+          <div class="pcp2__ticker-item"><div class="pcp2__ticker-avatar">🦋</div><div><div class="pcp2__ticker-name">Julia R.</div><div class="pcp2__ticker-text">hat gebucht · Russische Pediküre</div></div><div class="pcp2__ticker-stars">★★★★★</div></div>
+          <div class="pcp2__ticker-item"><div class="pcp2__ticker-avatar">🌿</div><div><div class="pcp2__ticker-name">Sophie M.</div><div class="pcp2__ticker-text">hat gebucht · Hygienische Pediküre</div></div><div class="pcp2__ticker-stars">★★★★★</div></div>
+        </div>
+      </div>
+
+      <!-- Mood picker — педикюр -->
+      <div class="pcp2__mood pcp2-reveal" id="pcp2Mood">
+        <div class="pcp2__mood-title">Mini-Beratung · 5 Sekunden</div>
+        <div class="pcp2__mood-q">Was brauchst du für deine <em>Füße?</em></div>
+        <div class="pcp2__mood-opts">
+          <button class="pcp2__mood-opt" data-idx="0" onclick="pcp2PickMood(this)">
+            <img class="pcp2__mood-img" src="https://cdn.jsdelivr.net/gh/chistyartem-blip/crocus-widget@f9bb35a/assets/pedicure.jpg" alt="Klassische Pediküre" loading="lazy">
+            <div class="pcp2__mood-overlay">
+              <span class="pcp2__mood-label">Hygienische Pediküre</span>
+              <span class="pcp2__mood-sub">Pflege, ohne Gel</span>
+            </div>
+          </button>
+          <button class="pcp2__mood-opt" data-idx="1" onclick="pcp2PickMood(this)">
+            <img class="pcp2__mood-img" src="https://cdn.jsdelivr.net/gh/chistyartem-blip/crocus-widget@f9bb35a/assets/pedicure.jpg" alt="Pediküre + Gel" loading="lazy" style="object-position:center 60%;">
+            <div class="pcp2__mood-overlay">
+              <span class="pcp2__mood-label">Pediküre + Gel-Lack</span>
+              <span class="pcp2__mood-sub">3–5 Wochen Haltbarkeit</span>
+            </div>
+          </button>
+          <button class="pcp2__mood-opt" data-idx="2" onclick="pcp2PickMood(this)">
+            <img class="pcp2__mood-img" src="https://cdn.jsdelivr.net/gh/chistyartem-blip/crocus-widget@f9bb35a/assets/manicure2.jpg" alt="Kombi" loading="lazy">
+            <div class="pcp2__mood-overlay">
+              <span class="pcp2__mood-label">Kombi Mani + Pedi</span>
+              <span class="pcp2__mood-sub">Hände & Füße komplett</span>
+            </div>
+          </button>
+          <button class="pcp2__mood-opt" data-idx="3" onclick="pcp2PickMood(this)">
+            <img class="pcp2__mood-img" src="https://cdn.jsdelivr.net/gh/chistyartem-blip/crocus-widget@f9bb35a/assets/gift-card.jpg" alt="Geschenk" loading="lazy">
+            <div class="pcp2__mood-overlay">
+              <span class="pcp2__mood-label">Gutschein verschenken</span>
+              <span class="pcp2__mood-sub">Ab 30 € · per WhatsApp</span>
+            </div>
+          </button>
+        </div>
+        <div class="pcp2__mood-result" id="pcp2MoodResult">
+          <div class="pcp2__mood-result-text" id="pcp2MoodText"></div>
+          <button class="pcp2__mood-result-btn" id="pcp2MoodBtn" onclick="pcp2MoodAction()">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+            <span id="pcp2MoodBtnText">Buchen</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Stats -->
+      <div class="pcp2__stats pcp2-reveal">
+        <div class="pcp2__stat">
+          <div class="pcp2__stat-val" data-count="5.0" data-suffix="★">5.0★</div>
+          <div class="pcp2__stat-lbl">Google<br>Bewertung</div>
+        </div>
+        <div class="pcp2__stat">
+          <div class="pcp2__stat-val" data-count="500" data-suffix="+">500+</div>
+          <div class="pcp2__stat-lbl">Pediküren<br>pro Jahr</div>
+        </div>
+        <div class="pcp2__stat">
+          <div class="pcp2__stat-val" data-count="5" data-suffix=" Wo">5 Wo</div>
+          <div class="pcp2__stat-lbl">Gel-Lack<br>Haltbarkeit</div>
+        </div>
+        <div class="pcp2__stat">
+          <div class="pcp2__stat-val" data-count="100" data-suffix="%">100%</div>
+          <div class="pcp2__stat-lbl">steril &<br>sicher</div>
+        </div>
+      </div>
+
+      <!-- Promise -->
+      <div class="pcp2__promise pcp2-reveal">
+        <div class="pcp2__promise-label">Unser Versprechen</div>
+        <div class="pcp2__promise-text">Du gehst raus mit Füßen,<br>die sich <em>wie neu anfühlen</em></div>
+        <div class="pcp2__promise-items">
+          <div class="pcp2__promise-item">Gel hält 3–5 Wochen — garantiert</div>
+          <div class="pcp2__promise-item">Fußmassage immer kostenlos inklusive</div>
+          <div class="pcp2__promise-item">Russische Methode — kein Einwachsen</div>
+          <div class="pcp2__promise-item">Nicht zufrieden? Wir korrigieren kostenlos</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- FINALE STRIP -->
+<div class="pcp2__finale">
+  <div class="pcp2__finale-orbs">
+    <div class="pcp2__finale-orb"></div>
+    <div class="pcp2__finale-orb"></div>
+  </div>
+  <div class="pcp2__finale-inner">
+    <div>
+      <div class="pcp2__finale-eyebrow">Crocus Beauty Studio · Göppingen</div>
+      <h2 class="pcp2__finale-title" id="pcp2FinaleTitle">Bereit für deine <em>gepflegten Füße?</em></h2>
+    </div>
+    <div class="pcp2__finale-right">
+      <a href="#" onclick="event.preventDefault();pcp2FinaleClick()" class="pcp2__finale-btn" style="color:#5e3a8c!important;text-decoration:none!important;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#5e3a8c" stroke-width="2.2"><rect x="3" y="4" width="18" height="18" rx="2.5"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+        Pediküre buchen
+      </a>
+      <div class="pcp2__finale-note">Online in 2 Min · Pflegstraße 2, Göppingen</div>
+    </div>
+  </div>
+</div>
+
+</section>
+
+<script>
+(function(){
+
+/* ── Scroll Reveal ── */
+function pcp2Observe(){
+  var els=document.querySelectorAll('.pcp2-reveal');
+  if(!els.length) return;
+  if('IntersectionObserver' in window){
+    var io=new IntersectionObserver(function(entries){
+      entries.forEach(function(e){
+        if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target); }
+      });
+    },{threshold:0.12,rootMargin:'0px 0px -40px 0px'});
+    els.forEach(function(el,i){
+      el.style.transitionDelay=(i*0.07)+'s';
+      io.observe(el);
+    });
+  } else {
+    els.forEach(function(el){el.classList.add('in');});
+  }
+}
+
+/* ── Counter animation ── */
+function pcp2AnimateCounters(){
+  document.querySelectorAll('.pcp2__stat-val[data-count]').forEach(function(el){
+    var target=parseFloat(el.getAttribute('data-count'));
+    var suffix=el.getAttribute('data-suffix')||'';
+    var isFloat=target%1!==0;
+    var duration=1200,start=null;
+    var io=new IntersectionObserver(function(entries){
+      if(!entries[0].isIntersecting) return;
+      io.disconnect();
+      function step(ts){
+        if(!start) start=ts;
+        var prog=Math.min((ts-start)/duration,1);
+        var ease=1-Math.pow(1-prog,3);
+        var val=isFloat?(target*ease).toFixed(1):(Math.round(target*ease));
+        el.textContent=val+suffix;
+        if(prog<1) requestAnimationFrame(step);
+      }
+      requestAnimationFrame(step);
+    },{threshold:0.5});
+    io.observe(el);
+  });
+}
+
+/* ── Accordion ── */
+window.pcp2ToggleReason=function(el){
+  var isOpen=el.classList.contains('open');
+  document.querySelectorAll('.pcp2__reason.open').forEach(function(r){
+    r.classList.remove('open');
+    r.querySelector('.pcp2__reason-toggle').textContent='+';
+  });
+  if(!isOpen){
+    el.classList.add('open');
+    el.querySelector('.pcp2__reason-toggle').textContent='+';
+  }
+};
+
+/* ── Mood Picker ── */
+var moodData=[
+  {
+    text:'<em>Hygienische Pediküre</em> — sauber, entspannend, mit kostenloser Fußmassage. Deine Füße sagen danke.',
+    btn:'Jetzt buchen',action:'book'
+  },
+  {
+    text:'<em>Pediküre + Gel-Lack</em> — bis zu 5 Wochen perfekter Hochglanz. Keine Chips, kein Absplittern.',
+    btn:'Pediküre + Gel buchen',action:'book'
+  },
+  {
+    text:'<em>Kombi Maniküre + Pediküre</em> — Hände und Füße in einem Termin komplett gepflegt. Ideal!',
+    btn:'Kombi buchen',action:'book'
+  },
+  {
+    text:'Wunderschöne Idee! <em>Gutschein ab 30 €</em> — per WhatsApp in 2 Minuten. Sie wird begeistert sein.',
+    btn:'Gutschein kaufen',action:'gift'
+  }
+];
+
+window.pcp2PickMood=function(el){
+  document.querySelectorAll('.pcp2__mood-opt').forEach(function(b){b.classList.remove('sel');});
+  el.classList.add('sel');
+  var idx=parseInt(el.getAttribute('data-idx'),10);
+  var d=moodData[idx];
+  document.getElementById('pcp2MoodText').innerHTML=d.text;
+  document.getElementById('pcp2MoodBtnText').textContent=d.btn;
+  document.getElementById('pcp2MoodBtn').setAttribute('data-action',d.action);
+  document.getElementById('pcp2MoodResult').classList.add('show');
+  pcp2Confetti(el);
+};
+
+window.pcp2MoodAction=function(){
+  if(typeof crocusOpen==='function') crocusOpen();
+};
+
+/* ── Confetti ── */
+window.pcp2Confetti=function(origin){
+  var rect=origin?origin.getBoundingClientRect():{left:window.innerWidth/2,top:window.innerHeight/2,width:0,height:0};
+  var cx=rect.left+rect.width/2, cy=rect.top+rect.height/2;
+  var colors=['#5e3a8c','#c4a8d8','#e8d4f0','#fdfaf8','#8a5ab4'];
+  for(var i=0;i<18;i++){
+    (function(){
+      var dot=document.createElement('div');
+      dot.className='pcp2__confetti-dot';
+      var size=3+Math.random()*5;
+      var angle=Math.random()*2*Math.PI;
+      var dist=40+Math.random()*80;
+      dot.style.cssText=[
+        'left:'+(cx+Math.cos(angle)*dist-size/2)+'px',
+        'top:'+(cy+Math.sin(angle)*dist-40)+'px',
+        'width:'+size+'px','height:'+size+'px',
+        'background:'+colors[Math.floor(Math.random()*colors.length)],
+        'animation-duration:'+(0.6+Math.random()*0.5)+'s',
+        'animation-delay:'+(Math.random()*0.15)+'s'
+      ].join(';');
+      document.body.appendChild(dot);
+      setTimeout(function(){dot.parentNode&&dot.parentNode.removeChild(dot);},1200);
+    })();
+  }
+};
+
+/* ── Finale rotating texts ── */
+var finaleTexts=[
+  ['Bereit für deine','<em>gepflegten Füße?</em>'],
+  ['Russische Pediküre —','<em>ohne Schneiden</em>'],
+  ['Fußmassage immer','<em>kostenlos dabei</em>'],
+  ['3–5 Wochen','<em>perfekter Gel-Lack</em>'],
+];
+var fi=0;
+function pcp2TypeFinale(){
+  fi=(fi+1)%finaleTexts.length;
+  var el=document.getElementById('pcp2FinaleTitle');
+  if(!el) return;
+  el.style.opacity='0'; el.style.transform='translateY(10px)';
+  setTimeout(function(){
+    el.innerHTML=finaleTexts[fi][0]+'<br>'+finaleTexts[fi][1];
+    el.style.transition='opacity 0.5s,transform 0.5s';
+    el.style.opacity='1'; el.style.transform='none';
+  },400);
+}
+setInterval(pcp2TypeFinale,4500);
+
+window.pcp2FinaleClick=function(){
+  if(typeof crocusOpen==='function') crocusOpen();
+  pcp2Confetti(document.querySelector('.pcp2__finale-btn'));
+};
+
+/* ── Parallax orbs ── */
+window.addEventListener('scroll',function(){
+  var orbs=document.querySelectorAll('.pcp2__finale-orb');
+  var sy=window.scrollY;
+  orbs.forEach(function(o,i){o.style.transform='translateY('+(sy*(i===0?-0.08:0.05))+'px)';});
+},{passive:true});
+
+/* ── Live slots (педикюр: Hygienische Pediküre = 13485760) ── */
+var PCP2_TOKEN='u8xzkdpkgfc73uektn64';
+var PCP2_LOC='1357963';
+var PCP2_API='https://api.alteg.io/api/v1';
+var PCP2_SVC=13485760; // Hygienische Pediküre
+var PCP2_STAFF=[
+  {id:3020185,name:'Diana'},
+  {id:3020186,name:'Nelia'},
+  {id:3020187,name:'Sofia'}
+];
+
+function pcp2Pad(n){return n<10?'0'+n:String(n);}
+function pcp2FmtDate(d){return d.getFullYear()+'-'+pcp2Pad(d.getMonth()+1)+'-'+pcp2Pad(d.getDate());}
+function pcp2DateLabel(s){
+  var today=pcp2FmtDate(new Date());
+  var tom=pcp2FmtDate(new Date(Date.now()+86400000));
+  if(s===today) return 'heute';
+  if(s===tom) return 'morgen';
+  var days=['So','Mo','Di','Mi','Do','Fr','Sa'];
+  var d=new Date(s);
+  return days[d.getDay()]+', '+pcp2Pad(d.getDate())+'.'+pcp2Pad(d.getMonth()+1);
+}
+
+function pcp2FetchSlots(staffId,date){
+  return fetch(PCP2_API+'/book_times/'+PCP2_LOC+'/'+staffId+'/'+date+'?service_ids[]='+PCP2_SVC,{
+    headers:{'Authorization':'Bearer '+PCP2_TOKEN,'Accept':'application/vnd.api.v2+json'}
+  }).then(function(r){return r.json();})
+  .then(function(d){return(d.success&&Array.isArray(d.data))?d.data:[];})
+  .catch(function(){return[];});
+}
+
+function pcp2FindNext(staffId){
+  var dates=[];
+  for(var i=0;i<30;i++){
+    var d=new Date(Date.now()+i*86400000);
+    dates.push(pcp2FmtDate(d));
+  }
+  return dates.reduce(function(p,date){
+    return p.then(function(found){
+      if(found) return found;
+      return pcp2FetchSlots(staffId,date).then(function(slots){
+        return slots.length?{date:date,slots:slots}:null;
+      });
+    });
+  },Promise.resolve(null));
+}
+
+function pcp2RenderSlot(result){
+  if(!result){
+    return '<span class="pcp2__master-slot-dot grey"></span>'
+      +'<span style="color:rgba(26,13,46,0.40);font-size:10.5px;">Auf Anfrage</span>';
+  }
+  var label=pcp2DateLabel(result.date);
+  var isToday=result.date===pcp2FmtDate(new Date());
+  var first=result.slots[0]?result.slots[0].time:'';
+  var count=result.slots.length;
+  var dotCls=(isToday&&count<=3)?'orange':'';
+  var dot='<span class="pcp2__master-slot-dot '+dotCls+'"></span>';
+  var txt='';
+  if(isToday&&first){
+    txt='ab '+first+' Uhr'+(count<=3?' · letzter':'');
+  } else if(first){
+    txt=label+' · ab '+first;
+  } else {
+    txt=label;
+  }
+  return dot+'<span style="font-size:10.5px;color:#1a0d2e;">'+txt+'</span>';
+}
+
+function pcp2LoadSlots(){
+  PCP2_STAFF.forEach(function(s){
+    pcp2FindNext(s.id).then(function(result){
+      var els=document.querySelectorAll('[data-pcp2-slots="'+s.id+'"]');
+      var html=pcp2RenderSlot(result);
+      els.forEach(function(el){
+        el.innerHTML=html;
+        el.style.display='flex';
+        el.style.alignItems='center';
+        el.style.gap='5px';
+      });
+    });
+  });
+}
+
+/* ── Init ── */
+function pcp2Init(){
+  pcp2Observe();
+  pcp2AnimateCounters();
+  pcp2LoadSlots();
+}
+
+if(document.readyState==='loading'){
+  document.addEventListener('DOMContentLoaded',pcp2Init);
+} else {
+  pcp2Init();
+  setTimeout(pcp2Init,500);
+}
+// обновляем слоты каждые 5 минут
+setInterval(pcp2LoadSlots, 5*60*1000);
+
+})();
+</script>
