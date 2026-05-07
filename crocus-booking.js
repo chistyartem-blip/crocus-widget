@@ -345,7 +345,7 @@ body.crocus-open{overflow:hidden!important;touch-action:none;}
 .cw-gift-divider{display:flex;align-items:center;gap:10px;margin:18px 0 12px}
 .cw-gift-divider::before,.cw-gift-divider::after{content:'';flex:1;height:1px;background:rgba(255,255,255,.07)}
 .cw-gift-divider span{font-family:'DM Sans',sans-serif;font-size:10px;letter-spacing:.06em;color:rgba(253,250,248,.25);text-transform:uppercase}
-.cw-gift-cta{width:100%;background:linear-gradient(135deg,rgba(201,168,124,.08) 0%,rgba(201,168,124,.04) 100%);border:1px solid rgba(201,168,124,.22);border-radius:14px;padding:14px 16px;cursor:pointer;text-align:left;color:inherit;font-family:inherit;display:flex;align-items:center;gap:13px;transition:all .22s;-webkit-tap-highlight-color:transparent}
+.cw-gift-cta{background:linear-gradient(135deg,rgba(201,168,124,.08) 0%,rgba(201,168,124,.04) 100%);border:1px solid rgba(201,168,124,.22);border-radius:14px;padding:12px 14px;cursor:pointer;text-align:left;color:inherit;font-family:inherit;display:inline-flex;align-items:center;gap:13px;transition:all .22s;-webkit-tap-highlight-color:transparent;max-width:320px;width:auto}
 .cw-gift-cta:hover{border-color:rgba(201,168,124,.45);background:linear-gradient(135deg,rgba(201,168,124,.13) 0%,rgba(201,168,124,.07) 100%);transform:translateY(-1px);box-shadow:0 6px 22px rgba(201,168,124,.12)}
 .cw-gift-cta-icon{font-size:22px;flex-shrink:0;line-height:1}
 .cw-gift-cta-text{flex:1;min-width:0}
@@ -2044,7 +2044,7 @@ if (document.readyState === 'loading') {
 
   function injectTheme(){
     var old = document.getElementById('crocus-page-theme');
-    if (old) return; // уже есть
+    if (old) { old.textContent = override; return; }
     var s = document.createElement('style');
     s.id = 'crocus-page-theme';
     s.textContent = override;
@@ -2195,7 +2195,8 @@ if (document.readyState === 'loading') {
     '#crocus-backdrop{background:rgba(20,8,45,.55)!important;}';
 
   function injectPediTheme(){
-    if (document.getElementById('crocus-pedi-theme')) return;
+    var old = document.getElementById('crocus-pedi-theme');
+    if (old) { old.textContent = override; return; }
     var s = document.createElement('style');
     s.id = 'crocus-pedi-theme';
     s.textContent = override;
