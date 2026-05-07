@@ -75,33 +75,31 @@ function findNextAvailable(staffId, serviceId){
 
 // ── Render helpers ────────────────────────────────────────────────
 function renderBadge(result){
-  if(!result) return '<span style="color:rgba(26,13,18,0.35);font-size:10px;">Auf Anfrage</span>';
-
-  var label = dateLabel(result.date);
-  var count = result.slots.length;
-  var isToday = result.date === formatDate(new Date());
-
-  // Первый доступный слот
-  var firstTime = result.slots[0] ? result.slots[0].time : '';
-
-  var urgency = '';
-  var color = '#2ecc71';
-  if(isToday && count <= 3){
-    urgency = ' · nur noch '+count;
-    color = '#e67e22';
-  } else if(isToday && count <= 7){
-    urgency = ' · '+count+' frei';
-  } else if(isToday){
-    urgency = ' · '+count+' Termine frei';
-  } else {
-    urgency = ' ab ' + firstTime + ' Uhr';
+  if(!result){
+    return '<span class="crw3__master-slot-dot grey"></span>'
+      + '<span style="color:rgba(26,13,18,0.40);font-size:10.5px;">Auf Anfrage</span>';
   }
 
-  var dot = '<span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:'+color
-    +';margin-right:5px;flex-shrink:0;box-shadow:0 0 0 3px '+color+'22;animation:crwSlotPulse 1.5s ease-in-out infinite;"></span>';
+  var label = dateLabel(result.date);
+  var isToday = result.date === formatDate(new Date());
+  var firstTime = result.slots[0] ? result.slots[0].time : '';
+  var count = result.slots.length;
 
-  return dot + '<span style="font-weight:600;color:#1a0d12;">' + label + '</span>'
-    + '<span style="color:rgba(26,13,18,0.50);">' + urgency + '</span>';
+  // Цвет: оранжевый если сегодня и мало мест, зелёный иначе
+  var dotClass = (isToday && count <= 3) ? 'orange' : '';
+  var dot = '<span class="crw3__master-slot-dot ' + dotClass + '"></span>';
+
+  var timeStr = '';
+  if(isToday && firstTime){
+    timeStr = 'ab ' + firstTime + ' Uhr';
+    if(count <= 3) timeStr += ' · letzter';
+  } else if(firstTime){
+    timeStr = label + ' · ab ' + firstTime;
+  } else {
+    timeStr = label;
+  }
+
+  return dot + '<span style="font-size:10.5px;color:#1a0d12;">' + timeStr + '</span>';
 }
 
 // ── Inject per-master slot badges ─────────────────────────────────
@@ -116,66 +114,6 @@ function injectMasterSlots(staffId, result){
   });
 }
 
-// ── Update global live badge ──────────────────────────────────────
-function updateGlobalBadge(results){
-  var el = document.getElementById('crw3SlotsCount');
-  var wrap = document.querySelector('.crw3__live');
-  if(!el || !wrap) return;
-
-  // Считаем свободные слоты сегодня у всех мастеров
-  var today = formatDate(new Date());
-  var todayTotal = 0;
-  var anyToday = false;
-  var nextDate = null;
-  var nextSlots = 0;
-
-  results.forEach(function(r){
-    if(!r) return;
-    if(r.date === today){
-      anyToday = true;
-      todayTotal += r.slots.length;
-    } else if(!nextDate || r.date < nextDate){
-      nextDate = r.date;
-      nextSlots = r.slots.length;
-    }
-  });
-
-  if(anyToday && todayTotal > 0){
-    // Анимированный счётчик
-    animateCount(el, todayTotal);
-    wrap.querySelector('.crw3__live-text').innerHTML =
-      'Heute noch <span id="crw3SlotsCount" style="color:#7B2D4E;font-weight:700;">' + todayTotal + '</span> freie Termine';
-
-    // Подсветка срочности
-    if(todayTotal <= 3){
-      wrap.querySelector('.crw3__live-dot').style.background = '#e74c3c';
-      wrap.querySelector('.crw3__live-dot').style.boxShadow = '0 0 0 3px rgba(231,76,60,0.20)';
-    }
-  } else if(nextDate){
-    var label = dateLabel(nextDate);
-    wrap.querySelector('.crw3__live-text').innerHTML =
-      'Nächster freier Termin: <span style="color:#7B2D4E;font-weight:700;">' + label + '</span> · '
-      + '<span style="color:rgba(26,13,18,0.50);">' + nextSlots + ' verfügbar</span>';
-    wrap.querySelector('.crw3__live-dot').style.background = '#3498db';
-  } else {
-    wrap.querySelector('.crw3__live-text').innerHTML =
-      'Termine <span style="color:#7B2D4E;font-weight:700;">auf Anfrage</span>';
-    wrap.querySelector('.crw3__live-dot').style.background = '#95a5a6';
-  }
-}
-
-function animateCount(el, target){
-  var start = 0;
-  var dur = 800;
-  var t0 = null;
-  function step(ts){
-    if(!t0) t0 = ts;
-    var p = Math.min((ts - t0) / dur, 1);
-    el.textContent = Math.round(p * target);
-    if(p < 1) requestAnimationFrame(step);
-  }
-  requestAnimationFrame(step);
-}
 
 // ── CSS для анимации точек ────────────────────────────────────────
 function injectCSS(){
@@ -212,9 +150,7 @@ function init(){
     });
   });
 
-  Promise.all(promises).then(function(results){
-    updateGlobalBadge(results);
-  });
+  Promise.all(promises);
 }
 
 function el_remove_loading(staffId){
