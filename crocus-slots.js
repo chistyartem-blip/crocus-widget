@@ -18,7 +18,7 @@ var CONFIG = {
     { id: 3020188, name: 'Karina', serviceId: 13485756 }, // Wimpern (French как заглушка)
   ],
   // Сколько дней вперёд искать ближайший слот
-  lookAheadDays: 14,
+  lookAheadDays: 30,
 };
 
 // ── Helpers ──────────────────────────────────────────────────────
