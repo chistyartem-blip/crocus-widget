@@ -346,7 +346,7 @@
     var m = Math.round(sec/60);
     if(m < 60) return m+' Min.';
     var h = Math.floor(m/60), rm = m%60;
-    return rm > 0 ? h+','+Math.round(rm/6)+' Std.' : h+' Std.';
+    return rm > 0 ? h+' Std. '+rm+' Min.' : h+' Std.';
   }
 
   function mnp2LoadDurations(masterKey){
