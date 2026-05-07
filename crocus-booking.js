@@ -663,15 +663,18 @@ function crocusOpen() {
 function crocusClose() {
   document.getElementById('crocus-backdrop').classList.remove('visible');
   document.getElementById('crocus-modal').classList.remove('open');
+  // iOS scroll lock: restore СРАЗУ до анимации закрытия — не прыгает
+  document.body.style.overflow = '';
+  document.body.style.position = '';
+  document.body.style.top = '';
+  document.body.style.width = '';
   document.body.classList.remove('crocus-open');
+  // Восстанавливаем позицию синхронно
+  if (_scrollY > 0) {
+    window.scrollTo(0, _scrollY);
+  }
   setTimeout(function(){
     document.getElementById('crocus-backdrop').classList.remove('open');
-    // iOS scroll lock: restore position without jump
-    document.body.style.overflow = '';
-    document.body.style.position = '';
-    document.body.style.top = '';
-    document.body.style.width = '';
-    window.scrollTo({ top: _scrollY, behavior: 'instant' });
     crocusReset();
   }, 320);
   // Clean up history entry if it's still there
@@ -2494,13 +2497,13 @@ if (document.readyState === 'loading') {
     function closeMinfo() {
       var ov = document.getElementById('crl2-minfo-overlay');
       if (!ov) return;
-      ov.classList.remove('crl2-open');
       var sy = ov._scrollY || 0;
       document.body.style.overflow = '';
       document.body.style.position = '';
       document.body.style.top = '';
       document.body.style.width = '';
-      window.scrollTo({ top: sy, behavior: 'instant' });
+      if (sy > 0) window.scrollTo(0, sy);
+      ov.classList.remove('crl2-open');
     }
     var minfoOverlay = document.getElementById('crl2-minfo-overlay');
     if (minfoOverlay) {
