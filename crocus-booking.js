@@ -84,7 +84,7 @@ var CATEGORIES = [
   {
     key: 'wimpern',
     label: 'Wimpern',
-    img: null,
+    img: 'https://cdn.jsdelivr.net/gh/chistyartem-blip/crocus-widget@main/assets/wimpern-card.png',
     desc: 'Classic · Volumen 4D/6D · Wispy Look — natürlich oder dramatisch.',
     serviceIds: [13485763,13485764,13485765,13485766,13485767,13485768,13485769,13485770,13485771,13485772,13485773],
   },
