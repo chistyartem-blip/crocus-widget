@@ -84,7 +84,7 @@
 .wlw1__mood-q{font-size:20px;font-weight:300;color:#f0e8d8;line-height:1.25;margin-bottom:18px;}
 .wlw1__mood-q em{color:#c9a87c;font-style:italic;}
 .wlw1__mood-opts{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
-.wlw1__mood-opt{position:relative;border:2px solid transparent;border-radius:14px;cursor:pointer;overflow:hidden;padding:0;background:none;aspect-ratio:1/1;transition:all 0.2s;}
+.wlw1__mood-opt{position:relative;border:2px solid transparent;border-radius:14px;cursor:pointer;overflow:hidden;padding:0;background:none;height:160px;transition:all 0.2s;}
 .wlw1__mood-opt:hover{border-color:rgba(201,168,124,0.55);transform:translateY(-2px);box-shadow:0 6px 20px rgba(201,168,124,0.18);}
 .wlw1__mood-opt.sel{border-color:#c9a87c;box-shadow:0 0 0 1px #c9a87c,0 6px 24px rgba(201,168,124,0.28);}
 .wlw1__mood-img{width:100%;height:100%;object-fit:cover;object-position:center;display:block;border-radius:12px;filter:brightness(0.78) saturate(0.80);}
@@ -99,6 +99,18 @@
 .wlw1__mood-result-text em{color:#c9a87c;font-style:italic;}
 .wlw1__mood-result-btn{display:inline-flex;align-items:center;gap:7px;background:linear-gradient(135deg,#c9a87c,#a8845a);color:#06040a;font-family:'DM Sans',Arial,sans-serif;font-size:10px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;padding:9px 20px;border-radius:50px;border:none;cursor:pointer;transition:all 0.2s;}
 .wlw1__mood-result-btn:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(201,168,124,0.35);}
+
+/* Goodshine badge */
+.wlw1__gs-badge{display:flex;align-items:center;gap:12px;background:rgba(201,168,124,0.06);border:1px solid rgba(201,168,124,0.18);border-radius:14px;padding:12px 16px;cursor:pointer;transition:all 0.22s;margin-top:0;}
+.wlw1__gs-badge:hover{background:rgba(201,168,124,0.11);border-color:rgba(201,168,124,0.35);transform:translateY(-1px);box-shadow:0 6px 20px rgba(201,168,124,0.14);}
+.wlw1__gs-icon{width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,#c9a87c,#a8845a);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.wlw1__gs-icon svg{width:18px;height:18px;fill:none;stroke:#06040a;stroke-width:2;}
+.wlw1__gs-body{flex:1;min-width:0;}
+.wlw1__gs-label{font-family:'DM Sans',Arial,sans-serif;font-size:9px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;color:rgba(201,168,124,0.55);margin-bottom:3px;}
+.wlw1__gs-text{font-family:'DM Sans',Arial,sans-serif;font-size:12px;font-weight:500;color:#f0e8d8;line-height:1.3;}
+.wlw1__gs-text em{font-style:italic;color:#c9a87c;}
+.wlw1__gs-arrow{color:rgba(201,168,124,0.45);font-size:16px;flex-shrink:0;transition:transform 0.2s;}
+.wlw1__gs-badge:hover .wlw1__gs-arrow{transform:translateX(3px);color:#c9a87c;}
 
 /* Stats */
 .wlw1__stats{display:grid;grid-template-columns:repeat(4,1fr);gap:0;background:rgba(255,255,255,0.03);border:1px solid rgba(184,200,216,0.09);border-radius:18px;overflow:hidden;}
@@ -325,6 +337,18 @@
         </div>
       </div>
 
+      <!-- Goodshine badge -->
+      <div class="wlw1__gs-badge wlw1-reveal" onclick="if(typeof crocusOpen==='function')crocusOpen();wlw1Confetti(this);">
+        <div class="wlw1__gs-icon">
+          <svg viewBox="0 0 24 24"><path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" stroke-linejoin="round"/></svg>
+        </div>
+        <div class="wlw1__gs-body">
+          <div class="wlw1__gs-label">Verwendetes Material</div>
+          <div class="wlw1__gs-text"><em>Goodshine</em> Professional — Kleber, Patches &amp; Primer<br><span style="font-size:10.5px;color:rgba(240,232,216,0.42);font-weight:300;">Dermatologisch getestet · Präzision aus Deutschland</span></div>
+        </div>
+        <div class="wlw1__gs-arrow">›</div>
+      </div>
+
       <!-- Stats -->
       <div class="wlw1__stats wlw1-reveal">
         <div class="wlw1__stat">
@@ -354,6 +378,7 @@
           <div class="wlw1__promise-item">Nicht zufrieden? Karina korrigiert kostenlos</div>
           <div class="wlw1__promise-item">Keine versteckten Kosten, klare Preise</div>
           <div class="wlw1__promise-item">Dein Termin — pünktlich, entspannt, persönlich</div>
+          <div class="wlw1__promise-item">Nur <strong style="color:#c9a87c;">Goodshine</strong>-Profiprodukte — getestet &amp; zertifiziert</div>
         </div>
       </div>
 
@@ -510,6 +535,9 @@ window.wlw1ToggleReason=function(el){
   if(!isOpen){
     el.classList.add('open');
     el.querySelector('.wlw1__reason-toggle').textContent='+';
+    setTimeout(function(){
+      el.querySelector('.wlw1__reason-expand').scrollIntoView({behavior:'smooth',block:'nearest'});
+    },420);
   }
 };
 
