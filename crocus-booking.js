@@ -889,7 +889,7 @@ function loadMasterSlot(staffId) {
         el.innerHTML = '<span class="cw-master-slot-dot ' + dotCls + '"></span><span style="color:rgba(240,232,216,0.85);">' + txt + '</span>';
       }
     });
-}}
+}
 
 function selectMaster(m, meta) {
   cw.master = m;
