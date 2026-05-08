@@ -771,10 +771,14 @@ function loadInitialData(cb) {
     // cache addon objects
     _addonObjs = _allServices.filter(function(s){ return ADDON_IDS.indexOf(s.id) !== -1; });
     if (cb) { cb(); } else { renderMasters(); }
-  }).catch(function(){
-    showError('cw-masters-list', 'Fehler beim Laden. Bitte Seite neu laden.');
+  }).catch(function(err){
+    var msg = err && err.message ? err.message : String(err);
+    console.error('[crocus] loadInitialData failed:', msg);
+    var el = document.getElementById('cw-masters-list');
+    if (el) el.innerHTML = '<div class="cw-error" style="display:flex;flex-direction:column;gap:10px;align-items:center;padding:20px;text-align:center"><div>Fehler beim Laden. Bitte erneut versuchen.</div><button onclick="_crocusRetry()" style="background:rgba(201,168,124,0.15);border:1px solid rgba(201,168,124,0.35);color:#c9a87c;padding:8px 18px;border-radius:8px;cursor:pointer;font-family:DM Sans,sans-serif;font-size:12px">↺ Erneut versuchen</button></div>';
   });
 }
+window._crocusRetry = function(){ _allMasters = null; loadInitialData(); };
 
 // ── Step 1: Masters ────────────────────────────────────────────
 function renderMasters() {
@@ -822,7 +826,7 @@ function renderMasters() {
   });
 }
 
-var _SLOT_SERVICE = { 3020185: 13485754, 3020186: 13485753, 3020187: 13485753, 3020188: 13485756 };
+var _SLOT_SERVICE = { 3020185: 13485754, 3020186: 13485753, 3020187: 13485753, 3020188: 13485771 };
 
 function loadMasterSlot(staffId) {
   var serviceId = _SLOT_SERVICE[staffId];
