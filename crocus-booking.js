@@ -2089,6 +2089,7 @@ if (document.readyState === 'loading') {
     '.cw-return-master-tagline{color:rgba(26,8,16,.45)!important;}' +
     '.cw-return-master-divider{border-bottom-color:rgba(26,8,16,.08)!important;}' +
     '.cw-master-slot{color:rgba(26,8,16,.55)!important;}' +
+    '.cw-master-slot span{color:rgba(26,8,16,.55)!important;}' +
     '.cw-master-slot-dot.grey{background:rgba(26,8,16,.20)!important;}' +
     '.cw-sum-row span{color:rgba(26,8,16,.38)!important;}' +
     '.cw-sum-row strong{color:#1a0810!important;}' +
