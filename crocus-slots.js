@@ -144,7 +144,7 @@ function renderBadge(result){
     timeStr = label;
   }
 
-  return dot + '<span style="font-size:10.5px;color:#1a0d12;">' + timeStr + '</span>';
+  return dot + '<span style="font-size:10.5px;color:rgba(240,232,216,0.85);">' + timeStr + '</span>';
 }
 
 // ── Inject per-master slot badges ─────────────────────────────────
