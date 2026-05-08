@@ -122,7 +122,7 @@ function findNextAvailable(staffId, serviceId){
 function renderBadge(result){
   if(!result){
     return '<span class="crw3__master-slot-dot grey"></span>'
-      + '<span style="color:rgba(240,232,216,0.55);font-size:10.5px;">Auf Anfrage</span>';
+      + '<span style="color:rgba(26,8,16,0.45);font-size:10.5px;">Auf Anfrage</span>';
   }
 
   var label = dateLabel(result.date);
@@ -144,7 +144,7 @@ function renderBadge(result){
     timeStr = label;
   }
 
-  return dot + '<span style="font-size:10.5px;color:rgba(240,232,216,0.85);">' + timeStr + '</span>';
+  return dot + '<span style="font-size:10.5px;color:rgba(26,8,16,0.65);">' + timeStr + '</span>';
 }
 
 // ── Inject per-master slot badges ─────────────────────────────────
