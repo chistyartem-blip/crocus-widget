@@ -1,6 +1,9 @@
 (function () {
 'use strict';
 
+// Prevent browser from restoring scroll position on history.back()
+if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
+
 // ── CONFIG ─────────────────────────────────────────────────────
 var CONFIG = {
   partnerToken: 'u8xzkdpkgfc73uektn64',
@@ -678,14 +681,9 @@ function crocusClose() {
     document.getElementById('crocus-backdrop').classList.remove('open');
     crocusReset();
   }, 320);
-  // Clean up history entry — back() may fire popstate which scrolls, so re-restore after
+  // Clean up history entry — scrollRestoration=manual prevents browser from overriding our scroll
   if (window.history && window.history.state && window.history.state.crocusOpen) {
     window.history.back();
-    if (savedY > 0) {
-      setTimeout(function(){ window.scrollTo(0, savedY); }, 0);
-      setTimeout(function(){ window.scrollTo(0, savedY); }, 50);
-      setTimeout(function(){ window.scrollTo(0, savedY); }, 150);
-    }
   }
 }
 
