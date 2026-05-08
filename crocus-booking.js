@@ -858,14 +858,14 @@ function loadMasterSlot(staffId) {
       if (found) return found;
       return apiGet('/book_times/' + CONFIG.locationId + '/' + staffId + '/' + date, { 'service_ids[]': serviceId })
         .then(function(res) {
-          var slots = (res.success && Array.isArray(res.data)) ? res.data : [];
+          var slots = Array.isArray(res) ? res : (res.success && Array.isArray(res.data)) ? res.data : [];
           return slots.length ? { date: date, slots: slots } : null;
         }).catch(function(){ return null; });
     });
   }, Promise.resolve(null)).then(function(result) {
     if (!el) return;
     if (!result) {
-      el.innerHTML = '<span class="cw-master-slot-dot grey"></span><span>Auf Anfrage</span>';
+      el.innerHTML = '<span class="cw-master-slot-dot grey"></span><span style="color:rgba(240,232,216,0.55);">Auf Anfrage</span>';
     } else {
       var label = fmtDate(result.date);
       var first = result.slots[0] ? result.slots[0].time : '';
@@ -874,7 +874,7 @@ function loadMasterSlot(staffId) {
       var dotCls = (isToday && count <= 3) ? 'orange' : '';
       var txt = first ? label + ' · ab ' + first + ' Uhr' : label;
       if (isToday && count <= 3) txt += ' · letzter Platz';
-      el.innerHTML = '<span class="cw-master-slot-dot ' + dotCls + '"></span><span>' + txt + '</span>';
+      el.innerHTML = '<span class="cw-master-slot-dot ' + dotCls + '"></span><span style="color:rgba(240,232,216,0.85);">' + txt + '</span>';
     }
   });
 }
