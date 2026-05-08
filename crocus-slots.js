@@ -18,7 +18,7 @@ var CONFIG = {
     { id: 3020188, name: 'Karina', serviceId: 13485771 }, // Master Lashes — Neuset
   ],
   // Сколько дней вперёд искать ближайший слот
-  lookAheadDays: 92,
+  lookAheadDays: 14,
 };
 
 // ── Helpers ──────────────────────────────────────────────────────
@@ -148,15 +148,16 @@ function init(){
     el.style.display = 'flex';
   });
 
-  var promises = CONFIG.staff.map(function(s){
-    return findNextAvailable(s.id, s.serviceId).then(function(result){
-      el_remove_loading(s.id);
-      injectMasterSlots(s.id, result);
-      return result;
+  // Мастеров обрабатываем последовательно — не параллельно
+  // чтобы не заспамить Alteg API preflight-запросами (CORS блокировка)
+  CONFIG.staff.reduce(function(chain, s){
+    return chain.then(function(){
+      return findNextAvailable(s.id, s.serviceId).then(function(result){
+        el_remove_loading(s.id);
+        injectMasterSlots(s.id, result);
+      });
     });
-  });
-
-  Promise.all(promises);
+  }, Promise.resolve());
 }
 
 function el_remove_loading(staffId){
