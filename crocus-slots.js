@@ -19,6 +19,9 @@ var CONFIG = {
   ],
   // Сколько дней вперёд искать ближайший слот
   lookAheadDays: 14,
+  // Для мастеров у которых расписание далеко вперёд
+  lookAheadDaysExtended: 90,
+  extendedStaff: [3020188], // Karina
 };
 
 // ── Helpers ──────────────────────────────────────────────────────
@@ -50,15 +53,55 @@ function fetchSlots(staffId, serviceId, date){
     }
   })
   .then(function(r){ return r.json(); })
-  .then(function(d){ return (d.success && Array.isArray(d.data)) ? d.data : []; })
+  .then(function(d){
+    // API может вернуть массив напрямую или {success, data}
+    if(Array.isArray(d)) return d;
+    if(d && d.success && Array.isArray(d.data)) return d.data;
+    return [];
+  })
   .catch(function(){ return []; });
 }
 
-// Находим ближайшую дату со слотами (today + lookAheadDays)
+// Получаем первую доступную дату через book_dates
+function fetchFirstAvailableDate(staffId, serviceId){
+  var url = CONFIG.apiBase + '?path=' + encodeURIComponent('book_dates/' + CONFIG.locationId)
+    + '&staff_id=' + staffId
+    + '&service_ids%5B%5D=' + serviceId;
+  return fetch(url, {
+    headers: {
+      'Authorization': 'Bearer ' + CONFIG.partnerToken,
+      'Accept': 'application/vnd.api.v2+json'
+    }
+  })
+  .then(function(r){ return r.json(); })
+  .then(function(d){
+    var dates = [];
+    if(d && d.booking_dates && Array.isArray(d.booking_dates)) dates = d.booking_dates;
+    else if(d && d.data && d.data.booking_dates) dates = d.data.booking_dates;
+    return dates.length > 0 ? dates[0] : null;
+  })
+  .catch(function(){ return null; });
+}
+
+// Находим ближайшую дату со слотами
 function findNextAvailable(staffId, serviceId){
+  var isExtended = CONFIG.extendedStaff.indexOf(staffId) >= 0;
+
+  if(isExtended){
+    // Для мастеров с расписанием далеко вперёд — сначала book_dates
+    return fetchFirstAvailableDate(staffId, serviceId).then(function(date){
+      if(!date) return null;
+      return fetchSlots(staffId, serviceId, date).then(function(slots){
+        if(slots.length > 0) return { date: date, slots: slots };
+        return null;
+      });
+    });
+  }
+
+  var days = CONFIG.lookAheadDays;
   var dates = [];
   var now = new Date();
-  for(var i = 0; i < CONFIG.lookAheadDays; i++){
+  for(var i = 0; i < days; i++){
     var d = new Date(now.getTime() + i * 86400000);
     dates.push(formatDate(d));
   }
