@@ -15,7 +15,7 @@ var CONFIG = {
     { id: 3020185, name: 'Diana',  serviceId: 13485754 }, // Nagelkorrektur
     { id: 3020186, name: 'Nelia',  serviceId: 13485753 }, // Maniküre+Gel
     { id: 3020187, name: 'Sofia',  serviceId: 13485753 }, // Maniküre+Gel
-    { id: 3020188, name: 'Karina', serviceId: 13485756 }, // Wimpern (French как заглушка)
+    { id: 3020188, name: 'Karina', serviceId: 13485771 }, // Master Lashes — Neuset
   ],
   // Сколько дней вперёд искать ближайший слот
   lookAheadDays: 30,
@@ -129,6 +129,11 @@ function injectCSS(){
     'border:1.5px solid rgba(123,45,78,0.20);border-top-color:#7B2D4E;border-radius:50%;',
     'animation:crwSlotSpin 0.7s linear infinite;}',
     '@keyframes crwSlotSpin{to{transform:rotate(360deg)}}',
+    '.crw3__master-slot-dot{display:inline-block;width:6px;height:6px;border-radius:50%;',
+    'background:#2ecc71;margin-right:4px;flex-shrink:0;vertical-align:middle;',
+    'animation:crwSlotPulse 2s ease-in-out infinite;}',
+    '.crw3__master-slot-dot.orange{background:#e67e22;}',
+    '.crw3__master-slot-dot.grey{background:rgba(240,232,216,0.25);animation:none;}',
   ].join('');
   document.head.appendChild(s);
 }
