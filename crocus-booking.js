@@ -670,16 +670,22 @@ function crocusClose() {
   document.body.style.width = '';
   document.body.classList.remove('crocus-open');
   // Восстанавливаем позицию синхронно
-  if (_scrollY > 0) {
-    window.scrollTo(0, _scrollY);
+  var savedY = _scrollY;
+  if (savedY > 0) {
+    window.scrollTo(0, savedY);
   }
   setTimeout(function(){
     document.getElementById('crocus-backdrop').classList.remove('open');
     crocusReset();
   }, 320);
-  // Clean up history entry if it's still there
+  // Clean up history entry — back() may fire popstate which scrolls, so re-restore after
   if (window.history && window.history.state && window.history.state.crocusOpen) {
     window.history.back();
+    if (savedY > 0) {
+      setTimeout(function(){ window.scrollTo(0, savedY); }, 0);
+      setTimeout(function(){ window.scrollTo(0, savedY); }, 50);
+      setTimeout(function(){ window.scrollTo(0, savedY); }, 150);
+    }
   }
 }
 
@@ -1645,6 +1651,26 @@ window.crocusOpenGutschein = function() {
   });
   crocusOpen();
   setTimeout(function(){ openGiftMode(); }, 80);
+};
+
+window.crocusOpenWimpern = function() {
+  // Tracking — click_wimpern
+  window.dataLayer = window.dataLayer || [];
+  window.dataLayer.push({
+    event: 'click_wimpern',
+    page_location: window.location.href,
+    cta_location: 'goodshine_badge',
+  });
+  crocusOpen();
+  setTimeout(function(){
+    // Выбрать Karina (staffId 3020188) + сразу категорию Wimpern
+    var karina = MASTERS.filter(function(m){ return m.id === 3020188; })[0];
+    var wimpernCat = CATEGORIES.filter(function(c){ return c.key === 'wimpern'; })[0];
+    if(karina && wimpernCat){
+      selectMaster(karina);
+      setTimeout(function(){ selectCategory(wimpernCat); }, 60);
+    }
+  }, 80);
 };
 
 // Мобильная кнопка — отдельная верстка

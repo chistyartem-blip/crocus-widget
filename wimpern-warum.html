@@ -2,7 +2,7 @@
 /* ─── WIMPERN WARUM wlw1 ─── */
 .wlw1,.wlw1*,.wlw1*::before,.wlw1*::after{box-sizing:border-box;margin:0;padding:0}
 
-.wlw1{width:100%;background:#0f0c17;font-family:'Cormorant Garamond',Georgia,serif;padding:100px 0 0;overflow:hidden;position:relative;}
+.wlw1{width:100%;background:#0f0c17;font-family:'Cormorant Garamond',Georgia,serif;padding:100px 0 0;overflow:clip;overflow-clip-margin:0px;position:relative;}
 .wlw1::before{content:'';position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse 70% 50% at 105% 0%,rgba(201,168,124,0.07) 0%,transparent 55%),radial-gradient(ellipse 50% 60% at -5% 100%,rgba(184,200,216,0.04) 0%,transparent 55%);}
 .wlw1::after{content:'';position:absolute;top:0;left:5%;right:5%;height:1px;background:linear-gradient(to right,transparent,rgba(184,200,216,0.18),rgba(201,168,124,0.12),transparent);}
 .wlw1__wrap{position:relative;z-index:1;width:100%;max-width:1160px;margin:0 auto;padding:0 48px;box-sizing:border-box;}
@@ -53,7 +53,7 @@
 .wlw1__cta-note{font-family:'DM Sans',Arial,sans-serif;font-size:9.5px;font-weight:300;color:rgba(240,232,216,0.28);text-align:center;margin-top:10px;}
 
 /* ── RIGHT ── */
-.wlw1__right{display:flex;flex-direction:column;gap:16px;min-width:0;overflow:hidden;}
+.wlw1__right{display:flex;flex-direction:column;gap:16px;min-width:0;}
 
 /* Master card */
 .wlw1__master-card{display:flex;align-items:center;gap:14px;background:rgba(255,255,255,0.04);border:1px solid rgba(184,200,216,0.10);border-radius:16px;padding:14px 16px;transition:border-color 0.2s,box-shadow 0.2s;cursor:pointer;}
@@ -83,7 +83,7 @@
 .wlw1__mood-title{font-family:'DM Sans',Arial,sans-serif;font-size:11px;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;color:rgba(184,200,216,0.35);margin-bottom:14px;}
 .wlw1__mood-q{font-size:20px;font-weight:300;color:#f0e8d8;line-height:1.25;margin-bottom:18px;}
 .wlw1__mood-q em{color:#c9a87c;font-style:italic;}
-.wlw1__mood-opts{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.wlw1__mood-opts{display:grid;grid-template-columns:1fr 1fr;gap:8px;width:100%;}
 .wlw1__mood-opt{position:relative;border:2px solid transparent;border-radius:14px;cursor:pointer;overflow:hidden;padding:0;background:none;height:160px;transition:all 0.2s;}
 .wlw1__mood-opt:hover{border-color:rgba(201,168,124,0.55);transform:translateY(-2px);box-shadow:0 6px 20px rgba(201,168,124,0.18);}
 .wlw1__mood-opt.sel{border-color:#c9a87c;box-shadow:0 0 0 1px #c9a87c,0 6px 24px rgba(201,168,124,0.28);}
@@ -338,7 +338,7 @@
       </div>
 
       <!-- Goodshine badge -->
-      <div class="wlw1__gs-badge wlw1-reveal" onclick="if(typeof crocusOpen==='function')crocusOpen();wlw1Confetti(this);">
+      <div class="wlw1__gs-badge wlw1-reveal" onclick="if(typeof crocusOpenWimpern==='function')crocusOpenWimpern();wlw1Confetti(this);">
         <div class="wlw1__gs-icon">
           <svg viewBox="0 0 24 24"><path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" stroke-linejoin="round"/></svg>
         </div>
