@@ -836,48 +836,60 @@ function loadMasterSlot(staffId) {
   var el = document.getElementById('cw-slot-' + staffId);
   if (!el) return;
 
-  var dates = [];
-  var now = new Date();
-  for (var i = 0; i < 30; i++) {
-    var d = new Date(now.getTime() + i * 86400000);
-    dates.push(d.getFullYear() + '-' + pad2(d.getMonth()+1) + '-' + pad2(d.getDate()));
-  }
-
   function pad2(n) { return n < 10 ? '0'+n : String(n); }
   function fmtDate(ds) {
-    var today = dates[0]; var tom = dates[1];
+    var today = pad2fmt(new Date());
+    var tom   = pad2fmt(new Date(Date.now() + 86400000));
     if (ds === today) return 'heute';
     if (ds === tom)   return 'morgen';
     var days = ['So','Mo','Di','Mi','Do','Fr','Sa'];
     var dt = new Date(ds); return days[dt.getDay()]+', '+pad2(dt.getDate())+'.'+pad2(dt.getMonth()+1)+'.';
   }
+  function pad2fmt(d) {
+    return d.getFullYear()+'-'+pad2(d.getMonth()+1)+'-'+pad2(d.getDate());
+  }
 
-  // последовательно ищем первую дату со слотами
-  dates.reduce(function(p, date) {
-    return p.then(function(found) {
-      if (found) return found;
-      return apiGet('/book_times/' + CONFIG.locationId + '/' + staffId + '/' + date, { 'service_ids[]': serviceId })
-        .then(function(res) {
-          var slots = Array.isArray(res) ? res : (res.success && Array.isArray(res.data)) ? res.data : [];
-          return slots.length ? { date: date, slots: slots } : null;
-        }).catch(function(){ return null; });
+  // Шаг 1: book_dates — сразу получаем доступные даты (1 запрос)
+  apiGet('/book_dates/' + CONFIG.locationId, { staff_id: staffId, 'service_ids[]': serviceId })
+    .then(function(res) {
+      var dates = [];
+      if (res && Array.isArray(res.booking_dates)) dates = res.booking_dates;
+      else if (res && res.data && Array.isArray(res.data.booking_dates)) dates = res.data.booking_dates;
+
+      // Fallback: если book_dates не дал результат — ищем в ближайших 14 днях
+      if (!dates.length) {
+        var fallback = [];
+        for (var i = 0; i < 14; i++) {
+          fallback.push(pad2fmt(new Date(Date.now() + i * 86400000)));
+        }
+        dates = fallback;
+      }
+
+      // Шаг 2: book_times только для первой доступной даты (1 запрос)
+      var firstDate = dates[0];
+      return apiGet('/book_times/' + CONFIG.locationId + '/' + staffId + '/' + firstDate, { 'service_ids[]': serviceId })
+        .then(function(res2) {
+          var slots = Array.isArray(res2) ? res2 : (res2 && res2.success && Array.isArray(res2.data)) ? res2.data : [];
+          return slots.length ? { date: firstDate, slots: slots } : null;
+        });
+    })
+    .catch(function(){ return null; })
+    .then(function(result) {
+      if (!el) return;
+      if (!result) {
+        el.innerHTML = '<span class="cw-master-slot-dot grey"></span><span style="color:rgba(240,232,216,0.55);">Auf Anfrage</span>';
+      } else {
+        var label = fmtDate(result.date);
+        var first = result.slots[0] ? result.slots[0].time : '';
+        var count = result.slots.length;
+        var isToday = result.date === pad2fmt(new Date());
+        var dotCls = (isToday && count <= 3) ? 'orange' : '';
+        var txt = first ? label + ' · ab ' + first + ' Uhr' : label;
+        if (isToday && count <= 3) txt += ' · letzter Platz';
+        el.innerHTML = '<span class="cw-master-slot-dot ' + dotCls + '"></span><span style="color:rgba(240,232,216,0.85);">' + txt + '</span>';
+      }
     });
-  }, Promise.resolve(null)).then(function(result) {
-    if (!el) return;
-    if (!result) {
-      el.innerHTML = '<span class="cw-master-slot-dot grey"></span><span style="color:rgba(240,232,216,0.55);">Auf Anfrage</span>';
-    } else {
-      var label = fmtDate(result.date);
-      var first = result.slots[0] ? result.slots[0].time : '';
-      var count = result.slots.length;
-      var isToday = result.date === dates[0];
-      var dotCls = (isToday && count <= 3) ? 'orange' : '';
-      var txt = first ? label + ' · ab ' + first + ' Uhr' : label;
-      if (isToday && count <= 3) txt += ' · letzter Platz';
-      el.innerHTML = '<span class="cw-master-slot-dot ' + dotCls + '"></span><span style="color:rgba(240,232,216,0.85);">' + txt + '</span>';
-    }
-  });
-}
+}}
 
 function selectMaster(m, meta) {
   cw.master = m;
