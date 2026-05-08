@@ -1,0 +1,527 @@
+<style>
+/* ─── WIMPERN WARUM wlw1 ─── */
+.wlw1,.wlw1*,.wlw1*::before,.wlw1*::after{box-sizing:border-box;margin:0;padding:0}
+
+.wlw1{width:100%;background:#0f0c17;font-family:'Cormorant Garamond',Georgia,serif;padding:100px 0 0;overflow:hidden;position:relative;}
+.wlw1::before{content:'';position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse 70% 50% at 105% 0%,rgba(201,168,124,0.07) 0%,transparent 55%),radial-gradient(ellipse 50% 60% at -5% 100%,rgba(184,200,216,0.04) 0%,transparent 55%);}
+.wlw1::after{content:'';position:absolute;top:0;left:5%;right:5%;height:1px;background:linear-gradient(to right,transparent,rgba(184,200,216,0.18),rgba(201,168,124,0.12),transparent);}
+.wlw1__wrap{position:relative;z-index:1;width:100%;max-width:1160px;margin:0 auto;padding:0 48px;box-sizing:border-box;}
+
+.wlw1__pill{display:inline-flex;align-items:center;gap:8px;background:rgba(201,168,124,0.08);border:1px solid rgba(201,168,124,0.22);color:#c9a87c;font-family:'DM Sans',Arial,sans-serif;font-size:9.5px;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;padding:6px 18px;border-radius:50px;margin-bottom:24px;}
+.wlw1__pill-dot{width:4px;height:4px;border-radius:50%;background:#c9a87c;flex-shrink:0;animation:wlw1pulse 2.5s ease-in-out infinite;}
+@keyframes wlw1pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.3;transform:scale(0.6)}}
+
+.wlw1__title{font-size:clamp(34px,4vw,58px);font-weight:300;line-height:1.04;color:#f0e8d8;letter-spacing:-0.03em;margin-bottom:14px;}
+.wlw1__title em{font-style:italic;color:#c9a87c;}
+.wlw1__subtitle{font-family:'DM Sans',Arial,sans-serif;font-size:14px;font-weight:300;color:rgba(240,232,216,0.40);line-height:1.75;max-width:520px;margin-bottom:64px;}
+
+.wlw1__layout{display:grid;grid-template-columns:1fr 1fr;gap:60px;align-items:start;}
+
+/* ── LEFT: Reasons + CTA ── */
+.wlw1__reasons{display:flex;flex-direction:column;margin-bottom:40px;}
+.wlw1__reason{display:flex;gap:20px;padding:22px 0;border-bottom:1px solid rgba(184,200,216,0.07);position:relative;cursor:pointer;}
+.wlw1__reason:first-child{padding-top:0;}
+.wlw1__reason:last-child{border-bottom:none;padding-bottom:0;}
+.wlw1__reason::before{content:'';position:absolute;left:-16px;right:-16px;top:0;bottom:0;border-radius:12px;background:rgba(201,168,124,0.04);opacity:0;transition:opacity 0.2s;pointer-events:none;}
+.wlw1__reason:hover::before{opacity:1;}
+.wlw1__reason-num{flex-shrink:0;width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,rgba(201,168,124,0.12),rgba(201,168,124,0.05));border:1px solid rgba(201,168,124,0.22);display:flex;align-items:center;justify-content:center;font-family:'DM Sans',Arial,sans-serif;font-size:10px;font-weight:700;color:#c9a87c;margin-top:1px;transition:all 0.3s;}
+.wlw1__reason:hover .wlw1__reason-num,.wlw1__reason.open .wlw1__reason-num{background:linear-gradient(135deg,#c9a87c,#a8845a);color:#06040a;border-color:#c9a87c;transform:scale(1.1);}
+.wlw1__reason-title{font-size:17px;font-weight:400;color:#f0e8d8;line-height:1.25;margin-bottom:5px;}
+.wlw1__reason-text{font-family:'DM Sans',Arial,sans-serif;font-size:12px;font-weight:300;color:rgba(240,232,216,0.42);line-height:1.65;}
+.wlw1__reason-toggle{margin-left:auto;flex-shrink:0;width:24px;height:24px;border-radius:50%;border:1px solid rgba(201,168,124,0.22);display:flex;align-items:center;justify-content:center;color:#c9a87c;font-size:14px;font-weight:300;transition:all 0.25s;align-self:center;}
+.wlw1__reason:hover .wlw1__reason-toggle{border-color:#c9a87c;background:rgba(201,168,124,0.08);}
+.wlw1__reason.open .wlw1__reason-toggle{background:#c9a87c;border-color:#c9a87c;color:#06040a;transform:rotate(45deg);}
+.wlw1__reason-expand{max-height:0;overflow:hidden;transition:max-height 0.4s cubic-bezier(0.16,1,0.3,1),opacity 0.3s;opacity:0;}
+.wlw1__reason.open .wlw1__reason-expand{max-height:200px;opacity:1;}
+.wlw1__reason-detail{font-family:'DM Sans',Arial,sans-serif;font-size:11.5px;color:rgba(240,232,216,0.55);line-height:1.7;padding:10px 0 4px;border-top:1px solid rgba(201,168,124,0.09);margin-top:8px;}
+.wlw1__reason-detail strong{color:#c9a87c;font-weight:600;}
+
+/* CTA Box */
+.wlw1__cta-box{background:linear-gradient(145deg,rgba(201,168,124,0.09) 0%,rgba(201,168,124,0.04) 100%);border:1px solid rgba(201,168,124,0.16);border-radius:22px;padding:26px 26px 22px;}
+.wlw1__cta-label{font-family:'DM Sans',Arial,sans-serif;font-size:9px;font-weight:700;letter-spacing:0.16em;text-transform:uppercase;color:rgba(201,168,124,0.45);margin-bottom:8px;}
+.wlw1__cta-headline{font-size:22px;font-weight:300;color:#f0e8d8;line-height:1.2;margin-bottom:6px;}
+.wlw1__cta-headline em{font-style:italic;color:#c9a87c;}
+.wlw1__cta-sub{font-family:'DM Sans',Arial,sans-serif;font-size:12px;font-weight:300;color:rgba(240,232,216,0.38);margin-bottom:20px;line-height:1.55;}
+.wlw1__cta-btn-wrap{position:relative;display:inline-block;}
+.wlw1__cta-btn-ring{position:absolute;inset:-4px;border-radius:50px;border:1.5px solid rgba(201,168,124,0.35);animation:wlw1ring 2s ease-out infinite;}
+.wlw1__cta-btn-ring:nth-child(2){animation-delay:.7s;}
+@keyframes wlw1ring{0%{transform:scale(1);opacity:.6}100%{transform:scale(1.6);opacity:0}}
+.wlw1__cta-btn{display:inline-flex;align-items:center;justify-content:center;gap:9px;background:linear-gradient(135deg,#c9a87c 0%,#a8845a 100%);color:#06040a!important;font-family:'DM Sans',Arial,sans-serif;font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;padding:12px 28px;border-radius:50px;border:none!important;cursor:pointer;text-decoration:none!important;box-shadow:0 8px 24px rgba(201,168,124,0.30);transition:transform 0.22s,box-shadow 0.22s;position:relative;overflow:hidden;}
+.wlw1__cta-btn::before{content:'';position:absolute;top:0;left:-100%;width:55%;height:100%;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.18),transparent);transition:left 0.5s ease;}
+.wlw1__cta-btn:hover::before{left:160%;}
+.wlw1__cta-btn:hover{transform:translateY(-2px);box-shadow:0 16px 40px rgba(201,168,124,0.45);}
+.wlw1__cta-note{font-family:'DM Sans',Arial,sans-serif;font-size:9.5px;font-weight:300;color:rgba(240,232,216,0.28);text-align:center;margin-top:10px;}
+
+/* ── RIGHT ── */
+.wlw1__right{display:flex;flex-direction:column;gap:16px;min-width:0;overflow:hidden;}
+
+/* Master card */
+.wlw1__master-card{display:flex;align-items:center;gap:14px;background:rgba(255,255,255,0.04);border:1px solid rgba(184,200,216,0.10);border-radius:16px;padding:14px 16px;transition:border-color 0.2s,box-shadow 0.2s;cursor:pointer;}
+.wlw1__master-card:hover{border-color:rgba(201,168,124,0.30);box-shadow:0 4px 20px rgba(201,168,124,0.10);}
+.wlw1__master-avatar{width:52px;height:52px;border-radius:50%;overflow:hidden;flex-shrink:0;border:2px solid rgba(201,168,124,0.25);}
+.wlw1__master-avatar img{width:100%;height:100%;object-fit:cover;object-position:center top;display:block;}
+.wlw1__master-info{flex:1;min-width:0;}
+.wlw1__master-name{font-family:'DM Sans',Arial,sans-serif;font-size:14px;font-weight:600;color:#f0e8d8;margin-bottom:2px;}
+.wlw1__master-spec{font-family:'DM Sans',Arial,sans-serif;font-size:10.5px;color:rgba(240,232,216,0.38);}
+.wlw1__master-slot{font-family:'DM Sans',Arial,sans-serif;font-size:10.5px;text-align:right;flex-shrink:0;}
+.wlw1__master-slot-dot{display:inline-block;width:6px;height:6px;border-radius:50%;background:#2ecc71;margin-right:5px;vertical-align:middle;}
+.wlw1__master-slot-dot.orange{background:#e67e22;}
+
+/* Social proof ticker */
+.wlw1__ticker-wrap{overflow:hidden;border-radius:12px;border:1px solid rgba(184,200,216,0.08);background:rgba(255,255,255,0.03);width:100%;}
+.wlw1__ticker{display:flex;gap:0;animation:wlw1ticker 22s linear infinite;will-change:transform;}
+.wlw1__ticker:hover{animation-play-state:paused;}
+.wlw1__ticker-item{display:flex;align-items:center;gap:8px;padding:10px 20px;border-right:1px solid rgba(184,200,216,0.07);white-space:nowrap;flex-shrink:0;}
+.wlw1__ticker-avatar{width:26px;height:26px;border-radius:50%;background:rgba(201,168,124,0.12);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:11px;}
+.wlw1__ticker-name{font-family:'DM Sans',Arial,sans-serif;font-size:11px;font-weight:600;color:#f0e8d8;}
+.wlw1__ticker-text{font-family:'DM Sans',Arial,sans-serif;font-size:11px;color:rgba(240,232,216,0.40);}
+.wlw1__ticker-stars{font-size:9px;color:#c9a87c;}
+@keyframes wlw1ticker{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
+
+/* Mood picker */
+.wlw1__mood{background:rgba(255,255,255,0.03);border:1px solid rgba(184,200,216,0.10);border-radius:22px;padding:24px;width:100%;}
+.wlw1__mood-title{font-family:'DM Sans',Arial,sans-serif;font-size:11px;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;color:rgba(184,200,216,0.35);margin-bottom:14px;}
+.wlw1__mood-q{font-size:20px;font-weight:300;color:#f0e8d8;line-height:1.25;margin-bottom:18px;}
+.wlw1__mood-q em{color:#c9a87c;font-style:italic;}
+.wlw1__mood-opts{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.wlw1__mood-opt{position:relative;border:2px solid transparent;border-radius:14px;cursor:pointer;overflow:hidden;padding:0;background:none;aspect-ratio:1/1;transition:all 0.2s;}
+.wlw1__mood-opt:hover{border-color:rgba(201,168,124,0.55);transform:translateY(-2px);box-shadow:0 6px 20px rgba(201,168,124,0.18);}
+.wlw1__mood-opt.sel{border-color:#c9a87c;box-shadow:0 0 0 1px #c9a87c,0 6px 24px rgba(201,168,124,0.28);}
+.wlw1__mood-img{width:100%;height:100%;object-fit:cover;object-position:center;display:block;border-radius:12px;filter:brightness(0.78) saturate(0.80);}
+.wlw1__mood-opt:hover .wlw1__mood-img,.wlw1__mood-opt.sel .wlw1__mood-img{filter:brightness(0.92) saturate(1);}
+.wlw1__mood-overlay{position:absolute;bottom:0;left:0;right:0;padding:10px 12px;background:linear-gradient(to top,rgba(6,4,10,0.85) 0%,rgba(6,4,10,0.30) 70%,transparent 100%);border-radius:0 0 12px 12px;}
+.wlw1__mood-label{font-family:'DM Sans',Arial,sans-serif;font-size:11px;font-weight:600;color:#f0e8d8;display:block;line-height:1.2;}
+.wlw1__mood-sub{font-family:'DM Sans',Arial,sans-serif;font-size:9px;color:rgba(240,232,216,0.55);display:block;margin-top:1px;}
+.wlw1__mood-result{margin-top:16px;padding:14px 16px;background:linear-gradient(135deg,rgba(201,168,124,0.09),rgba(201,168,124,0.04));border-radius:12px;border:1px solid rgba(201,168,124,0.18);display:none;}
+.wlw1__mood-result.show{display:block;animation:wlw1fadein 0.35s ease;}
+@keyframes wlw1fadein{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.wlw1__mood-result-text{font-size:15px;font-weight:300;color:#f0e8d8;margin-bottom:10px;line-height:1.4;}
+.wlw1__mood-result-text em{color:#c9a87c;font-style:italic;}
+.wlw1__mood-result-btn{display:inline-flex;align-items:center;gap:7px;background:linear-gradient(135deg,#c9a87c,#a8845a);color:#06040a;font-family:'DM Sans',Arial,sans-serif;font-size:10px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;padding:9px 20px;border-radius:50px;border:none;cursor:pointer;transition:all 0.2s;}
+.wlw1__mood-result-btn:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(201,168,124,0.35);}
+
+/* Stats */
+.wlw1__stats{display:grid;grid-template-columns:repeat(4,1fr);gap:0;background:rgba(255,255,255,0.03);border:1px solid rgba(184,200,216,0.09);border-radius:18px;overflow:hidden;}
+.wlw1__stat{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:18px 8px;border-right:1px solid rgba(184,200,216,0.07);position:relative;overflow:hidden;}
+.wlw1__stat:last-child{border-right:none;}
+.wlw1__stat::before{content:'';position:absolute;inset:0;background:rgba(201,168,124,0.04);opacity:0;transition:opacity 0.2s;}
+.wlw1__stat:hover::before{opacity:1;}
+.wlw1__stat-val{font-size:22px;font-weight:300;color:#c9a87c;line-height:1;}
+.wlw1__stat-lbl{font-family:'DM Sans',Arial,sans-serif;font-size:9px;color:rgba(240,232,216,0.35);text-align:center;line-height:1.4;margin-top:4px;}
+
+/* Promise */
+.wlw1__promise{background:linear-gradient(145deg,rgba(201,168,124,0.10) 0%,rgba(184,200,216,0.04) 100%);border:1px solid rgba(201,168,124,0.16);border-radius:22px;padding:28px 26px;position:relative;overflow:hidden;}
+.wlw1__promise::before{content:'';position:absolute;top:-40px;right:-40px;width:160px;height:160px;border-radius:50%;background:radial-gradient(circle,rgba(201,168,124,0.12) 0%,transparent 70%);pointer-events:none;}
+.wlw1__promise-label{font-family:'DM Sans',Arial,sans-serif;font-size:9px;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;color:rgba(201,168,124,0.50);margin-bottom:10px;}
+.wlw1__promise-text{font-size:22px;font-weight:300;color:#f0e8d8;line-height:1.3;margin-bottom:18px;position:relative;z-index:1;}
+.wlw1__promise-text em{color:#c9a87c;font-style:italic;}
+.wlw1__promise-items{display:flex;flex-direction:column;gap:9px;position:relative;z-index:1;}
+.wlw1__promise-item{display:flex;align-items:center;gap:10px;font-family:'DM Sans',Arial,sans-serif;font-size:11.5px;color:rgba(240,232,216,0.55);}
+.wlw1__promise-item::before{content:'✓';color:#c9a87c;font-weight:700;font-size:11px;flex-shrink:0;}
+
+/* Scroll-reveal */
+.wlw1-reveal{opacity:0;transform:translateY(28px);transition:opacity 0.65s ease,transform 0.65s ease;}
+.wlw1-reveal.in{opacity:1;transform:none;}
+
+/* Confetti */
+.wlw1__confetti-dot{position:fixed;pointer-events:none;border-radius:50%;z-index:9999;animation:wlw1confetti linear forwards;}
+@keyframes wlw1confetti{0%{opacity:1;transform:translateY(0) rotate(0deg)}100%{opacity:0;transform:translateY(120px) rotate(360deg)}}
+
+/* ── FINALE STRIP ── */
+.wlw1__finale{position:relative;margin-top:80px;background:linear-gradient(180deg,#0f0c17 0%,#1a0e1c 12%,#2a1020 60%,#06040a 100%);overflow:hidden;}
+.wlw1__finale::before{content:'';position:absolute;inset:0;background:url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none'%3E%3Cg fill='%23c9a87c' fill-opacity='0.025'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");pointer-events:none;}
+.wlw1__finale-inner{position:relative;z-index:1;display:flex;align-items:center;justify-content:space-between;gap:32px;padding:56px 48px;max-width:1160px;margin:0 auto;}
+.wlw1__finale-eyebrow{font-family:'DM Sans',Arial,sans-serif;font-size:9px;font-weight:700;letter-spacing:0.20em;text-transform:uppercase;color:rgba(240,232,216,0.30);margin-bottom:12px;}
+.wlw1__finale-title{font-size:clamp(28px,3.5vw,46px);font-weight:300;color:#f0e8d8;line-height:1.1;letter-spacing:-0.02em;}
+.wlw1__finale-title em{font-style:italic;color:#c9a87c;}
+.wlw1__finale-right{display:flex;flex-direction:column;align-items:flex-end;gap:14px;flex-shrink:0;}
+.wlw1__finale-btn{display:inline-flex;align-items:center;gap:10px;background:linear-gradient(135deg,#c9a87c,#a8845a);color:#06040a!important;font-family:'DM Sans',Arial,sans-serif;font-size:12px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;padding:16px 36px;border-radius:50px;border:none;cursor:pointer;text-decoration:none!important;box-shadow:0 8px 32px rgba(201,168,124,0.30);transition:all 0.25s;}
+.wlw1__finale-btn:hover{transform:translateY(-3px) scale(1.02);box-shadow:0 16px 48px rgba(201,168,124,0.50);}
+.wlw1__finale-note{font-family:'DM Sans',Arial,sans-serif;font-size:10px;color:rgba(240,232,216,0.28);text-align:right;}
+.wlw1__finale-orbs{position:absolute;inset:0;pointer-events:none;overflow:hidden;}
+.wlw1__finale-orb{position:absolute;border-radius:50%;filter:blur(60px);opacity:0.20;}
+.wlw1__finale-orb:nth-child(1){width:300px;height:300px;background:#c9a87c;top:-100px;right:10%;}
+.wlw1__finale-orb:nth-child(2){width:200px;height:200px;background:rgba(184,200,216,0.15);bottom:-80px;left:20%;}
+
+/* Responsive */
+@media(max-width:960px){
+  .wlw1{padding:64px 0 0;}
+  .wlw1__wrap{padding:0 16px!important;}
+  .wlw1__layout{grid-template-columns:1fr!important;gap:44px;}
+  .wlw1__subtitle{margin-bottom:40px;}
+  .wlw1__finale-inner{flex-direction:column;align-items:flex-start;padding:44px 24px;}
+  .wlw1__finale-right{align-items:flex-start;}
+  .wlw1__finale-note{text-align:left;}
+}
+@media(max-width:600px){
+  .wlw1{padding:52px 0 0;}
+  .wlw1__wrap{padding:0 14px!important;}
+  .wlw1__title{font-size:28px;}
+  .wlw1__stats{grid-template-columns:repeat(2,1fr);}
+  .wlw1__stat:nth-child(2){border-right:none;}
+  .wlw1__stat:nth-child(3){border-top:1px solid rgba(184,200,216,0.07);}
+  .wlw1__stat:nth-child(4){border-top:1px solid rgba(184,200,216,0.07);}
+  .wlw1__finale-inner{padding:36px 16px;}
+  .wlw1__finale-btn{padding:14px 28px;font-size:11px;}
+}
+</style>
+
+<section class="wlw1" id="wimpern-warum">
+<div class="wlw1__wrap">
+
+  <div class="wlw1__pill wlw1-reveal"><span class="wlw1__pill-dot"></span>Warum Karina</div>
+  <h2 class="wlw1__title wlw1-reveal">Wimpern, die wirklich<br><em>für dich gemacht sind</em></h2>
+  <p class="wlw1__subtitle wlw1-reveal">Kein Einheitslook — jedes Set wird individuell auf deine Augenform, deinen Lebensstil und deinen Wunsch abgestimmt.</p>
+
+  <div class="wlw1__layout">
+
+    <!-- LEFT: Reasons + CTA -->
+    <div>
+      <div class="wlw1__reasons wlw1-reveal">
+
+        <div class="wlw1__reason" onclick="wlw1ToggleReason(this)">
+          <div class="wlw1__reason-num">01</div>
+          <div style="flex:1;min-width:0;">
+            <div class="wlw1__reason-title">Individuelle Augenform-Analyse</div>
+            <div class="wlw1__reason-text">Kein Standard — Länge, Krümmung und Technik werden passend zu deinem Blick gewählt.</div>
+            <div class="wlw1__reason-expand">
+              <div class="wlw1__reason-detail">Vor jeder Behandlung analysiert Karina deine natürliche Augenform, den Winkel des Lides und die Dichte deiner Naturwimpern. Das Ergebnis: ein Set, das <strong>wie für dich gemacht</strong> wirkt — weil es das ist.</div>
+            </div>
+          </div>
+          <div class="wlw1__reason-toggle">+</div>
+        </div>
+
+        <div class="wlw1__reason" onclick="wlw1ToggleReason(this)">
+          <div class="wlw1__reason-num">02</div>
+          <div style="flex:1;min-width:0;">
+            <div class="wlw1__reason-title">3–4 Wochen Haltbarkeit</div>
+            <div class="wlw1__reason-text">Premium-Kleber und sorgfältige Vorbereitung — das Set hält, ohne Volumen zu verlieren.</div>
+            <div class="wlw1__reason-expand">
+              <div class="wlw1__reason-detail">Durch gründliche Entfettung und professionellen <strong>medizinischen Kleber</strong> haftet jede Verlängerung optimal. Das Ergebnis hält 3–4 Wochen — bei richtiger Pflege sogar länger. Auffüllung in 60–90 Min reicht völlig.</div>
+            </div>
+          </div>
+          <div class="wlw1__reason-toggle">+</div>
+        </div>
+
+        <div class="wlw1__reason" onclick="wlw1ToggleReason(this)">
+          <div class="wlw1__reason-num">03</div>
+          <div style="flex:1;min-width:0;">
+            <div class="wlw1__reason-title">Schonendes Premium-Material</div>
+            <div class="wlw1__reason-text">Nur leichte Faux-Mink-Wimpern und dermatologisch getestete Kleber — deine Naturwimpern bleiben gesund.</div>
+            <div class="wlw1__reason-expand">
+              <div class="wlw1__reason-detail">Keine schweren synthetischen Wimpern, die die Naturwimper belasten. Karina arbeitet mit <strong>Faux-Mink</strong> — federleicht, seidig, natürlich wirkend. Allergiker-freundlich, denn Kleber und Material sind dermatologisch getestet.</div>
+            </div>
+          </div>
+          <div class="wlw1__reason-toggle">+</div>
+        </div>
+
+        <div class="wlw1__reason" onclick="wlw1ToggleReason(this)">
+          <div class="wlw1__reason-num">04</div>
+          <div style="flex:1;min-width:0;">
+            <div class="wlw1__reason-title">Dein Look, dein Wunsch</div>
+            <div class="wlw1__reason-text">Schick ein Foto per WhatsApp — Karina setzt deinen Wunsch-Look 1:1 um.</div>
+            <div class="wlw1__reason-expand">
+              <div class="wlw1__reason-detail">Du willst einen bestimmten Look aus Instagram? Schick es einfach. Karina berät dich ehrlich, ob er zu deiner Augenform passt — und schlägt <strong>die beste Variante</strong> für dich vor. Kein Schema F.</div>
+            </div>
+          </div>
+          <div class="wlw1__reason-toggle">+</div>
+        </div>
+
+      </div>
+
+      <!-- CTA Box -->
+      <div class="wlw1__cta-box wlw1-reveal">
+        <div class="wlw1__cta-label">Nächster Schritt</div>
+        <div class="wlw1__cta-headline">Termin bei Karina in <em>2 Minuten</em></div>
+        <div class="wlw1__cta-sub">Online buchen — ohne Anruf, ohne Wartezeit.</div>
+        <div class="wlw1__cta-btn-wrap">
+          <div class="wlw1__cta-btn-ring"></div>
+          <div class="wlw1__cta-btn-ring"></div>
+          <a href="#" onclick="event.preventDefault();if(typeof crocusOpen==='function')crocusOpen();" class="wlw1__cta-btn">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="4" width="18" height="18" rx="2.5"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+            Jetzt Termin buchen
+          </a>
+        </div>
+        <div class="wlw1__cta-note">★★★★★ 5.0 · 200+ Kundinnen · kostenlose Beratung</div>
+      </div>
+    </div>
+
+    <!-- RIGHT: Interactive -->
+    <div class="wlw1__right">
+
+      <!-- Karina card -->
+      <div class="wlw1__master-card wlw1-reveal" onclick="if(typeof crocusOpen==='function')crocusOpen();">
+        <div class="wlw1__master-avatar">
+          <img src="https://cdn.jsdelivr.net/gh/chistyartem-blip/crocus-widget@b803e8c/assets/karina.jpg" alt="Karina" loading="lazy">
+        </div>
+        <div class="wlw1__master-info">
+          <div class="wlw1__master-name">Karina</div>
+          <div class="wlw1__master-spec">Wimpernverlängerung · Lifting · Brauen</div>
+        </div>
+        <div class="wlw1__master-slot" data-crw3-master-slots="3020188">
+          <span style="color:rgba(240,232,216,0.28);font-size:10px;">lädt…</span>
+        </div>
+      </div>
+
+      <!-- Ticker -->
+      <div class="wlw1__ticker-wrap wlw1-reveal">
+        <div class="wlw1__ticker">
+          <div class="wlw1__ticker-item"><div class="wlw1__ticker-avatar">👁</div><div><div class="wlw1__ticker-name">Lisa M.</div><div class="wlw1__ticker-text">hat gerade gebucht · Classic Wimpern</div></div><div class="wlw1__ticker-stars">★★★★★</div></div>
+          <div class="wlw1__ticker-item"><div class="wlw1__ticker-avatar">✨</div><div><div class="wlw1__ticker-name">Anna K.</div><div class="wlw1__ticker-text">hat gerade gebucht · 3D Volume</div></div><div class="wlw1__ticker-stars">★★★★★</div></div>
+          <div class="wlw1__ticker-item"><div class="wlw1__ticker-avatar">🌸</div><div><div class="wlw1__ticker-name">Julia R.</div><div class="wlw1__ticker-text">hat gerade gebucht · Wispy Wet-Look</div></div><div class="wlw1__ticker-stars">★★★★★</div></div>
+          <div class="wlw1__ticker-item"><div class="wlw1__ticker-avatar">💎</div><div><div class="wlw1__ticker-name">Sophie W.</div><div class="wlw1__ticker-text">hat gerade gebucht · 6D Mega Volume</div></div><div class="wlw1__ticker-stars">★★★★★</div></div>
+          <div class="wlw1__ticker-item"><div class="wlw1__ticker-avatar">👩</div><div><div class="wlw1__ticker-name">Maria S.</div><div class="wlw1__ticker-text">hat gerade gebucht · Wimpernlifting</div></div><div class="wlw1__ticker-stars">★★★★★</div></div>
+          <div class="wlw1__ticker-item"><div class="wlw1__ticker-avatar">🦋</div><div><div class="wlw1__ticker-name">Laura B.</div><div class="wlw1__ticker-text">hat gerade gebucht · Auffüllung Classic</div></div><div class="wlw1__ticker-stars">★★★★★</div></div>
+          <!-- дублируем для бесшовного скролла -->
+          <div class="wlw1__ticker-item"><div class="wlw1__ticker-avatar">👁</div><div><div class="wlw1__ticker-name">Lisa M.</div><div class="wlw1__ticker-text">hat gerade gebucht · Classic Wimpern</div></div><div class="wlw1__ticker-stars">★★★★★</div></div>
+          <div class="wlw1__ticker-item"><div class="wlw1__ticker-avatar">✨</div><div><div class="wlw1__ticker-name">Anna K.</div><div class="wlw1__ticker-text">hat gerade gebucht · 3D Volume</div></div><div class="wlw1__ticker-stars">★★★★★</div></div>
+          <div class="wlw1__ticker-item"><div class="wlw1__ticker-avatar">🌸</div><div><div class="wlw1__ticker-name">Julia R.</div><div class="wlw1__ticker-text">hat gerade gebucht · Wispy Wet-Look</div></div><div class="wlw1__ticker-stars">★★★★★</div></div>
+          <div class="wlw1__ticker-item"><div class="wlw1__ticker-avatar">💎</div><div><div class="wlw1__ticker-name">Sophie W.</div><div class="wlw1__ticker-text">hat gerade gebucht · 6D Mega Volume</div></div><div class="wlw1__ticker-stars">★★★★★</div></div>
+          <div class="wlw1__ticker-item"><div class="wlw1__ticker-avatar">👩</div><div><div class="wlw1__ticker-name">Maria S.</div><div class="wlw1__ticker-text">hat gerade gebucht · Wimpernlifting</div></div><div class="wlw1__ticker-stars">★★★★★</div></div>
+          <div class="wlw1__ticker-item"><div class="wlw1__ticker-avatar">🦋</div><div><div class="wlw1__ticker-name">Laura B.</div><div class="wlw1__ticker-text">hat gerade gebucht · Auffüllung Classic</div></div><div class="wlw1__ticker-stars">★★★★★</div></div>
+        </div>
+      </div>
+
+      <!-- Mood Picker -->
+      <div class="wlw1__mood wlw1-reveal">
+        <div class="wlw1__mood-title">Schnell-Beratung · 5 Sekunden</div>
+        <div class="wlw1__mood-q">Welchen Look willst du <em>heute?</em></div>
+        <div class="wlw1__mood-opts">
+          <button class="wlw1__mood-opt" data-idx="0" onclick="wlw1PickMood(this)">
+            <img class="wlw1__mood-img" src="https://cdn.jsdelivr.net/gh/chistyartem-blip/crocus-widget@main/assets/wlt1-mood-classic.webp" alt="Classic" loading="lazy">
+            <div class="wlw1__mood-overlay">
+              <span class="wlw1__mood-label">Classic</span>
+              <span class="wlw1__mood-sub">Natürlich, 1:1</span>
+            </div>
+          </button>
+          <button class="wlw1__mood-opt" data-idx="1" onclick="wlw1PickMood(this)">
+            <img class="wlw1__mood-img" src="https://cdn.jsdelivr.net/gh/chistyartem-blip/crocus-widget@main/assets/wlt1-mood-3d.webp" alt="3D Volume" loading="lazy">
+            <div class="wlw1__mood-overlay">
+              <span class="wlw1__mood-label">3D Volume</span>
+              <span class="wlw1__mood-sub">Voluminös, weich</span>
+            </div>
+          </button>
+          <button class="wlw1__mood-opt" data-idx="2" onclick="wlw1PickMood(this)">
+            <img class="wlw1__mood-img" src="https://cdn.jsdelivr.net/gh/chistyartem-blip/crocus-widget@main/assets/wlt1-mood-6d.webp" alt="6D Mega Volume" loading="lazy">
+            <div class="wlw1__mood-overlay">
+              <span class="wlw1__mood-label">6D Mega Vol.</span>
+              <span class="wlw1__mood-sub">Dramatisch, dicht</span>
+            </div>
+          </button>
+          <button class="wlw1__mood-opt" data-idx="3" onclick="wlw1PickMood(this)">
+            <img class="wlw1__mood-img" src="https://cdn.jsdelivr.net/gh/chistyartem-blip/crocus-widget@main/assets/wlt1-mood-wispy.webp" alt="Wispy" loading="lazy">
+            <div class="wlw1__mood-overlay">
+              <span class="wlw1__mood-label">Wispy ✦</span>
+              <span class="wlw1__mood-sub">Trendy 2025</span>
+            </div>
+          </button>
+        </div>
+        <div class="wlw1__mood-result" id="wlw1MoodResult">
+          <div class="wlw1__mood-result-text" id="wlw1MoodText"></div>
+          <button class="wlw1__mood-result-btn" onclick="if(typeof crocusOpen==='function')crocusOpen();">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+            <span id="wlw1MoodBtnText">Termin buchen</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Stats -->
+      <div class="wlw1__stats wlw1-reveal">
+        <div class="wlw1__stat">
+          <div class="wlw1__stat-val" data-count="5.0" data-suffix="★">5.0★</div>
+          <div class="wlw1__stat-lbl">Google<br>Bewertung</div>
+        </div>
+        <div class="wlw1__stat">
+          <div class="wlw1__stat-val" data-count="200" data-suffix="+">200+</div>
+          <div class="wlw1__stat-lbl">Kundinnen<br>insgesamt</div>
+        </div>
+        <div class="wlw1__stat">
+          <div class="wlw1__stat-val" data-count="4" data-suffix=" Wo">4 Wo</div>
+          <div class="wlw1__stat-lbl">Haltbarkeit<br>garantiert</div>
+        </div>
+        <div class="wlw1__stat">
+          <div class="wlw1__stat-val" data-count="4" data-suffix=" Tech">4 Tech</div>
+          <div class="wlw1__stat-lbl">Techniken<br>verfügbar</div>
+        </div>
+      </div>
+
+      <!-- Promise -->
+      <div class="wlw1__promise wlw1-reveal">
+        <div class="wlw1__promise-label">Karinas Versprechen</div>
+        <div class="wlw1__promise-text">Du gehst raus mit einem Blick,<br>der <em>alle verzaubert</em></div>
+        <div class="wlw1__promise-items">
+          <div class="wlw1__promise-item">Set hält 3–4 Wochen — garantiert</div>
+          <div class="wlw1__promise-item">Nicht zufrieden? Karina korrigiert kostenlos</div>
+          <div class="wlw1__promise-item">Keine versteckten Kosten, klare Preise</div>
+          <div class="wlw1__promise-item">Dein Termin — pünktlich, entspannt, persönlich</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- FINALE STRIP -->
+<div class="wlw1__finale">
+  <div class="wlw1__finale-orbs">
+    <div class="wlw1__finale-orb"></div>
+    <div class="wlw1__finale-orb"></div>
+  </div>
+  <div class="wlw1__finale-inner">
+    <div>
+      <div class="wlw1__finale-eyebrow">Crocus Beauty Studio · Göppingen</div>
+      <h2 class="wlw1__finale-title" id="wlw1FinaleTitle">Bereit für deinen<br><em>strahlendsten Blick?</em></h2>
+    </div>
+    <div class="wlw1__finale-right">
+      <a href="#" onclick="event.preventDefault();wlw1FinaleClick(this);" class="wlw1__finale-btn">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="4" width="18" height="18" rx="2.5"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+        Termin bei Karina
+      </a>
+      <div class="wlw1__finale-note">Online in 2 Minuten · Pflegstraße 2, Göppingen</div>
+    </div>
+  </div>
+</div>
+
+</section>
+
+<script>
+(function(){
+
+/* Scroll Reveal */
+function wlw1Observe(){
+  var els=document.querySelectorAll('.wlw1-reveal');
+  if(!els.length) return;
+  if('IntersectionObserver' in window){
+    var io=new IntersectionObserver(function(entries){
+      entries.forEach(function(e){
+        if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target);}
+      });
+    },{threshold:0.12,rootMargin:'0px 0px -40px 0px'});
+    els.forEach(function(el,i){
+      el.style.transitionDelay=(i*0.07)+'s';
+      io.observe(el);
+    });
+  } else {
+    els.forEach(function(el){el.classList.add('in');});
+  }
+}
+
+/* Counter animation */
+function wlw1AnimateCounters(){
+  document.querySelectorAll('.wlw1__stat-val[data-count]').forEach(function(el){
+    var target=parseFloat(el.getAttribute('data-count'));
+    var suffix=el.getAttribute('data-suffix')||'';
+    var isFloat=target%1!==0;
+    var duration=1200,start=null;
+    var io=new IntersectionObserver(function(entries){
+      if(!entries[0].isIntersecting) return;
+      io.disconnect();
+      function step(ts){
+        if(!start) start=ts;
+        var prog=Math.min((ts-start)/duration,1);
+        var ease=1-Math.pow(1-prog,3);
+        var val=isFloat?(target*ease).toFixed(1):(Math.round(target*ease));
+        el.textContent=val+suffix;
+        if(prog<1) requestAnimationFrame(step);
+      }
+      requestAnimationFrame(step);
+    },{threshold:0.5});
+    io.observe(el);
+  });
+}
+
+/* Mood Picker */
+var wlw1MoodData=[
+  {text:'Perfekt für den Alltag — <em>Classic Lashes 1:1</em>. Natürliche Länge, klarer Blick ohne Mascara.',btn:'Classic buchen'},
+  {text:'Der Liebling unserer Kundinnen — <em>3D Volume</em>. Voller, weicher Look, der tagelang hält.',btn:'3D Volume buchen'},
+  {text:'Maximale Wirkung — <em>6D Mega Volume</em>. Glamour ohne Mascara, perfekt für Events.',btn:'6D Volume buchen'},
+  {text:'Der Trend 2025 — <em>Wispy Wet-Look</em>. Fluffig, unregelmäßig, sinnlich. Wie frisch vom Fotoshooting.',btn:'Wispy buchen'},
+];
+window.wlw1PickMood=function(el){
+  document.querySelectorAll('.wlw1__mood-opt').forEach(function(b){b.classList.remove('sel');});
+  el.classList.add('sel');
+  var idx=parseInt(el.getAttribute('data-idx'),10);
+  var d=wlw1MoodData[idx];
+  document.getElementById('wlw1MoodText').innerHTML=d.text;
+  document.getElementById('wlw1MoodBtnText').textContent=d.btn;
+  var res=document.getElementById('wlw1MoodResult');
+  res.classList.add('show');
+  wlw1Confetti(el);
+};
+
+/* Confetti */
+window.wlw1Confetti=function(origin){
+  var rect=origin?origin.getBoundingClientRect():{left:window.innerWidth/2,top:window.innerHeight/2,width:0,height:0};
+  var cx=rect.left+rect.width/2,cy=rect.top+rect.height/2;
+  var colors=['#c9a87c','#b8c8d8','#f0e8d8','#a8845a','#d4b896'];
+  for(var i=0;i<16;i++){
+    (function(){
+      var dot=document.createElement('div');
+      dot.className='wlw1__confetti-dot';
+      var size=3+Math.random()*5;
+      var angle=Math.random()*Math.PI*2;
+      var dist=40+Math.random()*80;
+      dot.style.cssText='left:'+(cx+Math.cos(angle)*dist-size/2)+'px;top:'+(cy+Math.sin(angle)*dist-40)+'px;width:'+size+'px;height:'+size+'px;background:'+colors[Math.floor(Math.random()*colors.length)]+';animation-duration:'+(0.6+Math.random()*0.5)+'s;animation-delay:'+(Math.random()*0.15)+'s;';
+      document.body.appendChild(dot);
+      setTimeout(function(){dot.parentNode&&dot.parentNode.removeChild(dot);},1200);
+    })();
+  }
+};
+
+/* Finale rotating titles */
+var wlw1Titles=[
+  ['Bereit für deinen','<em>strahlendsten Blick?</em>'],
+  ['Karina freut sich','<em>auf dich</em>'],
+  ['Classic, Volume, Wispy —','<em>dein Look, deine Wahl</em>'],
+  ['Göppingen hat','<em>seine Wimpern-Meisterin</em>'],
+];
+var wlw1fi=0;
+setInterval(function(){
+  wlw1fi=(wlw1fi+1)%wlw1Titles.length;
+  var el=document.getElementById('wlw1FinaleTitle');
+  if(!el) return;
+  el.style.opacity='0';el.style.transform='translateY(10px)';
+  setTimeout(function(){
+    el.innerHTML=wlw1Titles[wlw1fi][0]+'<br>'+wlw1Titles[wlw1fi][1];
+    el.style.transition='opacity 0.5s,transform 0.5s';
+    el.style.opacity='1';el.style.transform='none';
+  },400);
+},4500);
+
+window.wlw1FinaleClick=function(btn){
+  if(typeof crocusOpen==='function') crocusOpen();
+  wlw1Confetti(btn);
+};
+
+/* Parallax */
+window.addEventListener('scroll',function(){
+  var orbs=document.querySelectorAll('.wlw1__finale-orb');
+  var sy=window.scrollY;
+  orbs.forEach(function(o,i){o.style.transform='translateY('+(sy*(i===0?-0.08:0.05))+'px)';});
+},{passive:true});
+
+/* Accordion */
+window.wlw1ToggleReason=function(el){
+  var isOpen=el.classList.contains('open');
+  document.querySelectorAll('.wlw1__reason.open').forEach(function(r){
+    r.classList.remove('open');
+    r.querySelector('.wlw1__reason-toggle').textContent='+';
+  });
+  if(!isOpen){
+    el.classList.add('open');
+    el.querySelector('.wlw1__reason-toggle').textContent='+';
+  }
+};
+
+/* Init */
+if(document.readyState==='loading'){
+  document.addEventListener('DOMContentLoaded',function(){wlw1Observe();wlw1AnimateCounters();});
+} else {
+  wlw1Observe();wlw1AnimateCounters();
+}
+setTimeout(function(){wlw1Observe();wlw1AnimateCounters();},500);
+
+})();
+</script>
+
+<script src="https://cdn.jsdelivr.net/gh/chistyartem-blip/crocus-widget@c37c308/crocus-slots.js" defer></script>
