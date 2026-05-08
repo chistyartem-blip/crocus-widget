@@ -8,7 +8,7 @@ if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
 var CONFIG = {
   partnerToken: 'u8xzkdpkgfc73uektn64',
   locationId:   '1357963',
-  apiBase:      'https://api.alteg.io/api/v1',
+  apiBase:      'https://crocus-proxy.vercel.app/api/proxy',
   lang: 'de',
 };
 
@@ -111,14 +111,16 @@ var STILETTO_STAFF_IDS = [3020185];          // Diana only (Nagelverlängerung)
 
 // ── API ────────────────────────────────────────────────────────
 function apiGet(path, params) {
-  var url = CONFIG.apiBase + path;
+  // Proxy URL: /api/proxy?path=<endpoint>&<other params>
+  var cleanPath = path.replace(/^\//, '');
+  var url = CONFIG.apiBase + '?path=' + encodeURIComponent(cleanPath);
   if (params) {
     var qs = Object.keys(params).map(function(k) {
       var v = params[k];
       if (Array.isArray(v)) return v.map(function(i){ return encodeURIComponent(k+'[]')+'='+encodeURIComponent(i); }).join('&');
       return encodeURIComponent(k)+'='+encodeURIComponent(v);
     }).join('&');
-    if (qs) url += '?' + qs;
+    if (qs) url += '&' + qs;
   }
   var ctrl = new AbortController();
   var timer = setTimeout(function(){ ctrl.abort(); }, 10000);
@@ -132,7 +134,7 @@ function apiGet(path, params) {
 function apiPost(path, body) {
   var ctrl = new AbortController();
   var timer = setTimeout(function(){ ctrl.abort(); }, 10000);
-  return fetch(CONFIG.apiBase + path, {
+  return fetch(CONFIG.apiBase + '?path=' + encodeURIComponent(path.replace(/^\//, '')), {
     method: 'POST',
     signal: ctrl.signal,
     headers: {

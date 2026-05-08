@@ -9,7 +9,7 @@
 var CONFIG = {
   partnerToken: 'u8xzkdpkgfc73uektn64',
   locationId:   '1357963',
-  apiBase:      'https://api.alteg.io/api/v1',
+  apiBase:      'https://crocus-proxy.vercel.app/api/proxy',
   // Мастера и их основные услуги для проверки слотов
   staff: [
     { id: 3020185, name: 'Diana',  serviceId: 13485754 }, // Nagelkorrektur
@@ -40,8 +40,9 @@ function dateLabel(dateStr){
 }
 
 function fetchSlots(staffId, serviceId, date){
-  var url = CONFIG.apiBase + '/book_times/' + CONFIG.locationId + '/' + staffId + '/' + date
-    + '?service_ids[]=' + serviceId;
+  var endpoint = 'book_times/' + CONFIG.locationId + '/' + staffId + '/' + date;
+  var url = CONFIG.apiBase + '?path=' + encodeURIComponent(endpoint)
+    + '&service_ids%5B%5D=' + serviceId;
   return fetch(url, {
     headers: {
       'Authorization': 'Bearer ' + CONFIG.partnerToken,
