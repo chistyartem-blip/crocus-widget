@@ -2713,13 +2713,14 @@ if (document.readyState === 'loading') {
     '.cw-phone-wrap:focus-within{border-color:rgba(184,200,216,.55)!important;}' +
     '.cw-phone-wrap input{color:#f0e8d8!important;}' +
 
-    /* ── CTA кнопка — steel→gold как hero ── */
-    '.cw-btn-confirm{background:linear-gradient(108deg,#07050e 0%,#0e0c1e 16%,#b8c8d8 32%,#d4c4a8 44%,#f0e8d8 52%,#d4c4a8 60%,#b8c8d8 72%,#0e0c1e 88%,#07050e 100%)!important;background-size:280% 100%!important;color:#06040a!important;font-weight:700!important;box-shadow:0 6px 24px rgba(184,200,216,.40),0 2px 0 rgba(201,168,124,.20) inset!important;animation:wimpConfirmShine 6s ease-in-out infinite!important;}' +
-    '@keyframes wimpConfirmShine{0%{background-position:180% 0}100%{background-position:-180% 0}}' +
-    '.cw-btn-confirm:hover:not(:disabled){box-shadow:0 10px 32px rgba(184,200,216,.55),0 0 0 3px rgba(184,200,216,.18)!important;transform:translateY(-2px)!important;}' +
+    /* ── CTA кнопка — steel→gold, текст всегда белый ── */
+    '.cw-btn-confirm{background:linear-gradient(135deg,#8fa8bc 0%,#b8c8d8 35%,#c9a87c 65%,#d4b896 100%)!important;background-size:200% 100%!important;color:#fff!important;text-shadow:0 1px 3px rgba(0,0,0,.45)!important;font-weight:700!important;box-shadow:0 6px 24px rgba(184,200,216,.38),0 2px 0 rgba(201,168,124,.22) inset!important;animation:wimpConfirmShine 5s ease-in-out infinite!important;}' +
+    '@keyframes wimpConfirmShine{0%,100%{background-position:0% 0}50%{background-position:100% 0}}' +
+    '.cw-btn-confirm:hover:not(:disabled){background-position:100% 0!important;box-shadow:0 10px 32px rgba(184,200,216,.55),0 0 0 3px rgba(184,200,216,.20)!important;transform:translateY(-2px)!important;}' +
     '.cw-form-note{color:rgba(184,200,216,.28)!important;}' +
 
-    /* ── Consent ── */
+    /* ── Consent + чекбокс ── */
+    '.cw-consent input[type=checkbox]{accent-color:#b8c8d8!important;}' +
     '.cw-consent span{color:rgba(184,200,216,.70)!important;}' +
     '.cw-consent span a{color:#c9a87c!important;}' +
     '.cw-consent span a:hover{color:#f0e8d8!important;}' +
