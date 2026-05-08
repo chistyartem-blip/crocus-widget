@@ -18,7 +18,7 @@ var CONFIG = {
     { id: 3020188, name: 'Karina', serviceId: 13485771 }, // Master Lashes — Neuset
   ],
   // Сколько дней вперёд искать ближайший слот
-  lookAheadDays: 30,
+  lookAheadDays: 92,
 };
 
 // ── Helpers ──────────────────────────────────────────────────────
