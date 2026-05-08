@@ -1,0 +1,322 @@
+<style>
+.wak1*{box-sizing:border-box;margin:0;padding:0}
+.wak1{
+  background:#0f0c17;
+  padding:100px 0 120px;
+  position:relative;
+  overflow:hidden;
+  width:100%
+}
+/* Светлый градиент */
+.wak1::before{
+  content:'';
+  position:absolute;
+  inset:0;
+  pointer-events:none;
+  background:
+    radial-gradient(ellipse 80% 55% at 100% 10%, rgba(240,232,216,0.10) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 50% at 0% 90%, rgba(201,168,124,0.11) 0%, transparent 55%),
+    radial-gradient(ellipse 100% 40% at 50% 0%, rgba(184,200,216,0.07) 0%, transparent 50%)
+}
+/* Разделительная линия сверху */
+.wak1::after{
+  content:'';
+  position:absolute;
+  top:0;left:5%;right:5%;
+  height:1px;
+  background:linear-gradient(to right,transparent,rgba(184,200,216,0.18),transparent)
+}
+.wak1__wrap{max-width:1160px;margin:0 auto;padding:0 48px;position:relative;z-index:1;box-sizing:border-box}
+
+/* Pill */
+.wak1__pill{
+  display:inline-flex;align-items:center;gap:8px;
+  background:rgba(184,200,216,0.07);
+  border:1px solid rgba(184,200,216,0.20);
+  color:#b8c8d8;
+  font-family:'DM Sans',Arial,sans-serif;
+  font-size:9.5px;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;
+  padding:6px 18px;border-radius:50px;margin-bottom:24px
+}
+.wak1__pill-dot{
+  width:4px;height:4px;border-radius:50%;
+  background:#c9a87c;
+  animation:wak1pulse 2.5s ease-in-out infinite
+}
+@keyframes wak1pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.3;transform:scale(0.6)}}
+
+/* Header */
+.wak1__header{
+  display:flex;align-items:flex-end;justify-content:space-between;
+  margin-bottom:52px;gap:24px;flex-wrap:wrap
+}
+.wak1__title{
+  font-family:'Cormorant Garamond',Georgia,serif;
+  font-size:clamp(34px,4vw,58px);
+  font-weight:300;line-height:1.04;
+  color:#f0e8d8;
+  letter-spacing:-0.03em
+}
+.wak1__title em{font-style:italic;color:#c9a87c}
+.wak1__subtitle{
+  font-family:'DM Sans',Arial,sans-serif;
+  font-size:13px;font-weight:300;
+  color:rgba(240,232,216,0.40);
+  line-height:1.65;max-width:340px;text-align:right
+}
+
+/* Grid — 2 карточки */
+.wak1__grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:24px;
+  align-items:start
+}
+
+/* Card */
+.wak1__card{
+  border-radius:24px;
+  display:flex;flex-direction:column;
+  background:rgba(255,255,255,0.03);
+  border:1px solid rgba(184,200,216,0.10);
+  box-shadow:0 8px 40px rgba(0,0,0,0.45);
+  transition:transform .3s ease,box-shadow .3s ease
+}
+.wak1__card:hover{
+  transform:translateY(-6px);
+  box-shadow:0 20px 60px rgba(0,0,0,0.65),0 0 40px rgba(201,168,124,0.06)
+}
+
+/* Photo top */
+.wak1__top{
+  width:100%;height:240px;overflow:hidden;position:relative;
+  flex-shrink:0;border-radius:24px 24px 0 0
+}
+.wak1__top img.wak1__photo{
+  width:100%;height:100%;object-fit:cover;display:block;
+  transition:transform .5s ease;
+  filter:brightness(0.80) saturate(0.70)
+}
+.wak1__card:hover .wak1__top img.wak1__photo{
+  transform:scale(1.05);
+  filter:brightness(0.90) saturate(0.85)
+}
+.wak1__top::after{
+  content:'';position:absolute;bottom:0;left:0;right:0;height:60%;
+  background:linear-gradient(to bottom,transparent,rgba(6,4,10,0.55));
+  pointer-events:none
+}
+
+/* SVG placeholder top */
+.wak1__top--svg{
+  background-color:#0e0b14;
+  background-image:none
+}
+.wak1__top--svg::after{display:none}
+
+/* Badge */
+.wak1__badge{
+  position:absolute;top:14px;left:14px;z-index:5;
+  display:inline-flex;align-items:center;gap:5px;
+  background:rgba(6,4,10,0.72);
+  backdrop-filter:blur(12px);
+  border:1px solid rgba(201,168,124,0.28);
+  border-radius:50px;padding:5px 12px;
+  font-family:'DM Sans',Arial,sans-serif;
+  font-size:9px;font-weight:700;
+  color:#c9a87c;
+  letter-spacing:0.10em;text-transform:uppercase
+}
+.wak1__badge-dot{
+  width:5px;height:5px;border-radius:50%;
+  background:linear-gradient(135deg,#e0c89a,#c9a87c);
+  flex-shrink:0;
+  animation:wak1pulse 2s ease-in-out infinite
+}
+
+/* Body */
+.wak1__body{padding:24px 24px 28px;display:flex;flex-direction:column;flex:1}
+
+.wak1__discount{
+  font-family:'Cormorant Garamond',Georgia,serif;
+  font-size:46px;font-weight:300;
+  color:#c9a87c;
+  line-height:1;margin-bottom:10px;letter-spacing:-0.02em
+}
+.wak1__discount--lg{font-size:34px;line-height:1.2;letter-spacing:-0.01em}
+
+.wak1__card-title{
+  font-family:'Cormorant Garamond',Georgia,serif;
+  font-size:21px;font-weight:400;
+  color:#f0e8d8;
+  line-height:1.25;margin-bottom:10px
+}
+.wak1__card-text{
+  font-family:'DM Sans',Arial,sans-serif;
+  font-size:12.5px;font-weight:300;
+  color:rgba(240,232,216,0.46);
+  line-height:1.70;margin-bottom:14px
+}
+.wak1__card-text strong{color:#b8c8d8;font-weight:500}
+
+.wak1__card-note{
+  font-family:'DM Sans',Arial,sans-serif;
+  font-size:10px;font-weight:300;
+  color:rgba(240,232,216,0.25);
+  line-height:1.5;margin-bottom:16px;
+  margin-top:auto;padding-top:12px
+}
+
+/* Infobox */
+.wak1__infobox{
+  display:flex;align-items:flex-start;gap:10px;
+  background:rgba(184,200,216,0.04);
+  border:1px solid rgba(184,200,216,0.12);
+  border-radius:12px;padding:10px 14px;margin-bottom:14px
+}
+.wak1__infobox-label{
+  font-family:'DM Sans',Arial,sans-serif;
+  font-size:10.5px;font-weight:600;
+  color:#b8c8d8;letter-spacing:0.03em;line-height:1.3
+}
+.wak1__infobox-text{
+  font-family:'DM Sans',Arial,sans-serif;
+  font-size:10px;font-weight:300;
+  color:rgba(240,232,216,0.40);line-height:1.4
+}
+.wak1__infobox-text strong{color:#c9a87c;font-weight:500}
+.wak1__infobox--warn{
+  background:rgba(201,168,124,0.04);
+  border-color:rgba(201,168,124,0.14);
+  margin-top:auto;margin-bottom:16px
+}
+
+/* Buttons */
+.wak1__btn{
+  display:inline-flex;align-items:center;gap:7px;
+  font-family:'DM Sans',Arial,sans-serif;
+  font-size:10.5px;font-weight:600;
+  letter-spacing:0.07em;text-transform:uppercase;
+  padding:11px 22px;border-radius:50px;
+  text-decoration:none!important;
+  transition:transform .22s,box-shadow .22s,background .22s;
+  width:fit-content;max-width:100%;
+  position:relative;overflow:hidden;cursor:pointer
+}
+.wak1__btn--filled{
+  background:linear-gradient(135deg,#c9a87c 0%,#a8845a 100%);
+  color:#06040a!important;
+  border:none!important;
+  box-shadow:0 6px 20px rgba(201,168,124,0.28)
+}
+.wak1__btn--filled::before{
+  content:'';position:absolute;top:0;left:-100%;width:55%;height:100%;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,0.18),transparent);
+  transition:left .5s ease
+}
+.wak1__btn--filled:hover::before{left:160%}
+.wak1__btn--filled:hover{
+  transform:translateY(-2px);
+  box-shadow:0 14px 36px rgba(201,168,124,0.42)
+}
+.wak1__btn--outline{
+  background:transparent!important;
+  color:#b8c8d8!important;
+  border:1.5px solid rgba(184,200,216,0.30)!important
+}
+.wak1__btn--outline:hover{
+  background:rgba(184,200,216,0.07)!important;
+  border-color:rgba(184,200,216,0.55)!important;
+  transform:translateY(-1px)
+}
+
+/* Responsive */
+@media(max-width:960px){
+  .wak1__grid{grid-template-columns:1fr 1fr;gap:20px}
+  .wak1__subtitle{text-align:left;max-width:100%}
+  .wak1__header{flex-direction:column;align-items:flex-start;margin-bottom:36px}
+}
+@media(max-width:640px){
+  .wak1{padding:52px 0 72px}
+  .wak1__wrap{padding:0 16px!important}
+  .wak1__title{font-size:30px}
+  .wak1__grid{grid-template-columns:1fr;gap:16px}
+  .wak1__top{height:200px}
+  .wak1__discount{font-size:38px}
+  .wak1__body{padding:18px 16px 22px;box-sizing:border-box;width:100%}
+  .wak1__btn{display:flex;width:100%;justify-content:center;text-align:center}
+}
+</style>
+
+<section class="wak1" id="aktionen">
+<div class="wak1__wrap">
+
+  <div class="wak1__pill"><span class="wak1__pill-dot"></span>Aktuelle Angebote</div>
+
+  <div class="wak1__header">
+    <h2 class="wak1__title">Exklusive <em>Aktionen</em><br>für dich</h2>
+    <p class="wak1__subtitle">Treue zahlt sich aus — beim 6. Besuch 50% Rabatt, beim 11. alles gratis. Einfach, automatisch, verdient.</p>
+  </div>
+
+  <div class="wak1__grid">
+
+    <!-- 1: Treueprogramm -->
+    <div class="wak1__card">
+      <div class="wak1__top">
+        <div class="wak1__badge"><span class="wak1__badge-dot"></span>Treueprogramm</div>
+        <img loading="lazy" class="wak1__photo" src="https://cdn.jsdelivr.net/gh/chistyartem-blip/crocus-widget@35e04bc/assets/lash-classic.webp" alt="Wimpern Classic"/>
+      </div>
+      <div class="wak1__body">
+        <div class="wak1__discount wak1__discount--lg">−50% &nbsp;/&nbsp; Gratis</div>
+        <div class="wak1__card-title">Treue wird belohnt — doppelt</div>
+        <div class="wak1__card-text">
+          <strong>Nach 5 Besuchen</strong> — 50% Rabatt auf das 6. Wimpern-Styling.<br>
+          <strong>Nach 10 Besuchen</strong> — das 11. Styling ist komplett gratis.<br>
+          Kein Code, kein Antrag — wir zählen mit.
+        </div>
+        <div class="wak1__infobox">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#b8c8d8" stroke-width="1.6" style="flex-shrink:0;opacity:0.65"><rect x="2" y="5" width="20" height="14" rx="3"/><path d="M2 10h20"/><path d="M6 15h4"/><path d="M14 15h4"/></svg>
+          <div>
+            <div class="wak1__infobox-label">Personalisierte Treuekarte</div>
+            <div class="wak1__infobox-text">Die ersten <strong>100 Kundinnen</strong> erhalten beim ersten Besuch eine Karte mit ihrem Namen.</div>
+          </div>
+        </div>
+        <div class="wak1__infobox wak1__infobox--warn">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#c9a87c" stroke-width="1.6" style="flex-shrink:0;margin-top:1px;opacity:0.65"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg>
+          <div>
+            <div class="wak1__infobox-label">Gilt bei Karina</div>
+            <div class="wak1__infobox-text">Nicht kombinierbar mit anderen Aktionen. Gültig für alle Wimpern-Services.</div>
+          </div>
+        </div>
+        <a href="#" onclick="event.preventDefault();crocusOpen()" class="wak1__btn wak1__btn--filled">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="4" width="18" height="18" rx="2.5"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+          Jetzt Termin buchen
+        </a>
+      </div>
+    </div>
+
+    <!-- 2: Freundinnen −50% -->
+    <div class="wak1__card">
+      <div class="wak1__top">
+        <div class="wak1__badge"><span class="wak1__badge-dot"></span>Empfehlungs-Bonus</div>
+        <img loading="lazy" class="wak1__photo" src="https://static.tildacdn.com/tild6432-6531-4139-a533-643538346234/good-humoured-lady-r.jpg" alt="Freundinnen"/>
+      </div>
+      <div class="wak1__body">
+        <div class="wak1__discount">−50%</div>
+        <div class="wak1__card-title">Bring 2 Freundinnen — spare 50%</div>
+        <div class="wak1__card-text">
+          Bringe innerhalb eines Monats <strong>2 neue Freundinnen</strong> zu uns — und du erhältst <strong>50% Rabatt</strong> auf dein nächstes Wimpern-Styling.<br><br>
+          Beide Freundinnen müssen ihren Termin in diesem Monat wahrnehmen. Danach wird der Rabatt automatisch für dich hinterlegt.
+        </div>
+        <div class="wak1__card-note">*2 Neukundinnen pro Monat erforderlich. Nicht kombinierbar mit anderen Aktionen.</div>
+        <a href="https://wa.me/491728118528?text=Hallo%2C%20ich%20m%C3%B6chte%202%20Freundinnen%20empfehlen%20und%20den%20Bonus%20erhalten." target="_blank" class="wak1__btn wak1__btn--outline">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          Per WhatsApp mitteilen
+        </a>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+</section>

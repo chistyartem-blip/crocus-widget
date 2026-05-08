@@ -1,0 +1,377 @@
+<style>
+/* ─── WIMPERN TECHNIK wlt1 ─── */
+.wlt1,.wlt1*,.wlt1*::before,.wlt1*::after{box-sizing:border-box;margin:0;padding:0}
+
+.wlt1{position:relative;width:100%;background:#0f0c17;font-family:'Cormorant Garamond',Georgia,serif;overflow:hidden;padding:100px 0 110px;}
+.wlt1::before{content:'';position:absolute;top:0;left:5%;right:5%;height:1px;background:linear-gradient(to right,transparent,rgba(184,200,216,0.18),rgba(201,168,124,0.12),transparent);}
+.wlt1::after{content:'';position:absolute;bottom:0;left:5%;right:5%;height:1px;background:linear-gradient(to right,transparent,rgba(184,200,216,0.10),transparent);}
+
+/* Glow orbs */
+.wlt1__orb{position:absolute;right:-180px;top:50%;transform:translateY(-50%);width:600px;height:600px;border-radius:50%;background:radial-gradient(circle,rgba(201,168,124,0.07) 0%,transparent 65%);pointer-events:none;}
+.wlt1__orb2{position:absolute;left:-120px;bottom:-80px;width:450px;height:450px;border-radius:50%;background:radial-gradient(circle,rgba(184,200,216,0.05) 0%,transparent 65%);pointer-events:none;}
+
+.wlt1__wrap{max-width:1160px;margin:0 auto;padding:0 48px;position:relative;z-index:2;}
+
+/* Header */
+.wlt1__head{display:flex;align-items:flex-end;justify-content:space-between;gap:32px;margin-bottom:64px;}
+.wlt1__head-left{max-width:520px}
+.wlt1__eyebrow{display:flex;align-items:center;gap:10px;margin-bottom:16px;}
+.wlt1__eyebrow-line{width:28px;height:1px;background:linear-gradient(to right,rgba(201,168,124,0.60),rgba(184,200,216,0.20));}
+.wlt1__eyebrow-text{font-family:'DM Sans',Arial,sans-serif;font-size:10px;letter-spacing:0.26em;text-transform:uppercase;color:rgba(201,168,124,0.55);}
+.wlt1__title{font-size:clamp(36px,4vw,58px);font-weight:300;line-height:1.0;color:#f0e8d8;letter-spacing:-0.02em;}
+.wlt1__title em{font-style:italic;color:#c9a87c;display:block;}
+.wlt1__head-right{font-family:'DM Sans',Arial,sans-serif;font-size:14px;font-weight:300;color:rgba(240,232,216,0.42);line-height:1.75;max-width:320px;text-align:right;padding-bottom:4px;}
+.wlt1__head-right strong{color:rgba(201,168,124,0.80);font-weight:500;}
+
+/* Steps grid */
+.wlt1__steps{display:grid;grid-template-columns:repeat(4,1fr);gap:3px;border-radius:18px;overflow:hidden;margin-bottom:56px;}
+.wlt1__step{position:relative;overflow:hidden;cursor:pointer;}
+.wlt1__step-img{width:100%;aspect-ratio:3/4;object-fit:cover;display:block;transition:transform 0.6s cubic-bezier(0.25,0.46,0.45,0.94);filter:brightness(0.72) saturate(0.70);}
+.wlt1__step:hover .wlt1__step-img{transform:scale(1.06);filter:brightness(0.88) saturate(0.90);}
+.wlt1__step-overlay{position:absolute;inset:0;background:linear-gradient(to bottom,transparent 35%,rgba(6,4,10,0.90) 100%);}
+.wlt1__step-body{position:absolute;bottom:0;left:0;right:0;padding:20px 18px;}
+.wlt1__step-num{font-family:'DM Sans',Arial,sans-serif;font-size:9px;font-weight:700;letter-spacing:0.22em;text-transform:uppercase;color:rgba(201,168,124,0.45);margin-bottom:5px;}
+.wlt1__step-title{font-family:'Cormorant Garamond',Georgia,serif;font-size:19px;font-weight:300;color:#f0e8d8;line-height:1.15;}
+.wlt1__step-title em{font-style:italic;color:#c9a87c;}
+.wlt1__step-desc{font-family:'DM Sans',Arial,sans-serif;font-size:10.5px;font-weight:300;color:rgba(240,232,216,0.50);line-height:1.55;margin-top:6px;max-height:0;overflow:hidden;opacity:0;transition:max-height 0.4s ease,opacity 0.3s;}
+.wlt1__step:hover .wlt1__step-desc{max-height:80px;opacity:1;}
+
+/* Click hint */
+.wlt1__step-hint{position:absolute;top:14px;right:14px;width:28px;height:28px;border-radius:50%;background:rgba(6,4,10,0.60);backdrop-filter:blur(8px);border:1px solid rgba(201,168,124,0.30);display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity .3s;pointer-events:none;}
+.wlt1__step:hover .wlt1__step-hint{opacity:1;}
+
+/* Badge */
+.wlt1__badge{position:absolute;top:14px;left:14px;z-index:5;display:inline-flex;align-items:center;gap:5px;background:rgba(6,4,10,0.70);backdrop-filter:blur(10px);border:1px solid rgba(201,168,124,0.25);border-radius:50px;padding:4px 11px;font-family:'DM Sans',Arial,sans-serif;font-size:9px;font-weight:700;color:#c9a87c;letter-spacing:0.10em;text-transform:uppercase;}
+
+/* Features */
+.wlt1__features{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;}
+.wlt1__feature{display:flex;flex-direction:column;gap:12px;padding:28px 24px;border-radius:20px;background:rgba(255,255,255,0.03);border:1px solid rgba(184,200,216,0.09);box-shadow:0 4px 24px rgba(0,0,0,0.35);transition:transform .28s,box-shadow .28s,border-color .28s;}
+.wlt1__feature:hover{transform:translateY(-4px);box-shadow:0 16px 40px rgba(0,0,0,0.55);border-color:rgba(201,168,124,0.18);}
+.wlt1__feature-icon{width:44px;height:44px;border-radius:12px;background:rgba(201,168,124,0.09);display:flex;align-items:center;justify-content:center;color:#c9a87c;flex-shrink:0;}
+.wlt1__feature-title{font-family:'Cormorant Garamond',Georgia,serif;font-size:20px;font-weight:300;color:#f0e8d8;line-height:1.2;}
+.wlt1__feature-title em{font-style:italic;color:#c9a87c;}
+.wlt1__feature-text{font-family:'DM Sans',Arial,sans-serif;font-size:12px;font-weight:300;color:rgba(240,232,216,0.45);line-height:1.65;}
+
+/* ── POPUP ── */
+.wlt1-modal{display:none;position:fixed;inset:0;z-index:9999;}
+.wlt1-modal.is-open{display:block;}
+.wlt1-modal__backdrop{position:fixed;inset:0;background:rgba(6,4,10,0.85);backdrop-filter:blur(10px);cursor:pointer;}
+.wlt1-modal__scroll{position:fixed;inset:0;z-index:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;scrollbar-width:none;}
+.wlt1-modal__scroll::-webkit-scrollbar{display:none;}
+.wlt1-modal__center{min-height:100%;display:flex;align-items:center;justify-content:center;padding:24px 20px;}
+.wlt1-modal__box{position:relative;background:#16121f;border:1px solid rgba(184,200,216,0.12);border-radius:24px;max-width:540px;width:100%;box-shadow:0 32px 80px rgba(0,0,0,0.80);}
+.wlt1-modal__img{width:100%;height:260px;object-fit:cover;display:block;filter:brightness(0.80) saturate(0.75);border-radius:24px 24px 0 0;}
+.wlt1-modal__img-overlay{position:absolute;top:0;left:0;right:0;height:260px;background:linear-gradient(to bottom,transparent 30%,rgba(22,18,31,0.95) 100%);pointer-events:none;border-radius:24px 24px 0 0;}
+.wlt1-modal__close{position:absolute;top:16px;right:16px;width:32px;height:32px;border-radius:50%;background:rgba(6,4,10,0.70);backdrop-filter:blur(8px);border:1px solid rgba(184,200,216,0.20);color:#b8c8d8;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px;line-height:1;transition:background .2s;}
+.wlt1-modal__close:hover{background:rgba(201,168,124,0.15);}
+.wlt1-modal__body{padding:28px 28px 32px;}
+.wlt1-modal__tag{font-family:'DM Sans',Arial,sans-serif;font-size:9px;font-weight:700;letter-spacing:0.22em;text-transform:uppercase;color:rgba(201,168,124,0.55);margin-bottom:8px;}
+.wlt1-modal__title{font-family:'Cormorant Garamond',Georgia,serif;font-size:32px;font-weight:300;color:#f0e8d8;line-height:1.1;margin-bottom:6px;}
+.wlt1-modal__title em{font-style:italic;color:#c9a87c;}
+.wlt1-modal__sub{font-family:'DM Sans',Arial,sans-serif;font-size:12px;font-weight:300;color:rgba(240,232,216,0.40);margin-bottom:20px;line-height:1.5;}
+.wlt1-modal__props{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px;}
+.wlt1-modal__prop{background:rgba(184,200,216,0.04);border:1px solid rgba(184,200,216,0.10);border-radius:12px;padding:12px 14px;}
+.wlt1-modal__prop-label{font-family:'DM Sans',Arial,sans-serif;font-size:9px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;color:rgba(184,200,216,0.40);margin-bottom:4px;}
+.wlt1-modal__prop-val{font-family:'Cormorant Garamond',Georgia,serif;font-size:18px;font-weight:300;color:#f0e8d8;}
+.wlt1-modal__prop-val em{font-style:italic;color:#c9a87c;}
+.wlt1-modal__text{font-family:'DM Sans',Arial,sans-serif;font-size:12.5px;font-weight:300;color:rgba(240,232,216,0.48);line-height:1.70;margin-bottom:22px;}
+.wlt1-modal__text strong{color:#b8c8d8;font-weight:500;}
+/* Воронка — CTA */
+.wlt1-modal__cta{display:flex;align-items:center;gap:10px;padding:16px 20px;background:linear-gradient(135deg,rgba(201,168,124,0.12),rgba(201,168,124,0.06));border:1px solid rgba(201,168,124,0.20);border-radius:14px;margin-bottom:16px;}
+.wlt1-modal__cta-text{font-family:'DM Sans',Arial,sans-serif;font-size:11px;font-weight:300;color:rgba(240,232,216,0.55);line-height:1.5;flex:1;}
+.wlt1-modal__cta-text strong{color:#c9a87c;font-weight:600;}
+.wlt1-modal__btn{display:inline-flex;align-items:center;gap:7px;font-family:'DM Sans',Arial,sans-serif;font-size:10.5px;font-weight:700;letter-spacing:0.07em;text-transform:uppercase;padding:12px 22px;border-radius:50px;text-decoration:none!important;cursor:pointer;border:none;background:linear-gradient(135deg,#c9a87c,#a8845a);color:#06040a!important;box-shadow:0 6px 20px rgba(201,168,124,0.28);transition:transform .2s,box-shadow .2s;white-space:nowrap;}
+.wlt1-modal__btn:hover{transform:translateY(-2px);box-shadow:0 12px 32px rgba(201,168,124,0.42);}
+
+/* Responsive */
+@media(max-width:960px){
+  .wlt1__steps{grid-template-columns:repeat(2,1fr);}
+  .wlt1__step-img{aspect-ratio:4/3;}
+  .wlt1__features{grid-template-columns:repeat(2,1fr);}
+  .wlt1__head{flex-direction:column;gap:16px;margin-bottom:40px;}
+  .wlt1__head-right{text-align:left;max-width:100%;}
+}
+@media(max-width:640px){
+  .wlt1{padding:72px 0 80px;}
+  .wlt1__wrap{padding:0 16px;}
+  .wlt1__title{font-size:34px;}
+  .wlt1__steps{grid-template-columns:1fr 1fr;gap:2px;margin-bottom:36px;}
+  .wlt1__features{grid-template-columns:1fr;gap:14px;}
+  .wlt1__feature{padding:22px 18px;}
+  .wlt1-modal__box{border-radius:18px;}
+  .wlt1-modal__body{padding:20px 18px 24px;}
+  .wlt1-modal__props{grid-template-columns:1fr 1fr;}
+  .wlt1-modal__title{font-size:26px;}
+  .wlt1-modal__cta{flex-direction:column;align-items:flex-start;}
+  .wlt1-modal__btn{width:100%;justify-content:center;}
+}
+</style>
+
+<!-- ── POPUP MODALS ── -->
+<div class="wlt1-modal" id="wlt1-modal-classic" role="dialog" aria-modal="true">
+  <div class="wlt1-modal__backdrop" onclick="wlt1CloseModal()"></div>
+  <div class="wlt1-modal__scroll">
+  <div class="wlt1-modal__center">
+  <div class="wlt1-modal__box">
+    <img class="wlt1-modal__img" src="https://cdn.jsdelivr.net/gh/chistyartem-blip/crocus-widget@74d1768/assets/tech-classic.webp" alt="Classic"/>
+    <div class="wlt1-modal__img-overlay"></div>
+    <button class="wlt1-modal__close" onclick="wlt1CloseModal()" aria-label="Schließen">✕</button>
+    <div class="wlt1-modal__body">
+      <div class="wlt1-modal__tag">Technik 01</div>
+      <div class="wlt1-modal__title">Classic <em>Wimpern.</em></div>
+      <div class="wlt1-modal__sub">1:1 — eine Verlängerung pro Naturwimper</div>
+      <div class="wlt1-modal__props">
+        <div class="wlt1-modal__prop"><div class="wlt1-modal__prop-label">Dauer</div><div class="wlt1-modal__prop-val">ca. <em>90 min</em></div></div>
+        <div class="wlt1-modal__prop"><div class="wlt1-modal__prop-label">Haltbarkeit</div><div class="wlt1-modal__prop-val"><em>3–4</em> Wochen</div></div>
+        <div class="wlt1-modal__prop"><div class="wlt1-modal__prop-label">Look</div><div class="wlt1-modal__prop-val"><em>Natürlich</em></div></div>
+        <div class="wlt1-modal__prop"><div class="wlt1-modal__prop-label">Auffüllung</div><div class="wlt1-modal__prop-val">ab <em>60 min</em></div></div>
+      </div>
+      <div class="wlt1-modal__text">Jede Verlängerung wird einzeln auf die Naturwimper aufgetragen. Das Ergebnis: <strong>natürlicher Ausdruck</strong>, mehr Länge und Definition — perfekt für den Alltag und das Büro. Ideal als Einstieg in die Wimpernverlängerung.</div>
+      <div class="wlt1-modal__cta">
+        <div class="wlt1-modal__cta-text">Karina hat <strong>noch freie Termine</strong> diese Woche — jetzt schnell sichern.</div>
+        <a href="#" onclick="event.preventDefault();wlt1CloseModal();setTimeout(crocusOpen,200)" class="wlt1-modal__btn">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="4" width="18" height="18" rx="2.5"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+          Termin buchen
+        </a>
+      </div>
+    </div>
+  </div>
+  </div>
+  </div>
+</div>
+
+<div class="wlt1-modal" id="wlt1-modal-3d" role="dialog" aria-modal="true">
+  <div class="wlt1-modal__backdrop" onclick="wlt1CloseModal()"></div>
+  <div class="wlt1-modal__scroll">
+  <div class="wlt1-modal__center">
+  <div class="wlt1-modal__box">
+    <img class="wlt1-modal__img" src="https://cdn.jsdelivr.net/gh/chistyartem-blip/crocus-widget@74d1768/assets/tech-3d.webp" alt="3D Volume"/>
+    <div class="wlt1-modal__img-overlay"></div>
+    <button class="wlt1-modal__close" onclick="wlt1CloseModal()" aria-label="Schließen">✕</button>
+    <div class="wlt1-modal__body">
+      <div class="wlt1-modal__tag">Technik 02</div>
+      <div class="wlt1-modal__title">3D <em>Volume.</em></div>
+      <div class="wlt1-modal__sub">3:1 — drei Wimpern-Fans pro Naturwimper</div>
+      <div class="wlt1-modal__props">
+        <div class="wlt1-modal__prop"><div class="wlt1-modal__prop-label">Dauer</div><div class="wlt1-modal__prop-val">ca. <em>120 min</em></div></div>
+        <div class="wlt1-modal__prop"><div class="wlt1-modal__prop-label">Haltbarkeit</div><div class="wlt1-modal__prop-val"><em>3–4</em> Wochen</div></div>
+        <div class="wlt1-modal__prop"><div class="wlt1-modal__prop-label">Look</div><div class="wlt1-modal__prop-val"><em>Voluminös</em></div></div>
+        <div class="wlt1-modal__prop"><div class="wlt1-modal__prop-label">Auffüllung</div><div class="wlt1-modal__prop-val">ab <em>75 min</em></div></div>
+      </div>
+      <div class="wlt1-modal__text">Drei handgefertigte Fächer werden auf jede Naturwimper gesetzt. Das Ergebnis: <strong>weicher, voller Look</strong> mit spürbarer Dichte — ohne schwer zu wirken. Der beliebteste Style bei Karinas Kundinnen.</div>
+      <div class="wlt1-modal__cta">
+        <div class="wlt1-modal__cta-text"><strong>Meistgebuchte Technik</strong> — jetzt Wunschtermin sichern.</div>
+        <a href="#" onclick="event.preventDefault();wlt1CloseModal();setTimeout(crocusOpen,200)" class="wlt1-modal__btn">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="4" width="18" height="18" rx="2.5"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+          Termin buchen
+        </a>
+      </div>
+    </div>
+  </div>
+  </div>
+  </div>
+</div>
+
+<div class="wlt1-modal" id="wlt1-modal-6d" role="dialog" aria-modal="true">
+  <div class="wlt1-modal__backdrop" onclick="wlt1CloseModal()"></div>
+  <div class="wlt1-modal__scroll">
+  <div class="wlt1-modal__center">
+  <div class="wlt1-modal__box">
+    <img class="wlt1-modal__img" src="https://cdn.jsdelivr.net/gh/chistyartem-blip/crocus-widget@74d1768/assets/tech-6d.webp" alt="6D Mega Volume"/>
+    <div class="wlt1-modal__img-overlay"></div>
+    <button class="wlt1-modal__close" onclick="wlt1CloseModal()" aria-label="Schließen">✕</button>
+    <div class="wlt1-modal__body">
+      <div class="wlt1-modal__tag">Technik 03</div>
+      <div class="wlt1-modal__title">6D Mega <em>Volume.</em></div>
+      <div class="wlt1-modal__sub">4–6 Fächer — maximale Dichte & Dramatik</div>
+      <div class="wlt1-modal__props">
+        <div class="wlt1-modal__prop"><div class="wlt1-modal__prop-label">Dauer</div><div class="wlt1-modal__prop-val">ca. <em>150 min</em></div></div>
+        <div class="wlt1-modal__prop"><div class="wlt1-modal__prop-label">Haltbarkeit</div><div class="wlt1-modal__prop-val"><em>3–4</em> Wochen</div></div>
+        <div class="wlt1-modal__prop"><div class="wlt1-modal__prop-label">Look</div><div class="wlt1-modal__prop-val"><em>Dramatisch</em></div></div>
+        <div class="wlt1-modal__prop"><div class="wlt1-modal__prop-label">Auffüllung</div><div class="wlt1-modal__prop-val">ab <em>90 min</em></div></div>
+      </div>
+      <div class="wlt1-modal__text">Das Maximum an Dichte und Volumen. Bis zu 6 hauchdünne Fächer pro Naturwimper — <strong>Glamour-Look ohne Mascara</strong>. Für Events, besondere Anlässe oder alle, die täglich das Beste wollen.</div>
+      <div class="wlt1-modal__cta">
+        <div class="wlt1-modal__cta-text">Exklusiv bei <strong>Karina</strong> — begrenzte Plätze pro Woche.</div>
+        <a href="#" onclick="event.preventDefault();wlt1CloseModal();setTimeout(crocusOpen,200)" class="wlt1-modal__btn">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="4" width="18" height="18" rx="2.5"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+          Termin buchen
+        </a>
+      </div>
+    </div>
+  </div>
+  </div>
+  </div>
+</div>
+
+<div class="wlt1-modal" id="wlt1-modal-wispy" role="dialog" aria-modal="true">
+  <div class="wlt1-modal__backdrop" onclick="wlt1CloseModal()"></div>
+  <div class="wlt1-modal__scroll">
+  <div class="wlt1-modal__center">
+  <div class="wlt1-modal__box">
+    <img class="wlt1-modal__img" src="https://cdn.jsdelivr.net/gh/chistyartem-blip/crocus-widget@74d1768/assets/tech-wispy.webp" alt="Wispy"/>
+    <div class="wlt1-modal__img-overlay"></div>
+    <button class="wlt1-modal__close" onclick="wlt1CloseModal()" aria-label="Schließen">✕</button>
+    <div class="wlt1-modal__body">
+      <div class="wlt1-modal__tag">Technik 04</div>
+      <div class="wlt1-modal__title">Wispy <em>Wet-Look.</em></div>
+      <div class="wlt1-modal__sub">Mix aus Fans & Spikes — der Trendstyling-Look 2025</div>
+      <div class="wlt1-modal__props">
+        <div class="wlt1-modal__prop"><div class="wlt1-modal__prop-label">Dauer</div><div class="wlt1-modal__prop-val">ca. <em>120 min</em></div></div>
+        <div class="wlt1-modal__prop"><div class="wlt1-modal__prop-label">Haltbarkeit</div><div class="wlt1-modal__prop-val"><em>3–4</em> Wochen</div></div>
+        <div class="wlt1-modal__prop"><div class="wlt1-modal__prop-label">Look</div><div class="wlt1-modal__prop-val"><em>Trendy</em></div></div>
+        <div class="wlt1-modal__prop"><div class="wlt1-modal__prop-label">Auffüllung</div><div class="wlt1-modal__prop-val">ab <em>75 min</em></div></div>
+      </div>
+      <div class="wlt1-modal__text">Wechselspiel aus Volumen-Fächern und einzelnen langen Spitzen — <strong>unregelmäßig, fluffig, sinnlich</strong>. Der Wispy-Look wirkt wie frisch aus dem Fotoshooting. Der Trend 2025 in jedem Beauty-Feed.</div>
+      <div class="wlt1-modal__cta">
+        <div class="wlt1-modal__cta-text"><strong>Trending Style 2025</strong> — jetzt bei Karina buchen.</div>
+        <a href="#" onclick="event.preventDefault();wlt1CloseModal();setTimeout(crocusOpen,200)" class="wlt1-modal__btn">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="4" width="18" height="18" rx="2.5"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+          Termin buchen
+        </a>
+      </div>
+    </div>
+  </div>
+  </div>
+  </div>
+</div>
+
+<!-- ── MAIN SECTION ── -->
+<section class="wlt1" id="wimpern-technik">
+  <div class="wlt1__orb"></div>
+  <div class="wlt1__orb2"></div>
+  <div class="wlt1__wrap">
+
+    <div class="wlt1__head">
+      <div class="wlt1__head-left">
+        <div class="wlt1__eyebrow">
+          <div class="wlt1__eyebrow-line"></div>
+          <span class="wlt1__eyebrow-text">Karinas Techniken</span>
+        </div>
+        <h2 class="wlt1__title">
+          Wimpern mit
+          <em>Präzision.</em>
+        </h2>
+      </div>
+      <div class="wlt1__head-right">
+        Jedes Set wird <strong>individuell gestaltet</strong> — passend zur Augenform, zum Lebensstil, zum gewünschten Look. Klicke auf eine Technik für <strong>alle Details</strong>.
+      </div>
+    </div>
+
+    <!-- 4 Techniken — klickbar -->
+    <div class="wlt1__steps">
+
+      <div class="wlt1__step" onclick="wlt1OpenModal('classic')" role="button" tabindex="0" aria-label="Classic Wimpern — Details öffnen">
+        <img class="wlt1__step-img" src="https://cdn.jsdelivr.net/gh/chistyartem-blip/crocus-widget@74d1768/assets/tech-classic.webp" alt="Classic Wimpern" loading="lazy"/>
+        <div class="wlt1__step-overlay"></div>
+        <div class="wlt1__badge">Classic</div>
+        <div class="wlt1__step-hint">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#c9a87c" stroke-width="2.2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg>
+        </div>
+        <div class="wlt1__step-body">
+          <div class="wlt1__step-num">Technik 01</div>
+          <div class="wlt1__step-title">Classic <em>Lashes.</em></div>
+          <div class="wlt1__step-desc">Natürlicher Alltagslook — 1:1, perfekte Länge und Definition.</div>
+        </div>
+      </div>
+
+      <div class="wlt1__step" onclick="wlt1OpenModal('3d')" role="button" tabindex="0" aria-label="3D Volume — Details öffnen">
+        <img class="wlt1__step-img" src="https://cdn.jsdelivr.net/gh/chistyartem-blip/crocus-widget@74d1768/assets/tech-3d.webp" alt="3D Volume" loading="lazy"/>
+        <div class="wlt1__step-overlay"></div>
+        <div class="wlt1__badge">3D Volume</div>
+        <div class="wlt1__step-hint">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#c9a87c" stroke-width="2.2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg>
+        </div>
+        <div class="wlt1__step-body">
+          <div class="wlt1__step-num">Technik 02</div>
+          <div class="wlt1__step-title">3D <em>Volume.</em></div>
+          <div class="wlt1__step-desc">Voller, weicher Look — drei Fächer pro Naturwimper.</div>
+        </div>
+      </div>
+
+      <div class="wlt1__step" onclick="wlt1OpenModal('6d')" role="button" tabindex="0" aria-label="6D Mega Volume — Details öffnen">
+        <img class="wlt1__step-img" src="https://cdn.jsdelivr.net/gh/chistyartem-blip/crocus-widget@74d1768/assets/tech-6d.webp" alt="6D Mega Volume" loading="lazy"/>
+        <div class="wlt1__step-overlay"></div>
+        <div class="wlt1__badge">6D Mega Vol.</div>
+        <div class="wlt1__step-hint">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#c9a87c" stroke-width="2.2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg>
+        </div>
+        <div class="wlt1__step-body">
+          <div class="wlt1__step-num">Technik 03</div>
+          <div class="wlt1__step-title">6D Mega <em>Volume.</em></div>
+          <div class="wlt1__step-desc">Maximale Dichte & Dramatik — Glamour ohne Mascara.</div>
+        </div>
+      </div>
+
+      <div class="wlt1__step" onclick="wlt1OpenModal('wispy')" role="button" tabindex="0" aria-label="Wispy Wet-Look — Details öffnen">
+        <img class="wlt1__step-img" src="https://cdn.jsdelivr.net/gh/chistyartem-blip/crocus-widget@74d1768/assets/tech-wispy.webp" alt="Wispy Wet-Look" loading="lazy"/>
+        <div class="wlt1__step-overlay"></div>
+        <div class="wlt1__badge">Wispy ✦</div>
+        <div class="wlt1__step-hint">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#c9a87c" stroke-width="2.2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg>
+        </div>
+        <div class="wlt1__step-body">
+          <div class="wlt1__step-num">Technik 04</div>
+          <div class="wlt1__step-title">Wispy <em>Wet-Look.</em></div>
+          <div class="wlt1__step-desc">Trending 2025 — fluffig, sinnlich, unregelmäßig.</div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Feature cards -->
+    <div class="wlt1__features">
+      <div class="wlt1__feature">
+        <div class="wlt1__feature-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 22c0 0-8-5.6-8-11a8 8 0 0 1 16 0c0 5.4-8 11-8 11z"/><circle cx="12" cy="11" r="3"/></svg>
+        </div>
+        <div class="wlt1__feature-title">Augenform <em>analysiert.</em></div>
+        <div class="wlt1__feature-text">Karina analysiert Ihre Augenform individuell und wählt Länge, Krümmung und Technik passend dazu — kein Standard, kein Schema.</div>
+      </div>
+      <div class="wlt1__feature">
+        <div class="wlt1__feature-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        </div>
+        <div class="wlt1__feature-title">3–4 Wochen <em>Haltbarkeit.</em></div>
+        <div class="wlt1__feature-text">Durch sorgfältige Vorbereitung und Premium-Klebstoff hält jedes Set 3–4 Wochen ohne Verlust von Dichte oder Form.</div>
+      </div>
+      <div class="wlt1__feature">
+        <div class="wlt1__feature-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        </div>
+        <div class="wlt1__feature-title">Schonendes <em>Material.</em></div>
+        <div class="wlt1__feature-text">Nur dermatologisch getestete Kleber und leichte Faux-Mink-Wimpern — keine Belastung für die Naturwimper.</div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<script>
+(function(){
+  var wlt1ScrollY=0;
+  function wlt1OpenModal(id){
+    var m=document.getElementById('wlt1-modal-'+id);
+    if(!m)return;
+    wlt1ScrollY=window.scrollY||window.pageYOffset;
+    document.body.style.position='fixed';
+    document.body.style.top='-'+wlt1ScrollY+'px';
+    document.body.style.width='100%';
+    m.classList.add('is-open');
+  }
+  function wlt1CloseModal(){
+    document.querySelectorAll('.wlt1-modal.is-open').forEach(function(m){m.classList.remove('is-open');});
+    document.body.style.position='';
+    document.body.style.top='';
+    document.body.style.width='';
+    window.scrollTo(0,wlt1ScrollY);
+  }
+  // keyboard support
+  document.addEventListener('keydown',function(e){if(e.key==='Escape')wlt1CloseModal();});
+  document.querySelectorAll('.wlt1__step').forEach(function(el){
+    el.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();el.click();}});
+  });
+  window.wlt1OpenModal=wlt1OpenModal;
+  window.wlt1CloseModal=wlt1CloseModal;
+})();
+</script>
