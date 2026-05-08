@@ -1641,13 +1641,13 @@ function startRepeatBooking() {
 document.getElementById('crocus-fab').addEventListener('click', crocusOpen);
 window.crocusOpen = crocusOpen;
 window.crocusClose = crocusClose;
-window.crocusOpenGutschein = function() {
+window.crocusOpenGutschein = function(ctaLocation) {
   // Tracking — click_gutschein
   window.dataLayer = window.dataLayer || [];
   window.dataLayer.push({
     event: 'click_gutschein',
     page_location: window.location.href,
-    cta_location: 'widget_fab',
+    cta_location: ctaLocation || 'widget_fab',
   });
   crocusOpen();
   setTimeout(function(){ openGiftMode(); }, 80);
