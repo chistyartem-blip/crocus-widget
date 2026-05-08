@@ -668,25 +668,34 @@ function crocusOpen() {
 function crocusClose() {
   document.getElementById('crocus-backdrop').classList.remove('visible');
   document.getElementById('crocus-modal').classList.remove('open');
-  // iOS scroll lock: restore СРАЗУ до анимации закрытия — не прыгает
+
+  var savedY = _scrollY;
+
+  // Сначала убираем history entry — это может вызвать scroll браузера
+  // Делаем это ДО восстановления body, чтобы потом перезаписать позицию
+  if (window.history && window.history.state && window.history.state.crocusOpen) {
+    window.history.back();
+  }
+
+  // iOS scroll lock: восстанавливаем body
   document.body.style.overflow = '';
   document.body.style.position = '';
   document.body.style.top = '';
   document.body.style.width = '';
   document.body.classList.remove('crocus-open');
-  // Восстанавливаем позицию синхронно
-  var savedY = _scrollY;
-  if (savedY > 0) {
+
+  // Восстанавливаем позицию — через rAF чтобы перебить любой браузерный scroll
+  requestAnimationFrame(function() {
     window.scrollTo(0, savedY);
-  }
+    requestAnimationFrame(function() {
+      window.scrollTo(0, savedY);
+    });
+  });
+
   setTimeout(function(){
     document.getElementById('crocus-backdrop').classList.remove('open');
     crocusReset();
   }, 320);
-  // Clean up history entry — scrollRestoration=manual prevents browser from overriding our scroll
-  if (window.history && window.history.state && window.history.state.crocusOpen) {
-    window.history.back();
-  }
 }
 
 // ── Progress ───────────────────────────────────────────────────
