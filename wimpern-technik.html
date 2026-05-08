@@ -60,9 +60,9 @@
 .wlt1-modal__scroll::-webkit-scrollbar{display:none;}
 .wlt1-modal__center{min-height:100%;display:flex;align-items:center;justify-content:center;padding:24px 20px;}
 .wlt1-modal__box{position:relative;background:#16121f;border:1px solid rgba(184,200,216,0.12);border-radius:24px;max-width:540px;width:100%;box-shadow:0 32px 80px rgba(0,0,0,0.80);}
-.wlt1-modal__img{width:100%;height:260px;object-fit:cover;display:block;filter:brightness(0.80) saturate(0.75);border-radius:24px 24px 0 0;}
-.wlt1-modal__img-overlay{position:absolute;top:0;left:0;right:0;height:260px;background:linear-gradient(to bottom,transparent 30%,rgba(22,18,31,0.95) 100%);pointer-events:none;border-radius:24px 24px 0 0;}
-.wlt1-modal__close{position:absolute;top:16px;right:16px;width:32px;height:32px;border-radius:50%;background:rgba(6,4,10,0.70);backdrop-filter:blur(8px);border:1px solid rgba(184,200,216,0.20);color:#b8c8d8;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px;line-height:1;transition:background .2s;}
+.wlt1-modal__img{width:100%;height:320px;object-fit:cover;display:block;filter:brightness(0.80) saturate(0.75);border-radius:24px 24px 0 0;}
+.wlt1-modal__img-overlay{position:absolute;top:0;left:0;right:0;height:320px;background:linear-gradient(to bottom,transparent 30%,rgba(22,18,31,0.95) 100%);pointer-events:none;border-radius:24px 24px 0 0;}
+.wlt1-modal__close{position:absolute;top:16px;right:16px;width:32px;height:32px;border-radius:50%;background:rgba(6,4,10,0.70);backdrop-filter:blur(8px);border:1px solid rgba(184,200,216,0.20);color:#b8c8d8;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px;line-height:1;transition:background .2s;z-index:10;}
 .wlt1-modal__close:hover{background:rgba(201,168,124,0.15);}
 .wlt1-modal__body{padding:28px 28px 32px;}
 .wlt1-modal__tag{font-family:'DM Sans',Arial,sans-serif;font-size:9px;font-weight:700;letter-spacing:0.22em;text-transform:uppercase;color:rgba(201,168,124,0.55);margin-bottom:8px;}
@@ -110,9 +110,9 @@
 <!-- ── POPUP MODALS ── -->
 <div class="wlt1-modal" id="wlt1-modal-classic" role="dialog" aria-modal="true">
   <div class="wlt1-modal__backdrop" onclick="wlt1CloseModal()"></div>
-  <div class="wlt1-modal__scroll">
+  <div class="wlt1-modal__scroll" onclick="wlt1CloseModal()">
   <div class="wlt1-modal__center">
-  <div class="wlt1-modal__box">
+  <div class="wlt1-modal__box" onclick="event.stopPropagation()">
     <img class="wlt1-modal__img" src="https://cdn.jsdelivr.net/gh/chistyartem-blip/crocus-widget@74d1768/assets/tech-classic.webp" alt="Classic"/>
     <div class="wlt1-modal__img-overlay"></div>
     <button class="wlt1-modal__close" onclick="wlt1CloseModal()" aria-label="Schließen">✕</button>
@@ -142,9 +142,9 @@
 
 <div class="wlt1-modal" id="wlt1-modal-3d" role="dialog" aria-modal="true">
   <div class="wlt1-modal__backdrop" onclick="wlt1CloseModal()"></div>
-  <div class="wlt1-modal__scroll">
+  <div class="wlt1-modal__scroll" onclick="wlt1CloseModal()">
   <div class="wlt1-modal__center">
-  <div class="wlt1-modal__box">
+  <div class="wlt1-modal__box" onclick="event.stopPropagation()">
     <img class="wlt1-modal__img" src="https://cdn.jsdelivr.net/gh/chistyartem-blip/crocus-widget@74d1768/assets/tech-3d.webp" alt="3D Volume"/>
     <div class="wlt1-modal__img-overlay"></div>
     <button class="wlt1-modal__close" onclick="wlt1CloseModal()" aria-label="Schließen">✕</button>
@@ -174,9 +174,9 @@
 
 <div class="wlt1-modal" id="wlt1-modal-6d" role="dialog" aria-modal="true">
   <div class="wlt1-modal__backdrop" onclick="wlt1CloseModal()"></div>
-  <div class="wlt1-modal__scroll">
+  <div class="wlt1-modal__scroll" onclick="wlt1CloseModal()">
   <div class="wlt1-modal__center">
-  <div class="wlt1-modal__box">
+  <div class="wlt1-modal__box" onclick="event.stopPropagation()">
     <img class="wlt1-modal__img" src="https://cdn.jsdelivr.net/gh/chistyartem-blip/crocus-widget@74d1768/assets/tech-6d.webp" alt="6D Mega Volume"/>
     <div class="wlt1-modal__img-overlay"></div>
     <button class="wlt1-modal__close" onclick="wlt1CloseModal()" aria-label="Schließen">✕</button>
@@ -206,9 +206,9 @@
 
 <div class="wlt1-modal" id="wlt1-modal-wispy" role="dialog" aria-modal="true">
   <div class="wlt1-modal__backdrop" onclick="wlt1CloseModal()"></div>
-  <div class="wlt1-modal__scroll">
+  <div class="wlt1-modal__scroll" onclick="wlt1CloseModal()">
   <div class="wlt1-modal__center">
-  <div class="wlt1-modal__box">
+  <div class="wlt1-modal__box" onclick="event.stopPropagation()">
     <img class="wlt1-modal__img" src="https://cdn.jsdelivr.net/gh/chistyartem-blip/crocus-widget@74d1768/assets/tech-wispy.webp" alt="Wispy"/>
     <div class="wlt1-modal__img-overlay"></div>
     <button class="wlt1-modal__close" onclick="wlt1CloseModal()" aria-label="Schließen">✕</button>
@@ -361,10 +361,11 @@
   }
   function wlt1CloseModal(){
     document.querySelectorAll('.wlt1-modal.is-open').forEach(function(m){m.classList.remove('is-open');});
+    var sy=wlt1ScrollY;
     document.body.style.position='';
     document.body.style.top='';
     document.body.style.width='';
-    window.scrollTo(0,wlt1ScrollY);
+    requestAnimationFrame(function(){window.scrollTo(0,sy);});
   }
   // keyboard support
   document.addEventListener('keydown',function(e){if(e.key==='Escape')wlt1CloseModal();});
