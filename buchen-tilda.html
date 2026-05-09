@@ -6,6 +6,12 @@
   pointer-events: none !important;
 }
 
+/* ── Страница: нет горизонтального скролла ── */
+#cb-page {
+  overflow-x: hidden;
+  max-width: 100%;
+}
+
 /* ── Sticky nav ── */
 #cb-nav {
   position: sticky;
@@ -484,6 +490,7 @@
 
 /* ════ RESPONSIVE ════ */
 @media (max-width: 860px) {
+  #cb-page { overflow-x: hidden; }
   #cb-hero { grid-template-columns: 1fr; padding: 0 20px 48px; }
   #cb-gift-col { padding-right: 0; border-right: none; border-bottom: 1px solid rgba(255,255,255,.06); padding-bottom: 36px; margin-bottom: 36px; }
   #cb-book-col { padding-left: 0; }
@@ -491,8 +498,12 @@
   #cb-masters-row { grid-template-columns: repeat(2, 1fr); }
   #cb-why, #cb-masters, #cb-footer { padding-left: 20px; padding-right: 20px; }
   #cb-faq { padding-left: 20px; padding-right: 20px; }
+  #cb-widget-anchor { overflow: hidden; max-width: 100%; }
+  #cb-widget-anchor #crocus-modal { max-width: 100% !important; width: 100% !important; }
 }
 @media (max-width: 480px) {
+  #cb-page { overflow-x: hidden; }
+  #cb-hero { padding: 0 16px 48px; }
   #cb-gift-nominals { grid-template-columns: repeat(2, 1fr); }
   #cb-why-grid { grid-template-columns: 1fr; }
   #cb-masters-row { grid-template-columns: repeat(2, 1fr); }
@@ -501,6 +512,10 @@
   #cb-nav::-webkit-scrollbar { display: none; }
   .cb-nav-link { padding: 0 12px; font-size: 10px; }
   .cb-nav-sep { display: none; }
+  #cb-why, #cb-masters, #cb-faq, #cb-footer { padding-left: 16px; padding-right: 16px; max-width: 100%; box-sizing: border-box; }
+  .cb-master-card { min-width: 0; }
+  .cb-nominal { padding: 10px 4px 8px; }
+  .cb-nominal-val { font-size: 17px; }
 }
 
 /* scroll anchors */
@@ -746,6 +761,58 @@
 </div><!-- /#cb-page -->
 
 <script>
+// ── Sticky nav полифилл ──
+// Tilda иногда ставит overflow:hidden на родителе T123 блока — это ломает position:sticky.
+// Если обнаруживаем что nav не sticky (не прилипает при скролле) — переключаем на fixed.
+(function() {
+  var nav = document.getElementById('cb-nav');
+  var page = document.getElementById('cb-page');
+  if (!nav || !page) return;
+
+  // Проверяем есть ли родитель с overflow hidden который мешает sticky
+  function hasOverflowHiddenAncestor(el) {
+    var node = el.parentElement;
+    while (node && node !== document.body) {
+      var ov = window.getComputedStyle(node).overflow;
+      var ovX = window.getComputedStyle(node).overflowX;
+      var ovY = window.getComputedStyle(node).overflowY;
+      if (ov === 'hidden' || ovX === 'hidden' || ovY === 'hidden') return true;
+      node = node.parentElement;
+    }
+    return false;
+  }
+
+  function activateFixedNav() {
+    nav.style.position = 'fixed';
+    nav.style.top = '0';
+    nav.style.left = '0';
+    nav.style.right = '0';
+    nav.style.width = '100%';
+    nav.style.zIndex = '9999';
+    // компенсируем высоту nav чтобы контент не прыгал
+    page.style.paddingTop = '48px';
+  }
+
+  // Небольшой таймаут — ждём пока Tilda отрендерит своё
+  setTimeout(function() {
+    if (hasOverflowHiddenAncestor(nav)) {
+      activateFixedNav();
+    } else {
+      // Дополнительная проверка: проверяем работает ли sticky реально
+      var rect1 = nav.getBoundingClientRect();
+      window.scrollTo(0, 10);
+      setTimeout(function() {
+        var rect2 = nav.getBoundingClientRect();
+        window.scrollTo(0, 0);
+        // Если nav сдвинулся — sticky не работает
+        if (Math.abs(rect2.top - rect1.top) > 2) {
+          activateFixedNav();
+        }
+      }, 50);
+    }
+  }, 300);
+})();
+
 function cbScrollTo(id) {
   var el = document.getElementById(id);
   if (!el) return;
