@@ -118,11 +118,30 @@ function findNextAvailable(staffId, serviceId){
   }, Promise.resolve(null));
 }
 
+// ── Page-aware text color ─────────────────────────────────────────
+function getPageColors(){
+  var path = window.location.pathname.toLowerCase();
+  // Тёмные страницы — светлый текст
+  if(path.indexOf('pedik') !== -1){
+    // /pediküre — тёмный фиолетовый фон
+    return { text: 'rgba(220,200,255,0.80)', muted: 'rgba(220,200,255,0.45)' };
+  }
+  if(path.indexOf('wimper') !== -1 || path.indexOf('lash') !== -1){
+    // /wimpern — тёмный midnight фон
+    return { text: 'rgba(240,232,216,0.85)', muted: 'rgba(240,232,216,0.45)' };
+  }
+  // Светлые страницы — тёмный текст
+  // главная (/), /manikuere, /buchen и всё остальное
+  return { text: 'rgba(26,13,18,0.75)', muted: 'rgba(26,13,18,0.40)' };
+}
+
 // ── Render helpers ────────────────────────────────────────────────
 function renderBadge(result){
+  var colors = getPageColors();
+
   if(!result){
     return '<span class="crw3__master-slot-dot grey"></span>'
-      + '<span style="color:rgba(26,13,18,0.45);font-size:10.5px;">Auf Anfrage</span>';
+      + '<span style="color:' + colors.muted + ';font-size:10.5px;">Auf Anfrage</span>';
   }
 
   var label = dateLabel(result.date);
@@ -144,7 +163,7 @@ function renderBadge(result){
     timeStr = label;
   }
 
-  return dot + '<span style="font-size:10.5px;color:rgba(26,13,18,0.75);">' + timeStr + '</span>';
+  return dot + '<span style="font-size:10.5px;color:' + colors.text + ';">' + timeStr + '</span>';
 }
 
 // ── Inject per-master slot badges ─────────────────────────────────
