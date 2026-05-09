@@ -1218,12 +1218,12 @@ function renderTimesLoaded(slots) {
       setTimeout(function(){
         renderSummary();
         goStep(6);
-        // Prefill from localStorage
+        // Prefill from localStorage — only if user hasn't manually edited the field (data-dirty)
         try {
           var saved = JSON.parse(localStorage.getItem('crocus_client') || '{}');
-          if (saved.name)  { var fn = document.getElementById('cw-name');  if (fn && !fn.value) fn.value = saved.name; }
-          if (saved.phone) { var fp = document.getElementById('cw-phone'); if (fp && !fp.value) fp.value = saved.phone.replace(/^\+49/,''); }
-          if (saved.email) { var fe = document.getElementById('cw-email'); if (fe && !fe.value) fe.value = saved.email; }
+          if (saved.name)  { var fn = document.getElementById('cw-name');  if (fn && !fn.dataset.dirty) fn.value = saved.name; }
+          if (saved.phone) { var fp = document.getElementById('cw-phone'); if (fp && !fp.dataset.dirty) fp.value = saved.phone.replace(/^\+49/,''); }
+          if (saved.email) { var fe = document.getElementById('cw-email'); if (fe && !fe.dataset.dirty) fe.value = saved.email; }
         } catch(ex) {}
       }, 180);
     });
@@ -1435,10 +1435,10 @@ function crocusReset() {
   // Clear any leftover error messages in form
   var oldErr = document.getElementById('cw-form') && document.getElementById('cw-form').querySelector('.cw-err-msg');
   if (oldErr) oldErr.remove();
-  // Clear form fields
+  // Clear form fields and dirty flags
   ['cw-name','cw-phone','cw-email'].forEach(function(id){
     var el = document.getElementById(id);
-    if (el) { el.value = ''; el.classList.remove('invalid'); }
+    if (el) { el.value = ''; el.classList.remove('invalid'); delete el.dataset.dirty; }
   });
   var consentEl = document.getElementById('cw-consent');
   if (consentEl) { consentEl.checked = true; consentEl.parentElement.classList.remove('invalid'); }
@@ -1848,10 +1848,16 @@ document.getElementById('cw-gift-btn-new').addEventListener('click', function(){
   document.getElementById('crocus-progress').style.display = 'flex';
 });
 
-// Clear invalid state on input
+// Clear invalid state on input + mark dirty (so prefill won't overwrite manual edits)
 ['cw-gift-name','cw-gift-email'].forEach(function(id){
   document.getElementById(id).addEventListener('input', function(){
     this.classList.remove('invalid');
+  });
+});
+['cw-name','cw-phone','cw-email'].forEach(function(id){
+  document.getElementById(id).addEventListener('input', function(){
+    this.classList.remove('invalid');
+    this.dataset.dirty = '1';
   });
 });
 document.addEventListener('keydown', function(e){ if(e.key==='Escape') crocusClose(); });
