@@ -206,8 +206,8 @@ var css = `
 .cp-step.done .cp-dot{background:rgba(201,168,124,.13);border-color:#c9a87c;color:#c9a87c}
 .cp-label{font-size:8.5px;letter-spacing:.05em;text-transform:uppercase;color:rgba(253,250,248,.22);font-family:'DM Sans',sans-serif;white-space:nowrap}
 .cp-step.active .cp-label,.cp-step.done .cp-label{color:rgba(253,250,248,.55)}
-.cp-line{position:absolute;top:10px;left:calc(50% + 13px);right:calc(-50% + 13px);height:1px;background:rgba(255,255,255,.06);z-index:0;transition:background .3s}
-.cp-line.filled{background:rgba(201,168,124,.28)}
+.cp-line{position:absolute;top:10px;left:calc(50% + 13px);right:calc(-50% + 13px);height:1px;background:transparent;z-index:0;transition:background .3s}
+.cp-line.filled{background:transparent}
 
 /* Body */
 #crocus-body{flex:1;overflow-y:auto;overflow-x:hidden;padding:18px 18px 28px;scrollbar-width:none;box-sizing:border-box}
@@ -1676,6 +1676,19 @@ window.crocusOpenGutschein = function(ctaLocation) {
   });
   crocusOpen();
   setTimeout(function(){ openGiftMode(); }, 80);
+};
+
+window.crocusOpenMasters = function() {
+  crocusOpen();
+  setTimeout(function() {
+    // Сбрасываем до шага мастеров, игнорируем return screen
+    document.getElementById('crocus-progress').style.display = 'flex';
+    document.querySelectorAll('.cw-step').forEach(function(el){ el.classList.remove('active'); });
+    document.getElementById('cw-step1').classList.add('active');
+    updateProgress(1);
+    if (_allMasters) renderMasters();
+    document.getElementById('crocus-body').scrollTop = 0;
+  }, 80);
 };
 
 window.crocusOpenWimpern = function() {

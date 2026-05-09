@@ -12,48 +12,7 @@
   max-width: 100%;
 }
 
-/* ── Sticky nav ── */
-#cb-nav {
-  position: sticky;
-  top: 0;
-  z-index: 100;
-  background: rgba(14,4,8,.88);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
-  border-bottom: 1px solid rgba(255,255,255,.06);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 48px;
-  padding: 0 16px;
-  gap: 0;
-}
-.cb-nav-link {
-  font-size: 11px;
-  letter-spacing: .08em;
-  text-transform: uppercase;
-  color: rgba(253,250,248,.38);
-  text-decoration: none;
-  padding: 0 16px;
-  height: 48px;
-  display: flex;
-  align-items: center;
-  border-bottom: 2px solid transparent;
-  transition: color .2s, border-color .2s;
-  cursor: pointer;
-  white-space: nowrap;
-  user-select: none;
-}
-.cb-nav-link:hover, .cb-nav-link.active {
-  color: #c9a87c;
-  border-bottom-color: rgba(201,168,124,.5);
-}
-.cb-nav-sep {
-  width: 1px;
-  height: 14px;
-  background: rgba(255,255,255,.08);
-  flex-shrink: 0;
-}
+
 
 /* ── Header ── */
 #cb-header {
@@ -508,10 +467,6 @@
   #cb-why-grid { grid-template-columns: 1fr; }
   #cb-masters-row { grid-template-columns: repeat(2, 1fr); }
   .cb-section-title { font-size: 26px; }
-  #cb-nav { justify-content: flex-start; overflow-x: auto; scrollbar-width: none; }
-  #cb-nav::-webkit-scrollbar { display: none; }
-  .cb-nav-link { padding: 0 12px; font-size: 10px; }
-  .cb-nav-sep { display: none; }
   #cb-why, #cb-masters, #cb-faq, #cb-footer { padding-left: 16px; padding-right: 16px; max-width: 100%; box-sizing: border-box; }
   .cb-master-card { min-width: 0; }
   .cb-nominal { padding: 10px 4px 8px; }
@@ -528,19 +483,6 @@
 </style>
 
 <div id="cb-page">
-
-<!-- ── Sticky nav ── -->
-<nav id="cb-nav">
-  <a class="cb-nav-link active" onclick="cbScrollTo('sec-gutschein')">Gutschein</a>
-  <div class="cb-nav-sep"></div>
-  <a class="cb-nav-link" onclick="cbScrollTo('sec-buchen')">Buchen</a>
-  <div class="cb-nav-sep"></div>
-  <a class="cb-nav-link" onclick="cbScrollTo('sec-why')">Studio</a>
-  <div class="cb-nav-sep"></div>
-  <a class="cb-nav-link" onclick="cbScrollTo('sec-masters')">Team</a>
-  <div class="cb-nav-sep"></div>
-  <a class="cb-nav-link" onclick="cbScrollTo('sec-faq')">FAQ</a>
-</nav>
 
 <!-- ── Header ── -->
 <div id="cb-header">
@@ -680,7 +622,7 @@
     <div class="cb-section-sub">Wähle deine Lieblings-Meisterin direkt beim Buchen</div>
   </div>
   <div id="cb-masters-row">
-    <div class="cb-master-card" onclick="typeof crocusOpen==='function'&&crocusOpen()">
+    <div class="cb-master-card" onclick="cbScrollToWidget()">
       <img class="cb-master-img" src="https://raw.githubusercontent.com/chistyartem-blip/crocus-widget/main/assets/diana.jpg" alt="Diana" loading="lazy">
       <div class="cb-master-body">
         <div class="cb-master-name">Diana</div>
@@ -688,7 +630,7 @@
         <button class="cb-master-btn">Termin buchen →</button>
       </div>
     </div>
-    <div class="cb-master-card" onclick="typeof crocusOpen==='function'&&crocusOpen()">
+    <div class="cb-master-card" onclick="cbScrollToWidget()">
       <img class="cb-master-img" src="https://raw.githubusercontent.com/chistyartem-blip/crocus-widget/main/assets/nelia.jpg" alt="Nelia" loading="lazy">
       <div class="cb-master-body">
         <div class="cb-master-name">Nelia</div>
@@ -696,7 +638,7 @@
         <button class="cb-master-btn">Termin buchen →</button>
       </div>
     </div>
-    <div class="cb-master-card" onclick="typeof crocusOpenWimpern==='function'&&crocusOpenWimpern()">
+    <div class="cb-master-card" onclick="cbScrollToWidget()">
       <img class="cb-master-img" src="https://raw.githubusercontent.com/chistyartem-blip/crocus-widget/main/assets/karina.jpg" alt="Karina" loading="lazy">
       <div class="cb-master-body">
         <div class="cb-master-name">Karina</div>
@@ -704,7 +646,7 @@
         <button class="cb-master-btn">Termin buchen →</button>
       </div>
     </div>
-    <div class="cb-master-card" onclick="typeof crocusOpen==='function'&&crocusOpen()">
+    <div class="cb-master-card" onclick="cbScrollToWidget()">
       <img class="cb-master-img" src="https://raw.githubusercontent.com/chistyartem-blip/crocus-widget/main/assets/sofia.jpg" alt="Sofia" loading="lazy">
       <div class="cb-master-body">
         <div class="cb-master-name">Sofia</div>
@@ -761,81 +703,26 @@
 </div><!-- /#cb-page -->
 
 <script>
-// ── Sticky nav полифилл ──
-// Tilda иногда ставит overflow:hidden на родителе T123 блока — это ломает position:sticky.
-// Если обнаруживаем что nav не sticky (не прилипает при скролле) — переключаем на fixed.
-(function() {
-  var nav = document.getElementById('cb-nav');
-  var page = document.getElementById('cb-page');
-  if (!nav || !page) return;
-
-  // Проверяем есть ли родитель с overflow hidden который мешает sticky
-  function hasOverflowHiddenAncestor(el) {
-    var node = el.parentElement;
-    while (node && node !== document.body) {
-      var ov = window.getComputedStyle(node).overflow;
-      var ovX = window.getComputedStyle(node).overflowX;
-      var ovY = window.getComputedStyle(node).overflowY;
-      if (ov === 'hidden' || ovX === 'hidden' || ovY === 'hidden') return true;
-      node = node.parentElement;
-    }
-    return false;
+// Скролл к виджету + показать мастеров (для кнопок на карточках мастеров)
+function cbScrollToWidget() {
+  var anchor = document.getElementById('cb-widget-anchor');
+  if (anchor) {
+    var y = anchor.getBoundingClientRect().top + window.scrollY - 20;
+    window.scrollTo({ top: y, behavior: 'smooth' });
   }
-
-  function activateFixedNav() {
-    nav.style.position = 'fixed';
-    nav.style.top = '0';
-    nav.style.left = '0';
-    nav.style.right = '0';
-    nav.style.width = '100%';
-    nav.style.zIndex = '9999';
-    // компенсируем высоту nav чтобы контент не прыгал
-    page.style.paddingTop = '48px';
-  }
-
-  // Небольшой таймаут — ждём пока Tilda отрендерит своё
+  // Сбрасываем виджет на шаг мастеров (убираем return screen)
   setTimeout(function() {
-    if (hasOverflowHiddenAncestor(nav)) {
-      activateFixedNav();
-    } else {
-      // Дополнительная проверка: проверяем работает ли sticky реально
-      var rect1 = nav.getBoundingClientRect();
-      window.scrollTo(0, 10);
-      setTimeout(function() {
-        var rect2 = nav.getBoundingClientRect();
-        window.scrollTo(0, 0);
-        // Если nav сдвинулся — sticky не работает
-        if (Math.abs(rect2.top - rect1.top) > 2) {
-          activateFixedNav();
-        }
-      }, 50);
-    }
-  }, 300);
-})();
-
-function cbScrollTo(id) {
-  var el = document.getElementById(id);
-  if (!el) return;
-  var y = el.getBoundingClientRect().top + window.scrollY - 56;
-  window.scrollTo({ top: y, behavior: 'smooth' });
+    var prog = document.getElementById('crocus-progress');
+    var step1 = document.getElementById('cw-step1');
+    if (prog) prog.style.display = 'flex';
+    document.querySelectorAll('.cw-step').forEach(function(el){ el.classList.remove('active'); });
+    if (step1) step1.classList.add('active');
+    if (typeof updateProgress === 'function') updateProgress(1);
+    if (typeof renderMasters === 'function' && window._allMasters) renderMasters();
+    var body = document.getElementById('crocus-body');
+    if (body) body.scrollTop = 0;
+  }, 350);
 }
-
-(function() {
-  var sections = ['sec-gutschein','sec-buchen','sec-why','sec-masters','sec-faq'];
-  var links = document.querySelectorAll('.cb-nav-link');
-  function onScroll() {
-    var scrollY = window.scrollY + 100;
-    var current = sections[0];
-    sections.forEach(function(id) {
-      var el = document.getElementById(id);
-      if (el && el.getBoundingClientRect().top + window.scrollY <= scrollY) current = id;
-    });
-    links.forEach(function(link, i) {
-      link.classList.toggle('active', sections[i] === current);
-    });
-  }
-  window.addEventListener('scroll', onScroll, { passive: true });
-})();
 
 function cbFaqToggle(btn) {
   var item = btn.parentElement;
