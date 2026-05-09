@@ -752,10 +752,14 @@ function cbWidgetInit() {
   modal.style.width      = '100%';
   modal.style.height     = '680px';
   modal.style.borderRadius = '16px';
-  document.body.style.overflow = '';
-  document.body.classList.remove('crocus-open');
   if (bookCta) bookCta.style.display = 'none';
-  if (typeof crocusOpen === 'function') crocusOpen();
+  // НЕ вызываем crocusOpen() — она ставит body position:fixed
+  // Принудительно сбрасываем scroll-lock который мог быть установлен виджетом
+  document.body.style.overflow = '';
+  document.body.style.position = '';
+  document.body.style.top = '';
+  document.body.style.width = '';
+  document.body.classList.remove('crocus-open');
 }
 
 document.addEventListener('click', function(e) {
@@ -770,4 +774,18 @@ if (document.readyState === 'loading') {
 } else {
   setTimeout(cbWidgetInit, 200);
 }
+
+// Страж: не давать никому блокировать скролл страницы /buchen
+(function() {
+  var observer = new MutationObserver(function() {
+    if (document.body.style.position === 'fixed' || document.body.classList.contains('crocus-open')) {
+      document.body.style.overflow = '';
+      document.body.style.position = '';
+      document.body.style.top = '';
+      document.body.style.width = '';
+      document.body.classList.remove('crocus-open');
+    }
+  });
+  observer.observe(document.body, { attributes: true, attributeFilter: ['style', 'class'] });
+})();
 </script>
