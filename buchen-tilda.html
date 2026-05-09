@@ -209,6 +209,9 @@
   color: #0e0408;
   box-shadow: 0 4px 20px rgba(201,168,124,.22);
   max-width: 340px;
+  width: 100%;
+  box-sizing: border-box;
+  align-self: stretch;
   margin-left: auto;
   margin-right: auto;
 }
@@ -500,7 +503,7 @@
     <div id="sec-gutschein" class="cb-anchor"></div>
     <div class="cb-section-label">Geschenk</div>
 
-    <div id="cb-gift-visual" onclick="typeof crocusOpenGutschein==='function'&&crocusOpenGutschein('landing_hero')">
+    <div id="cb-gift-visual" onclick="cbScrollToGutschein('landing_hero')">
       <img
         src="https://raw.githubusercontent.com/chistyartem-blip/crocus-widget/main/assets/gift-card.jpg"
         alt="Geschenkgutschein Crocus Beauty"
@@ -513,19 +516,19 @@
     </div>
 
     <div id="cb-gift-nominals">
-      <div class="cb-nominal" onclick="typeof crocusOpenGutschein==='function'&&crocusOpenGutschein('nominal_30')">
+      <div class="cb-nominal" onclick="cbScrollToGutschein('nominal_30')">
         <span class="cb-nominal-val">30 €</span>
         <span class="cb-nominal-label">Starter</span>
       </div>
-      <div class="cb-nominal" onclick="typeof crocusOpenGutschein==='function'&&crocusOpenGutschein('nominal_50')">
+      <div class="cb-nominal" onclick="cbScrollToGutschein('nominal_50')">
         <span class="cb-nominal-val">50 €</span>
         <span class="cb-nominal-label">Beliebt</span>
       </div>
-      <div class="cb-nominal" onclick="typeof crocusOpenGutschein==='function'&&crocusOpenGutschein('nominal_100')">
+      <div class="cb-nominal" onclick="cbScrollToGutschein('nominal_100')">
         <span class="cb-nominal-val">100 €</span>
         <span class="cb-nominal-label">Premium</span>
       </div>
-      <div class="cb-nominal" onclick="typeof crocusOpenGutschein==='function'&&crocusOpenGutschein('nominal_flex')">
+      <div class="cb-nominal" onclick="cbScrollToGutschein('nominal_flex')">
         <span class="cb-nominal-val" style="font-size:15px">Frei</span>
         <span class="cb-nominal-label">Wunsch</span>
       </div>
@@ -540,7 +543,7 @@
       </ul>
     </div>
 
-    <button class="cb-btn cb-btn-gold" onclick="typeof crocusOpenGutschein==='function'&&crocusOpenGutschein('landing_cta')">
+    <button class="cb-btn cb-btn-gold" onclick="cbScrollToGutschein('landing_cta')">
       🎁 Gutschein kaufen
     </button>
   </div>
@@ -703,6 +706,20 @@
 </div><!-- /#cb-page -->
 
 <script>
+// Скролл к виджету + открыть Gutschein flow (для кнопок номиналов на /buchen)
+function cbScrollToGutschein(nominal) {
+  var anchor = document.getElementById('cb-widget-anchor');
+  if (anchor) {
+    var y = anchor.getBoundingClientRect().top + window.scrollY - 20;
+    window.scrollTo({ top: y, behavior: 'smooth' });
+  }
+  setTimeout(function() {
+    if (typeof window.openGiftMode === 'function') {
+      window.openGiftMode();
+    }
+  }, 400);
+}
+
 // Скролл к виджету + показать мастеров (для кнопок на карточках мастеров)
 function cbScrollToWidget() {
   var anchor = document.getElementById('cb-widget-anchor');

@@ -1666,6 +1666,7 @@ function startRepeatBooking() {
 document.getElementById('crocus-fab').addEventListener('click', crocusOpen);
 window.crocusOpen = crocusOpen;
 window.crocusClose = crocusClose;
+window.openGiftMode = openGiftMode;
 window.crocusOpenGutschein = function(ctaLocation) {
   // Tracking — click_gutschein
   window.dataLayer = window.dataLayer || [];
