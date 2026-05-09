@@ -1,5 +1,11 @@
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet">
 <style>
+/* Скрываем crocus виджет до инициализации — не даём modal торчать поверх всего */
+#crocus-modal:not(.cb-inlined) {
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
 /* ── Sticky nav ── */
 #cb-nav {
   position: sticky;
@@ -237,6 +243,9 @@
   background: linear-gradient(135deg, #c9a87c 0%, #b8936a 100%);
   color: #0e0408;
   box-shadow: 0 4px 20px rgba(201,168,124,.22);
+  max-width: 340px;
+  margin-left: auto;
+  margin-right: auto;
 }
 .cb-btn-gold:hover { transform: translateY(-2px); box-shadow: 0 8px 28px rgba(201,168,124,.34); }
 .cb-btn-rose {
@@ -290,7 +299,24 @@
 .cb-svc-arrow { font-size: 18px; color: rgba(255,255,255,.2); }
 
 /* widget anchor */
-#cb-widget-anchor { display: flex; justify-content: center; }
+#cb-widget-anchor {
+  display: flex;
+  justify-content: center;
+  overflow: hidden;        /* не даём modal вылезать наружу */
+  position: relative;
+  z-index: 1;
+}
+/* Виджет inline — сбрасываем modal стили чтобы не перекрывал хедер */
+#cb-widget-anchor #crocus-modal {
+  position: static !important;
+  transform: none !important;
+  visibility: visible !important;
+  z-index: 1 !important;
+  max-width: 480px;
+  width: 100%;
+  height: 680px;
+  border-radius: 16px;
+}
 
 /* ════ WHY ════ */
 #cb-why {
@@ -349,6 +375,9 @@
   overflow: hidden;
   cursor: pointer;
   transition: all .22s;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
 }
 .cb-master-card:hover {
   border-color: rgba(123,45,78,.4);
@@ -357,16 +386,26 @@
 }
 .cb-master-img {
   width: 100%;
-  height: 160px;
+  height: 180px;
   object-fit: cover;
-  object-position: top;
+  object-position: center 20%;
   display: block;
+  flex-shrink: 0;
+}
+.cb-master-body {
+  padding: 12px 12px 12px;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  box-sizing: border-box;
+  min-width: 0;
 }
 .cb-master-name { font-size: 14px; font-weight: 600; color: #fdfaf8; margin-bottom: 3px; }
-.cb-master-spec { font-size: 11px; color: rgba(253,250,248,.38); line-height: 1.5; margin-bottom: 10px; }
+.cb-master-spec { font-size: 11px; color: rgba(253,250,248,.38); line-height: 1.5; margin-bottom: 10px; flex: 1; }
 .cb-master-btn {
+  display: block;
   width: 100%;
-  padding: 8px;
+  padding: 8px 6px;
   background: rgba(123,45,78,.15);
   border: 1px solid rgba(123,45,78,.3);
   border-radius: 8px;
@@ -376,6 +415,12 @@
   font-weight: 500;
   cursor: pointer;
   transition: all .2s;
+  text-align: center;
+  box-sizing: border-box;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex-shrink: 0;
 }
 .cb-master-card:hover .cb-master-btn {
   background: rgba(123,45,78,.3);
@@ -745,13 +790,16 @@ function cbWidgetInit() {
   if (backdrop) backdrop.style.display = 'none';
   anchor.appendChild(modal);
   modal.classList.add('open');
+  modal.classList.add('cb-inlined');
   modal.style.transform  = 'none';
   modal.style.visibility = 'visible';
+  modal.style.opacity    = '1';
   modal.style.position   = 'static';
   modal.style.maxWidth   = '480px';
   modal.style.width      = '100%';
   modal.style.height     = '680px';
   modal.style.borderRadius = '16px';
+  modal.style.zIndex     = '1';
   if (bookCta) bookCta.style.display = 'none';
   // НЕ вызываем crocusOpen() — она ставит body position:fixed
   // Принудительно сбрасываем scroll-lock который мог быть установлен виджетом
