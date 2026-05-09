@@ -347,7 +347,7 @@ var css = `
 .cw-btn-new{background:rgba(255,255,255,.05);color:rgba(253,250,248,.60);border:1px solid rgba(255,255,255,.09);border-radius:10px;padding:10px 22px;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:13px;transition:all .15s;margin-top:4px}
 .cw-btn-new:hover{background:rgba(255,255,255,.09);color:#fdfaf8}
 
-body.crocus-open .t-header,body.crocus-open header{z-index:1!important;position:relative!important}
+body.crocus-open .t-header,body.crocus-open header{z-index:1!important}
 body.crocus-open{overflow:hidden!important;touch-action:none;}
 
 /* ── Gift CTA button (Step 1 bottom) ── */
