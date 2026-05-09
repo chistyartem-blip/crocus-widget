@@ -128,14 +128,14 @@ img {
     overflow-x: hidden;
   }
 
-  /* ── /buchen page only: скрываем FAB + встраиваем модал как блок ── */
+  /* ── Скрываем FAB — виджет встроен inline (только /buchen) ── */
   #cb-page #crocus-fab-wrap,
   #cb-page #crocus-fab-mobile,
   #cb-page #crocus-backdrop {
     display: none !important;
   }
 
-  /* ── Модал встраиваем как обычный блок (только на /buchen) ── */
+  /* ── Модал встраиваем как обычный блок (только /buchen) ── */
   #cb-page #crocus-modal {
     position: static !important;
     transform: none !important;
@@ -721,7 +721,7 @@ img {
     #cb-masters-row { grid-template-columns: repeat(2, 1fr); }
     #cb-master-img { height: 130px; }
     #cb-why-title, #cb-masters-title { font-size: 24px; }
-    #crocus-modal {
+    #cb-page #crocus-modal {
       border-radius: 16px !important;
     }
   }
