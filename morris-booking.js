@@ -1175,6 +1175,15 @@ function submitBooking(e) {
             sha256_email_address: emailHash || undefined,
           },
         });
+        // Google Ads conversion — Запись на встречу
+        if (typeof gtag === 'function') {
+          gtag('event', 'conversion', {
+            send_to: 'AW-18106748478/gz_1CILgxKgcEL6c_LlD',
+            value: cw.service ? (cw.service.price_min || 0) : 0,
+            currency: 'EUR',
+            transaction_id: '',
+          });
+        }
       });
       goStep('success');
       document.getElementById('morris-progress').style.display = 'none';
