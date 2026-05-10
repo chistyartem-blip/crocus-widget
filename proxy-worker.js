@@ -60,9 +60,10 @@ export default {
 
     // Build request to Altegio
     const headers = new Headers({
-      'Authorization': authHeader,
-      'Accept':        'application/vnd.api.v2+json',
-      'Content-Type':  'application/json',
+      'Authorization':   authHeader,
+      'Accept':          'application/vnd.api.v2+json',
+      'Content-Type':    'application/json',
+      'Accept-Language': request.headers.get('Accept-Language') || 'de',
     });
 
     const proxyReq = new Request(altegioUrl, {
