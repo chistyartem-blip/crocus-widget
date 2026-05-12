@@ -238,6 +238,6 @@ if(document.readyState === 'loading'){
 }
 
 // Обновляем каждые 5 минут
-setInterval(init, 5 * 60 * 1000);
+setInterval(init, 30 * 60 * 1000);
 
 })();
