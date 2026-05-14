@@ -663,6 +663,14 @@ function crocusOpen() {
   // Tracking
   window.dataLayer = window.dataLayer || [];
   window.dataLayer.push({ event: 'open_booking_widget', page_location: window.location.href });
+  // Meta Pixel — ViewContent при открытии виджета
+  if (typeof fbq === 'function') {
+    fbq('track', 'ViewContent', {
+      content_name: 'Booking Widget',
+      content_category: 'Beauty',
+      currency: 'EUR',
+    });
+  }
 }
 
 function crocusClose() {
@@ -1400,6 +1408,21 @@ function submitBooking(e) {
             value: cw.service ? (cw.service.price_min || 0) : 0,
             currency: 'EUR',
             transaction_id: '',
+          });
+        }
+        // Meta Pixel — Schedule event (реальное бронирование)
+        if (typeof fbq === 'function') {
+          fbq('track', 'Schedule', {
+            content_name: cw.service ? cw.service.title : '',
+            content_category: cw.category ? cw.category.label : '',
+            currency: 'EUR',
+            value: cw.service ? (cw.service.price_min || 0) : 0,
+          });
+          // Дополнительно Lead для оптимизации Leads-кампании
+          fbq('track', 'Lead', {
+            content_name: cw.service ? cw.service.title : '',
+            currency: 'EUR',
+            value: cw.service ? (cw.service.price_min || 0) : 0,
           });
         }
       });
