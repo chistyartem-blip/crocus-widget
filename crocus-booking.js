@@ -151,77 +151,78 @@ function apiPost(path, body) {
 // ── Phone dial countries ───────────────────────────────────────
 var PHONE_COUNTRIES = [
   // ── По умолчанию ──────────────────────────────────────────────
-  { code: '+49',  flag: '🇩🇪', name: 'Deutschland' },
+  { code: '+49',  flag: '\u{1F1E9}\u{1F1EA}', name: 'Deutschland',             short: 'DE' },
   // ── Остальные по алфавиту ─────────────────────────────────────
-  { code: '+20',  flag: '🇪🇬', name: 'Ägypten' },
-  { code: '+54',  flag: '🇦🇷', name: 'Argentinien' },
-  { code: '+374', flag: '🇦🇲', name: 'Armenien' },
-  { code: '+994', flag: '🇦🇿', name: 'Aserbaidschan' },
-  { code: '+61',  flag: '🇦🇺', name: 'Australien' },
-  { code: '+32',  flag: '🇧🇪', name: 'Belgien' },
-  { code: '+375', flag: '🇧🇾', name: 'Belarus' },
-  { code: '+387', flag: '🇧🇦', name: 'Bosnien' },
-  { code: '+55',  flag: '🇧🇷', name: 'Brasilien' },
-  { code: '+86',  flag: '🇨🇳', name: 'China' },
-  { code: '+45',  flag: '🇩🇰', name: 'Dänemark' },
-  { code: '+372', flag: '🇪🇪', name: 'Estland' },
-  { code: '+358', flag: '🇫🇮', name: 'Finnland' },
-  { code: '+33',  flag: '🇫🇷', name: 'Frankreich' },
-  { code: '+995', flag: '🇬🇪', name: 'Georgien' },
-  { code: '+30',  flag: '🇬🇷', name: 'Griechenland' },
-  { code: '+44',  flag: '🇬🇧', name: 'Großbritannien' },
-  { code: '+91',  flag: '🇮🇳', name: 'Indien' },
-  { code: '+62',  flag: '🇮🇩', name: 'Indonesien' },
-  { code: '+353', flag: '🇮🇪', name: 'Irland' },
-  { code: '+354', flag: '🇮🇸', name: 'Island' },
-  { code: '+972', flag: '🇮🇱', name: 'Israel' },
-  { code: '+39',  flag: '🇮🇹', name: 'Italien' },
-  { code: '+81',  flag: '🇯🇵', name: 'Japan' },
-  { code: '+1',   flag: '🇨🇦', name: 'Kanada' },
-  { code: '+7',   flag: '🇰🇿', name: 'Kasachstan' },
-  { code: '+996', flag: '🇰🇬', name: 'Kirgisistan' },
-  { code: '+82',  flag: '🇰🇷', name: 'Südkorea' },
-  { code: '+385', flag: '🇭🇷', name: 'Kroatien' },
-  { code: '+371', flag: '🇱🇻', name: 'Lettland' },
-  { code: '+370', flag: '🇱🇹', name: 'Litauen' },
-  { code: '+352', flag: '🇱🇺', name: 'Luxemburg' },
-  { code: '+212', flag: '🇲🇦', name: 'Marokko' },
-  { code: '+52',  flag: '🇲🇽', name: 'Mexiko' },
-  { code: '+373', flag: '🇲🇩', name: 'Moldau' },
-  { code: '+31',  flag: '🇳🇱', name: 'Niederlande' },
-  { code: '+64',  flag: '🇳🇿', name: 'Neuseeland' },
-  { code: '+47',  flag: '🇳🇴', name: 'Norwegen' },
-  { code: '+43',  flag: '🇦🇹', name: 'Österreich' },
-  { code: '+92',  flag: '🇵🇰', name: 'Pakistan' },
-  { code: '+63',  flag: '🇵🇭', name: 'Philippinen' },
-  { code: '+48',  flag: '🇵🇱', name: 'Polen' },
-  { code: '+351', flag: '🇵🇹', name: 'Portugal' },
-  { code: '+40',  flag: '🇷🇴', name: 'Rumänien' },
-  { code: '+7',   flag: '🇷🇺', name: 'Russland' },
-  { code: '+966', flag: '🇸🇦', name: 'Saudi-Arabien' },
-  { code: '+46',  flag: '🇸🇪', name: 'Schweden' },
-  { code: '+41',  flag: '🇨🇭', name: 'Schweiz' },
-  { code: '+381', flag: '🇷🇸', name: 'Serbien' },
-  { code: '+65',  flag: '🇸🇬', name: 'Singapur' },
-  { code: '+421', flag: '🇸🇰', name: 'Slowakei' },
-  { code: '+386', flag: '🇸🇮', name: 'Slowenien' },
-  { code: '+34',  flag: '🇪🇸', name: 'Spanien' },
-  { code: '+27',  flag: '🇿🇦', name: 'Südafrika' },
-  { code: '+992', flag: '🇹🇯', name: 'Tadschikistan' },
-  { code: '+66',  flag: '🇹🇭', name: 'Thailand' },
-  { code: '+420', flag: '🇨🇿', name: 'Tschechien' },
-  { code: '+90',  flag: '🇹🇷', name: 'Türkei' },
-  { code: '+993', flag: '🇹🇲', name: 'Turkmenistan' },
-  { code: '+380', flag: '🇺🇦', name: 'Ukraine' },
-  { code: '+36',  flag: '🇭🇺', name: 'Ungarn' },
-  { code: '+998', flag: '🇺🇿', name: 'Usbekistan' },
-  { code: '+971', flag: '🇦🇪', name: 'Vereinigte Arab. Emirate' },
-  { code: '+84',  flag: '🇻🇳', name: 'Vietnam' },
-  { code: '+1',   flag: '🇺🇸', name: 'USA' },
+  { code: '+20',  flag: '\u{1F1EA}\u{1F1EC}', name: 'Ägypten',                 short: 'EG' },
+  { code: '+54',  flag: '\u{1F1E6}\u{1F1F7}', name: 'Argentinien',             short: 'AR' },
+  { code: '+374', flag: '\u{1F1E6}\u{1F1F2}', name: 'Armenien',                short: 'AM' },
+  { code: '+994', flag: '\u{1F1E6}\u{1F1FF}', name: 'Aserbaidschan',           short: 'AZ' },
+  { code: '+61',  flag: '\u{1F1E6}\u{1F1FA}', name: 'Australien',              short: 'AU' },
+  { code: '+32',  flag: '\u{1F1E7}\u{1F1EA}', name: 'Belgien',                 short: 'BE' },
+  { code: '+375', flag: '\u{1F1E7}\u{1F1FE}', name: 'Belarus',                 short: 'BY' },
+  { code: '+387', flag: '\u{1F1E7}\u{1F1E6}', name: 'Bosnien',                 short: 'BA' },
+  { code: '+55',  flag: '\u{1F1E7}\u{1F1F7}', name: 'Brasilien',               short: 'BR' },
+  { code: '+86',  flag: '\u{1F1E8}\u{1F1F3}', name: 'China',                   short: 'CN' },
+  { code: '+45',  flag: '\u{1F1E9}\u{1F1F0}', name: 'Dänemark',                short: 'DK' },
+  { code: '+372', flag: '\u{1F1EA}\u{1F1EA}', name: 'Estland',                 short: 'EE' },
+  { code: '+358', flag: '\u{1F1EB}\u{1F1EE}', name: 'Finnland',                short: 'FI' },
+  { code: '+33',  flag: '\u{1F1EB}\u{1F1F7}', name: 'Frankreich',              short: 'FR' },
+  { code: '+995', flag: '\u{1F1EC}\u{1F1EA}', name: 'Georgien',                short: 'GE' },
+  { code: '+30',  flag: '\u{1F1EC}\u{1F1F7}', name: 'Griechenland',            short: 'GR' },
+  { code: '+44',  flag: '\u{1F1EC}\u{1F1E7}', name: 'Großbritannien',          short: 'GB' },
+  { code: '+91',  flag: '\u{1F1EE}\u{1F1F3}', name: 'Indien',                  short: 'IN' },
+  { code: '+62',  flag: '\u{1F1EE}\u{1F1E9}', name: 'Indonesien',              short: 'ID' },
+  { code: '+353', flag: '\u{1F1EE}\u{1F1EA}', name: 'Irland',                  short: 'IE' },
+  { code: '+354', flag: '\u{1F1EE}\u{1F1F8}', name: 'Island',                  short: 'IS' },
+  { code: '+972', flag: '\u{1F1EE}\u{1F1F1}', name: 'Israel',                  short: 'IL' },
+  { code: '+39',  flag: '\u{1F1EE}\u{1F1F9}', name: 'Italien',                 short: 'IT' },
+  { code: '+81',  flag: '\u{1F1EF}\u{1F1F5}', name: 'Japan',                   short: 'JP' },
+  { code: '+1',   flag: '\u{1F1E8}\u{1F1E6}', name: 'Kanada',                  short: 'CA' },
+  { code: '+7',   flag: '\u{1F1F0}\u{1F1FF}', name: 'Kasachstan',              short: 'KZ' },
+  { code: '+996', flag: '\u{1F1F0}\u{1F1EC}', name: 'Kirgisistan',             short: 'KG' },
+  { code: '+385', flag: '\u{1F1ED}\u{1F1F7}', name: 'Kroatien',                short: 'HR' },
+  { code: '+371', flag: '\u{1F1F1}\u{1F1FB}', name: 'Lettland',                short: 'LV' },
+  { code: '+370', flag: '\u{1F1F1}\u{1F1F9}', name: 'Litauen',                 short: 'LT' },
+  { code: '+352', flag: '\u{1F1F1}\u{1F1FA}', name: 'Luxemburg',               short: 'LU' },
+  { code: '+212', flag: '\u{1F1F2}\u{1F1E6}', name: 'Marokko',                 short: 'MA' },
+  { code: '+52',  flag: '\u{1F1F2}\u{1F1FD}', name: 'Mexiko',                  short: 'MX' },
+  { code: '+373', flag: '\u{1F1F2}\u{1F1E9}', name: 'Moldau',                  short: 'MD' },
+  { code: '+64',  flag: '\u{1F1F3}\u{1F1FF}', name: 'Neuseeland',              short: 'NZ' },
+  { code: '+31',  flag: '\u{1F1F3}\u{1F1F1}', name: 'Niederlande',             short: 'NL' },
+  { code: '+47',  flag: '\u{1F1F3}\u{1F1F4}', name: 'Norwegen',                short: 'NO' },
+  { code: '+43',  flag: '\u{1F1E6}\u{1F1F9}', name: 'Österreich',              short: 'AT' },
+  { code: '+92',  flag: '\u{1F1F5}\u{1F1F0}', name: 'Pakistan',                short: 'PK' },
+  { code: '+63',  flag: '\u{1F1F5}\u{1F1ED}', name: 'Philippinen',             short: 'PH' },
+  { code: '+48',  flag: '\u{1F1F5}\u{1F1F1}', name: 'Polen',                   short: 'PL' },
+  { code: '+351', flag: '\u{1F1F5}\u{1F1F9}', name: 'Portugal',                short: 'PT' },
+  { code: '+40',  flag: '\u{1F1F7}\u{1F1F4}', name: 'Rumänien',                short: 'RO' },
+  { code: '+7',   flag: '\u{1F1F7}\u{1F1FA}', name: 'Russland',                short: 'RU' },
+  { code: '+966', flag: '\u{1F1F8}\u{1F1E6}', name: 'Saudi-Arabien',           short: 'SA' },
+  { code: '+46',  flag: '\u{1F1F8}\u{1F1EA}', name: 'Schweden',                short: 'SE' },
+  { code: '+41',  flag: '\u{1F1E8}\u{1F1ED}', name: 'Schweiz',                 short: 'CH' },
+  { code: '+381', flag: '\u{1F1F7}\u{1F1F8}', name: 'Serbien',                 short: 'RS' },
+  { code: '+65',  flag: '\u{1F1F8}\u{1F1EC}', name: 'Singapur',                short: 'SG' },
+  { code: '+421', flag: '\u{1F1F8}\u{1F1F0}', name: 'Slowakei',                short: 'SK' },
+  { code: '+386', flag: '\u{1F1F8}\u{1F1EE}', name: 'Slowenien',               short: 'SI' },
+  { code: '+34',  flag: '\u{1F1EA}\u{1F1F8}', name: 'Spanien',                 short: 'ES' },
+  { code: '+27',  flag: '\u{1F1FF}\u{1F1E6}', name: 'Südafrika',               short: 'ZA' },
+  { code: '+82',  flag: '\u{1F1F0}\u{1F1F7}', name: 'Südkorea',                short: 'KR' },
+  { code: '+992', flag: '\u{1F1F9}\u{1F1EF}', name: 'Tadschikistan',           short: 'TJ' },
+  { code: '+66',  flag: '\u{1F1F9}\u{1F1ED}', name: 'Thailand',                short: 'TH' },
+  { code: '+420', flag: '\u{1F1E8}\u{1F1FF}', name: 'Tschechien',              short: 'CZ' },
+  { code: '+90',  flag: '\u{1F1F9}\u{1F1F7}', name: 'Türkei',                  short: 'TR' },
+  { code: '+993', flag: '\u{1F1F9}\u{1F1F2}', name: 'Turkmenistan',            short: 'TM' },
+  { code: '+380', flag: '\u{1F1FA}\u{1F1E6}', name: 'Ukraine',                 short: 'UA' },
+  { code: '+36',  flag: '\u{1F1ED}\u{1F1FA}', name: 'Ungarn',                  short: 'HU' },
+  { code: '+998', flag: '\u{1F1FA}\u{1F1FF}', name: 'Usbekistan',              short: 'UZ' },
+  { code: '+971', flag: '\u{1F1E6}\u{1F1EA}', name: 'Vereinigte Arab. Emirate', short: 'AE' },
+  { code: '+84',  flag: '\u{1F1FB}\u{1F1F3}', name: 'Vietnam',                 short: 'VN' },
+  { code: '+1',   flag: '\u{1F1FA}\u{1F1F8}', name: 'USA',                     short: 'US' },
 ];
+// Mobile select options: flag + code + full name (readable in native picker)
 var PHONE_DIAL_OPTIONS = PHONE_COUNTRIES.map(function(c){
   var sel = c.code === '+49' ? ' selected' : '';
-  return '<option value="'+c.code+'"'+sel+'>'+c.flag+' '+c.code+'</option>';
+  return '<option value="'+c.code+'"'+sel+'>'+c.flag+' '+c.code+' '+c.name+'</option>';
 }).join('');
 
 // Вернуть выбранный код страны из select (по id) или '+49' по умолчанию
@@ -263,7 +264,41 @@ var css = `
 .crocus-fab-ring:nth-child(2){border:1px solid rgba(123,45,78,.50);animation-delay:1.2s}
 .crocus-fab-ring:nth-child(3){border:1px solid rgba(201,168,124,.30);animation-delay:2.4s}
 @keyframes cwRing{0%{transform:scale(1);opacity:.85}55%{opacity:.25}100%{transform:scale(2.5);opacity:0}}
-.cw-phone-wrap{display:flex;align-items:stretch;background:rgba(61,43,31,.04);border:1px solid rgba(61,43,31,.09);border-radius:10px;overflow:hidden;transition:border-color .15s}.cw-phone-wrap:focus-within{border-color:rgba(61,43,31,.45)}.cw-phone-dial{font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;color:#fdfaf8;padding:0 8px 0 10px;background:rgba(255,255,255,.08);border:none;border-right:1px solid rgba(255,255,255,.10);white-space:nowrap;flex-shrink:0;cursor:pointer;outline:none;appearance:none;-webkit-appearance:none;height:100%;min-width:72px;letter-spacing:.01em}.cw-phone-dial:focus{background:rgba(255,255,255,.12)}.cw-phone-wrap input{background:transparent;border:none;border-radius:0;padding:11px 13px;color:#fdfaf8;font-family:'DM Sans',sans-serif;font-size:14px;outline:none;width:100%;box-sizing:border-box}.cw-phone-wrap input::placeholder{color:rgba(253,250,248,.22)}@keyframes logoPulse{0%,100%{filter:drop-shadow(0 0 4px rgba(255,255,255,.55)) drop-shadow(0 0 10px rgba(123,45,78,.60))}50%{filter:drop-shadow(0 0 8px rgba(255,255,255,.90)) drop-shadow(0 0 20px rgba(123,45,78,.90))}}
+/* ── Phone wrap ── */
+.cw-phone-wrap{display:flex;align-items:stretch;background:rgba(61,43,31,.04);border:1px solid rgba(61,43,31,.09);border-radius:10px;overflow:visible;transition:border-color .15s;position:relative}
+.cw-phone-wrap:focus-within{border-color:rgba(61,43,31,.45)}
+.cw-phone-wrap input{background:transparent;border:none;border-radius:0;padding:11px 13px;color:#fdfaf8;font-family:'DM Sans',sans-serif;font-size:14px;outline:none;width:100%;box-sizing:border-box}
+.cw-phone-wrap input::placeholder{color:rgba(253,250,248,.22)}
+/* Native select — visible on mobile only */
+.cw-phone-dial{font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;color:#fdfaf8;padding:0 8px 0 10px;background:rgba(255,255,255,.08);border:none;border-right:1px solid rgba(255,255,255,.10);white-space:nowrap;flex-shrink:0;cursor:pointer;outline:none;appearance:none;-webkit-appearance:none;height:100%;min-width:72px;letter-spacing:.01em;display:none}
+/* Custom dropdown trigger — desktop only */
+.cw-dial-btn{display:flex;align-items:center;gap:5px;padding:0 10px 0 11px;background:rgba(255,255,255,.08);border:none;border-right:1px solid rgba(255,255,255,.10);border-radius:0;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;color:#fdfaf8;white-space:nowrap;flex-shrink:0;height:100%;min-width:76px;transition:background .15s;outline:none;-webkit-tap-highlight-color:transparent}
+.cw-dial-btn:hover,.cw-dial-btn.open{background:rgba(255,255,255,.13)}
+.cw-dial-btn__flag{font-size:16px;line-height:1;flex-shrink:0}
+.cw-dial-btn__code{font-size:13px;font-weight:600;letter-spacing:.01em}
+.cw-dial-btn__arrow{font-size:9px;opacity:.5;margin-left:1px;transition:transform .15s}
+.cw-dial-btn.open .cw-dial-btn__arrow{transform:rotate(180deg)}
+/* Dropdown panel */
+.cw-dial-drop{position:absolute;left:0;top:calc(100% + 4px);z-index:9999;background:#1e1018;border:1px solid rgba(255,255,255,.12);border-radius:10px;box-shadow:0 8px 32px rgba(0,0,0,.55);overflow:hidden;min-width:200px;display:none}
+.cw-dial-drop.open{display:block}
+.cw-dial-search{display:flex;align-items:center;gap:6px;padding:8px 10px;border-bottom:1px solid rgba(255,255,255,.07)}
+.cw-dial-search input{background:transparent;border:none;outline:none;font-family:'DM Sans',sans-serif;font-size:13px;color:#fdfaf8;width:100%;placeholder-color:rgba(253,250,248,.35)}
+.cw-dial-search input::placeholder{color:rgba(253,250,248,.35)}
+.cw-dial-search-icon{font-size:13px;opacity:.4;flex-shrink:0}
+.cw-dial-list{max-height:200px;overflow-y:auto;scrollbar-width:thin;scrollbar-color:rgba(255,255,255,.15) transparent}
+.cw-dial-list::-webkit-scrollbar{width:4px}
+.cw-dial-list::-webkit-scrollbar-thumb{background:rgba(255,255,255,.15);border-radius:2px}
+.cw-dial-item{display:flex;align-items:center;gap:9px;padding:8px 12px;cursor:pointer;transition:background .12s;font-family:'DM Sans',sans-serif;font-size:13px}
+.cw-dial-item:hover{background:rgba(255,255,255,.07)}
+.cw-dial-item.sel{background:rgba(255,255,255,.10)}
+.cw-dial-item__flag{font-size:16px;flex-shrink:0;line-height:1}
+.cw-dial-item__code{font-weight:600;color:#fdfaf8;flex-shrink:0;min-width:34px}
+.cw-dial-item__name{color:rgba(253,250,248,.55);font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+/* Mobile: show native select, hide custom */
+@media(max-width:600px){
+  .cw-phone-dial{display:flex!important}
+  .cw-dial-btn,.cw-dial-drop{display:none!important}
+}@keyframes logoPulse{0%,100%{filter:drop-shadow(0 0 4px rgba(255,255,255,.55)) drop-shadow(0 0 10px rgba(123,45,78,.60))}50%{filter:drop-shadow(0 0 8px rgba(255,255,255,.90)) drop-shadow(0 0 20px rgba(123,45,78,.90))}}
 @keyframes fabIn{from{opacity:0;transform:translateY(24px) scale(.78)}to{opacity:1;transform:translateY(0) scale(1)}}
 #crocus-fab-mobile{display:none!important}
 @media(max-width:600px){
@@ -611,7 +646,7 @@ wrap.innerHTML =
         + '<form class="cw-form" id="cw-gift-form">'
           + '<div class="cw-field"><label>Ihr Name</label><input type="text" id="cw-gift-name" placeholder="Ihr Name" required autocomplete="name"></div>'
           + '<div class="cw-field"><label>Ihre E-Mail</label><input type="email" id="cw-gift-email" placeholder="ihre@email.de" required autocomplete="email"></div>'
-          + '<div class="cw-field"><label>Telefon / WhatsApp</label><div class="cw-phone-wrap"><select class="cw-phone-dial" id="cw-gift-dial" aria-label="Ländervorwahl">'+PHONE_DIAL_OPTIONS+'</select><input type="tel" id="cw-gift-phone" placeholder="172 1234567" autocomplete="tel" inputmode="numeric"></div></div>'
+          + '<div class="cw-field"><label>Telefon / WhatsApp</label><div class="cw-phone-wrap"><select class="cw-phone-dial" id="cw-gift-dial" aria-label="Ländervorwahl">'+PHONE_DIAL_OPTIONS+'</select><button type="button" class="cw-dial-btn" id="cw-gift-dial-btn" aria-label="Ländervorwahl"><span class="cw-dial-btn__flag">🇩🇪</span><span class="cw-dial-btn__code">+49</span><span class="cw-dial-btn__arrow">▼</span></button><div class="cw-dial-drop" id="cw-gift-dial-drop"><div class="cw-dial-search"><span class="cw-dial-search-icon">🔍</span><input type="text" placeholder="Land suchen…" id="cw-gift-dial-search" autocomplete="off"></div><div class="cw-dial-list" id="cw-gift-dial-list"></div></div><input type="tel" id="cw-gift-phone" placeholder="172 1234567" autocomplete="tel" inputmode="numeric"></div></div>'
           + '<div class="cw-field"><label>Für wen ist der Gutschein? <span style="opacity:.45;font-size:9px">(optional)</span></label><input type="text" id="cw-gift-recipient" placeholder="z.B. für Maria zum Geburtstag"></div>'
           + '<div class="cw-field" id="cw-gift-wish-wrap" style="display:none"><label>Gewünschte Behandlung oder Wunschbetrag <span style="opacity:.45;font-size:9px">(optional)</span></label><input type="text" id="cw-gift-wish" placeholder="z.B. Maniküre + Gellack, ca. 40 €"></div>'
           + '<div class="cw-gift-info-box">'
@@ -681,7 +716,7 @@ wrap.innerHTML =
         + '<div class="cw-summary" id="cw-summary"></div>'
         + '<form class="cw-form" id="cw-form">'
           + '<div class="cw-field"><label>Name</label><input type="text" id="cw-name" placeholder="Ihr Name" required autocomplete="name"></div>'
-          + '<div class="cw-field"><label>Telefon / WhatsApp</label><div class="cw-phone-wrap"><select class="cw-phone-dial" id="cw-dial" aria-label="Ländervorwahl">'+PHONE_DIAL_OPTIONS+'</select><input type="tel" id="cw-phone" placeholder="172 1234567" required autocomplete="tel" inputmode="numeric"></div></div>'
+          + '<div class="cw-field"><label>Telefon / WhatsApp</label><div class="cw-phone-wrap"><select class="cw-phone-dial" id="cw-dial" aria-label="Ländervorwahl">'+PHONE_DIAL_OPTIONS+'</select><button type="button" class="cw-dial-btn" id="cw-dial-btn" aria-label="Ländervorwahl"><span class="cw-dial-btn__flag">🇩🇪</span><span class="cw-dial-btn__code">+49</span><span class="cw-dial-btn__arrow">▼</span></button><div class="cw-dial-drop" id="cw-dial-drop"><div class="cw-dial-search"><span class="cw-dial-search-icon">🔍</span><input type="text" placeholder="Land suchen…" id="cw-dial-search" autocomplete="off"></div><div class="cw-dial-list" id="cw-dial-list"></div></div><input type="tel" id="cw-phone" placeholder="172 1234567" required autocomplete="tel" inputmode="numeric"></div></div>'
           + '<div class="cw-field"><label>E-Mail</label><input type="email" id="cw-email" placeholder="ihre@email.de" required autocomplete="email"></div>'
           + '<label class="cw-consent"><input type="checkbox" id="cw-consent" checked><span>Ich stimme den <a href="https://alteg.io/en/info/terms" target="_blank" rel="noopener">Nutzungsbedingungen</a> und der <a href="https://alteg.io/en/info/privacy" target="_blank" rel="noopener">Datenschutzerklärung</a> zu und willige in die Verarbeitung meiner Daten zur Terminbuchung ein.</span></label>'
           + '<label class="cw-consent" style="margin-top:6px"><input type="checkbox" id="cw-email-remind" checked><span>E-Mail-Erinnerung 1 Stunde vor dem Termin erhalten</span></label>'
@@ -1570,6 +1605,7 @@ function crocusReset() {
   });
   var dialEl = document.getElementById('cw-dial');
   if (dialEl) { dialEl.value = '+49'; delete dialEl.dataset.dirty; }
+  updateDialBtn('cw-dial-btn', '+49');
   var consentEl = document.getElementById('cw-consent');
   if (consentEl) { consentEl.checked = true; consentEl.parentElement.classList.remove('invalid'); }
   var remindEl = document.getElementById('cw-email-remind');
@@ -1608,6 +1644,7 @@ function openGiftMode() {
   });
   var gDialEl = document.getElementById('cw-gift-dial');
   if (gDialEl) { gDialEl.value = '+49'; delete gDialEl.dataset.dirty; }
+  updateDialBtn('cw-gift-dial-btn', '+49');
   // Re-enable submit button in case previous attempt disabled it
   var gBtn = document.getElementById('cw-gift-submit');
   if (gBtn) { gBtn.disabled = false; gBtn.textContent = 'Gutschein anfragen →'; }
@@ -2020,6 +2057,111 @@ document.getElementById('cw-gift-btn-new').addEventListener('click', function(){
   var el = document.getElementById(id);
   if (el) el.addEventListener('change', function(){ this.dataset.dirty = '1'; });
 });
+
+// ── Custom dial dropdown (desktop) ───────────────────────────────────────────
+function updateDialBtn(btnId, code) {
+  var btn = document.getElementById(btnId);
+  if (!btn) return;
+  var c = PHONE_COUNTRIES.filter(function(x){ return x.code === code; })[0];
+  if (!c) return;
+  var flagEl = btn.querySelector('.cw-dial-btn__flag');
+  var codeEl = btn.querySelector('.cw-dial-btn__code');
+  if (flagEl) flagEl.textContent = c.flag;
+  if (codeEl) codeEl.textContent = c.code;
+}
+
+function initDialDropdown(btnId, dropId, listId, searchId, selectId) {
+  var btn    = document.getElementById(btnId);
+  var drop   = document.getElementById(dropId);
+  var list   = document.getElementById(listId);
+  var search = document.getElementById(searchId);
+  var sel    = document.getElementById(selectId);
+  if (!btn || !drop || !list || !search || !sel) return;
+
+  // Render all items
+  function renderList(filter) {
+    var q = (filter || '').toLowerCase().trim();
+    var html = '';
+    PHONE_COUNTRIES.forEach(function(c, idx) {
+      if (q && c.name.toLowerCase().indexOf(q) === -1 &&
+               c.code.toLowerCase().indexOf(q) === -1 &&
+               c.short.toLowerCase().indexOf(q) === -1) return;
+      var isSel = sel.value === c.code ? ' sel' : '';
+      html += '<div class="cw-dial-item' + isSel + '" data-code="' + c.code + '" data-idx="' + idx + '">' +
+                '<span class="cw-dial-item__flag">' + c.flag + '</span>' +
+                '<span class="cw-dial-item__code">' + c.code + '</span>' +
+                '<span class="cw-dial-item__name">' + c.short + '</span>' +
+              '</div>';
+    });
+    list.innerHTML = html || '<div style="padding:10px 14px;opacity:.4;font-size:12px">Keine Ergebnisse</div>';
+
+    // Bind item clicks
+    list.querySelectorAll('.cw-dial-item').forEach(function(item) {
+      item.addEventListener('click', function() {
+        var code = this.getAttribute('data-code');
+        sel.value = code;
+        sel.dataset.dirty = '1';
+        updateDialBtn(btnId, code);
+        drop.classList.remove('open');
+        btn.classList.remove('open');
+        search.value = '';
+        renderList('');
+        // Scroll selected into view next open
+      });
+    });
+  }
+
+  renderList('');
+
+  // Toggle open/close
+  btn.addEventListener('click', function(e) {
+    e.stopPropagation();
+    var isOpen = drop.classList.contains('open');
+    // Close all other dropdowns first
+    document.querySelectorAll('.cw-dial-drop.open').forEach(function(d) {
+      d.classList.remove('open');
+    });
+    document.querySelectorAll('.cw-dial-btn.open').forEach(function(b) {
+      b.classList.remove('open');
+    });
+    if (!isOpen) {
+      drop.classList.add('open');
+      btn.classList.add('open');
+      search.value = '';
+      renderList('');
+      // Scroll to selected
+      setTimeout(function() {
+        var selItem = list.querySelector('.cw-dial-item.sel');
+        if (selItem) selItem.scrollIntoView({ block: 'nearest' });
+        search.focus();
+      }, 30);
+    }
+  });
+
+  // Search input
+  search.addEventListener('input', function() {
+    renderList(this.value);
+  });
+
+  // Prevent closing when clicking inside dropdown
+  drop.addEventListener('click', function(e) {
+    e.stopPropagation();
+  });
+}
+
+// Close all dropdowns on outside click
+document.addEventListener('click', function() {
+  document.querySelectorAll('.cw-dial-drop.open').forEach(function(d) {
+    d.classList.remove('open');
+  });
+  document.querySelectorAll('.cw-dial-btn.open').forEach(function(b) {
+    b.classList.remove('open');
+  });
+});
+
+// Init both dropdowns
+initDialDropdown('cw-dial-btn',      'cw-dial-drop',      'cw-dial-list',      'cw-dial-search',      'cw-dial');
+initDialDropdown('cw-gift-dial-btn', 'cw-gift-dial-drop', 'cw-gift-dial-list', 'cw-gift-dial-search', 'cw-gift-dial');
 document.addEventListener('keydown', function(e){ if(e.key==='Escape') crocusClose(); });
 
 // ── Android back button / browser back ─────────────────────────
@@ -2277,6 +2419,17 @@ if (document.readyState === 'loading') {
     '.cw-phone-wrap{background:rgba(26,8,16,.04)!important;border-color:rgba(26,8,16,.10)!important;}' +
     '.cw-phone-wrap:focus-within{border-color:rgba(192,52,104,.50)!important;}' +
     '.cw-phone-wrap input{color:#1a0810!important;}' +
+    '.cw-dial-btn{color:#1a0810!important;background:rgba(26,8,16,.06)!important;border-color:rgba(26,8,16,.09)!important;}' +
+    '.cw-dial-btn:hover,.cw-dial-btn.open{background:rgba(26,8,16,.11)!important;}' +
+    '.cw-dial-drop{background:#fff5f8!important;border-color:rgba(26,8,16,.12)!important;}' +
+    '.cw-dial-search{border-color:rgba(26,8,16,.08)!important;}' +
+    '.cw-dial-search input{color:#1a0810!important;}' +
+    '.cw-dial-search input::placeholder{color:rgba(26,8,16,.30)!important;}' +
+    '.cw-dial-item{color:#1a0810!important;}' +
+    '.cw-dial-item:hover{background:rgba(192,52,104,.07)!important;}' +
+    '.cw-dial-item.sel{background:rgba(192,52,104,.12)!important;}' +
+    '.cw-dial-item__code{color:#1a0810!important;}' +
+    '.cw-dial-item__name{color:rgba(26,8,16,.45)!important;}' +
     '.cw-btn-confirm{background:linear-gradient(135deg,#c03468 0%,#96204e 100%)!important;box-shadow:0 6px 22px rgba(192,52,104,.35)!important;}' +
     '.cw-btn-confirm:hover:not(:disabled){box-shadow:0 10px 30px rgba(192,52,104,.52)!important;}' +
     '.cw-form-note{color:rgba(26,8,16,.30)!important;}' +
@@ -2469,6 +2622,17 @@ if (document.readyState === 'loading') {
     '.cw-phone-wrap{background:rgba(255,255,255,.04)!important;border-color:rgba(196,168,216,.12)!important;}' +
     '.cw-phone-wrap:focus-within{border-color:rgba(94,58,140,.60)!important;}' +
     '.cw-phone-wrap input{color:#f0eaf8!important;}' +
+    '.cw-dial-btn{color:#f0eaf8!important;background:rgba(196,168,216,.08)!important;border-color:rgba(196,168,216,.14)!important;}' +
+    '.cw-dial-btn:hover,.cw-dial-btn.open{background:rgba(196,168,216,.16)!important;}' +
+    '.cw-dial-drop{background:#1e1230!important;border-color:rgba(196,168,216,.18)!important;}' +
+    '.cw-dial-search{border-color:rgba(196,168,216,.10)!important;}' +
+    '.cw-dial-search input{color:#f0eaf8!important;}' +
+    '.cw-dial-search input::placeholder{color:rgba(220,200,255,.30)!important;}' +
+    '.cw-dial-item{color:#f0eaf8!important;}' +
+    '.cw-dial-item:hover{background:rgba(94,58,140,.14)!important;}' +
+    '.cw-dial-item.sel{background:rgba(94,58,140,.22)!important;}' +
+    '.cw-dial-item__code{color:#f0eaf8!important;}' +
+    '.cw-dial-item__name{color:rgba(220,200,255,.45)!important;}' +
     '.cw-btn-confirm{background:linear-gradient(135deg,#5e3a8c 0%,#3d1f6e 100%)!important;box-shadow:0 6px 22px rgba(94,58,140,.40)!important;}' +
     '.cw-btn-confirm:hover:not(:disabled){box-shadow:0 10px 30px rgba(94,58,140,.58)!important;}' +
     '.cw-form-note{color:rgba(220,200,255,.30)!important;}' +
@@ -2938,6 +3102,17 @@ if (document.readyState === 'loading') {
     '.cw-phone-wrap{background:rgba(184,200,216,.05)!important;border-color:rgba(184,200,216,.12)!important;}' +
     '.cw-phone-wrap:focus-within{border-color:rgba(184,200,216,.55)!important;}' +
     '.cw-phone-wrap input{color:#f0e8d8!important;}' +
+    '.cw-dial-btn{color:#f0e8d8!important;background:rgba(184,200,216,.08)!important;border-color:rgba(184,200,216,.14)!important;}' +
+    '.cw-dial-btn:hover,.cw-dial-btn.open{background:rgba(184,200,216,.16)!important;}' +
+    '.cw-dial-drop{background:#131c24!important;border-color:rgba(184,200,216,.18)!important;}' +
+    '.cw-dial-search{border-color:rgba(184,200,216,.10)!important;}' +
+    '.cw-dial-search input{color:#f0e8d8!important;}' +
+    '.cw-dial-search input::placeholder{color:rgba(184,200,216,.30)!important;}' +
+    '.cw-dial-item{color:#f0e8d8!important;}' +
+    '.cw-dial-item:hover{background:rgba(184,200,216,.10)!important;}' +
+    '.cw-dial-item.sel{background:rgba(201,168,124,.16)!important;}' +
+    '.cw-dial-item__code{color:#f0e8d8!important;}' +
+    '.cw-dial-item__name{color:rgba(184,200,216,.45)!important;}' +
 
     /* ── CTA кнопка — steel→gold, текст всегда белый ── */
     '.cw-btn-confirm{background:linear-gradient(135deg,#8fa8bc 0%,#b8c8d8 35%,#c9a87c 65%,#d4b896 100%)!important;background-size:200% 100%!important;color:#fff!important;text-shadow:0 1px 3px rgba(0,0,0,.45)!important;font-weight:700!important;box-shadow:0 6px 24px rgba(184,200,216,.38),0 2px 0 rgba(201,168,124,.22) inset!important;animation:wimpConfirmShine 5s ease-in-out infinite!important;}' +
