@@ -222,7 +222,7 @@ var PHONE_COUNTRIES = [
 // Mobile select options: flag + code + full name (readable in native picker)
 var PHONE_DIAL_OPTIONS = PHONE_COUNTRIES.map(function(c){
   var sel = c.code === '+49' ? ' selected' : '';
-  return '<option value="'+c.code+'"'+sel+'>'+c.flag+' '+c.code+' '+c.name+'</option>';
+  return '<option value="'+c.code+'"'+sel+'>'+c.flag+' '+c.code+' '+c.short+'</option>';
 }).join('');
 
 // Вернуть выбранный код страны из select (по id) или '+49' по умолчанию
@@ -296,7 +296,7 @@ var css = `
 .cw-dial-item__name{color:rgba(253,250,248,.55);font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 /* Mobile: show native select, hide custom */
 @media(max-width:600px){
-  .cw-phone-dial{display:flex!important;max-width:100px;width:100px;overflow:hidden;text-overflow:ellipsis}
+  .cw-phone-dial{display:flex!important}
   .cw-dial-btn,.cw-dial-drop{display:none!important}
 }@keyframes logoPulse{0%,100%{filter:drop-shadow(0 0 4px rgba(255,255,255,.55)) drop-shadow(0 0 10px rgba(123,45,78,.60))}50%{filter:drop-shadow(0 0 8px rgba(255,255,255,.90)) drop-shadow(0 0 20px rgba(123,45,78,.90))}}
 @keyframes fabIn{from{opacity:0;transform:translateY(24px) scale(.78)}to{opacity:1;transform:translateY(0) scale(1)}}
