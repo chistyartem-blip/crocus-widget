@@ -222,7 +222,7 @@ var PHONE_COUNTRIES = [
 // Mobile select options: flag + code + full name (readable in native picker)
 var PHONE_DIAL_OPTIONS = PHONE_COUNTRIES.map(function(c){
   var sel = c.code === '+49' ? ' selected' : '';
-  return '<option value="'+c.code+'"'+sel+'>'+c.flag+' '+c.code+' '+c.name+'</option>';
+  return '<option value="'+c.code+'"'+sel+'>'+c.flag+' '+c.code+'</option>';
 }).join('');
 
 // Вернуть выбранный код страны из select (по id) или '+49' по умолчанию
@@ -265,14 +265,14 @@ var css = `
 .crocus-fab-ring:nth-child(3){border:1px solid rgba(201,168,124,.30);animation-delay:2.4s}
 @keyframes cwRing{0%{transform:scale(1);opacity:.85}55%{opacity:.25}100%{transform:scale(2.5);opacity:0}}
 /* ── Phone wrap ── */
-.cw-phone-wrap{display:flex;align-items:stretch;background:rgba(61,43,31,.04);border:1px solid rgba(61,43,31,.09);border-radius:10px;overflow:visible;transition:border-color .15s;position:relative}
+.cw-phone-wrap{display:flex;align-items:center;background:rgba(61,43,31,.04);border:1px solid rgba(61,43,31,.09);border-radius:10px;overflow:visible;transition:border-color .15s;position:relative}
 .cw-phone-wrap:focus-within{border-color:rgba(61,43,31,.45)}
-.cw-phone-wrap input{background:transparent;border:none;border-radius:0;padding:11px 13px;color:#fdfaf8;font-family:'DM Sans',sans-serif;font-size:14px;outline:none;width:100%;box-sizing:border-box}
+.cw-phone-wrap input{background:transparent;border:none;border-radius:0;padding:11px 13px;color:#fdfaf8;font-family:'DM Sans',sans-serif;font-size:14px;outline:none;width:100%;box-sizing:border-box;align-self:stretch}
 .cw-phone-wrap input::placeholder{color:rgba(253,250,248,.22)}
 /* Native select — visible on mobile only */
-.cw-phone-dial{font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;color:#fdfaf8;padding:0 8px 0 10px;background:rgba(255,255,255,.08);border:none;border-right:1px solid rgba(255,255,255,.10);white-space:nowrap;flex-shrink:0;cursor:pointer;outline:none;appearance:none;-webkit-appearance:none;height:100%;min-width:72px;letter-spacing:.01em;display:none}
+.cw-phone-dial{font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;color:#fdfaf8;padding:0 8px 0 10px;background:rgba(255,255,255,.08);border:none;border-right:1px solid rgba(255,255,255,.10);white-space:nowrap;flex-shrink:0;cursor:pointer;outline:none;appearance:none;-webkit-appearance:none;align-self:stretch;min-width:80px;letter-spacing:.01em;display:none}
 /* Custom dropdown trigger — desktop only */
-.cw-dial-btn{display:flex;align-items:center;gap:5px;padding:0 10px 0 11px;background:rgba(255,255,255,.08);border:none;border-right:1px solid rgba(255,255,255,.10);border-radius:0;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;color:#fdfaf8;white-space:nowrap;flex-shrink:0;height:100%;min-width:76px;transition:background .15s;outline:none;-webkit-tap-highlight-color:transparent}
+.cw-dial-btn{display:flex;align-items:center;gap:5px;padding:0 10px 0 11px;background:rgba(255,255,255,.08);border:none;border-right:1px solid rgba(255,255,255,.10);border-radius:0;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;color:#fdfaf8;white-space:nowrap;flex-shrink:0;align-self:stretch;min-width:76px;transition:background .15s;outline:none;-webkit-tap-highlight-color:transparent}
 .cw-dial-btn:hover,.cw-dial-btn.open{background:rgba(255,255,255,.13)}
 .cw-dial-btn__flag{font-size:16px;line-height:1;flex-shrink:0}
 .cw-dial-btn__code{font-size:13px;font-weight:600;letter-spacing:.01em}
@@ -296,7 +296,7 @@ var css = `
 .cw-dial-item__name{color:rgba(253,250,248,.55);font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 /* Mobile: show native select, hide custom */
 @media(max-width:600px){
-  .cw-phone-dial{display:flex!important}
+  .cw-phone-dial{display:flex!important;appearance:auto;-webkit-appearance:menulist;min-width:90px;padding:0 6px 0 8px}
   .cw-dial-btn,.cw-dial-drop{display:none!important}
 }@keyframes logoPulse{0%,100%{filter:drop-shadow(0 0 4px rgba(255,255,255,.55)) drop-shadow(0 0 10px rgba(123,45,78,.60))}50%{filter:drop-shadow(0 0 8px rgba(255,255,255,.90)) drop-shadow(0 0 20px rgba(123,45,78,.90))}}
 @keyframes fabIn{from{opacity:0;transform:translateY(24px) scale(.78)}to{opacity:1;transform:translateY(0) scale(1)}}
@@ -2090,7 +2090,7 @@ function initDialDropdown(btnId, dropId, listId, searchId, selectId) {
       html += '<div class="cw-dial-item' + isSel + '" data-code="' + c.code + '" data-idx="' + idx + '">' +
                 '<span class="cw-dial-item__flag">' + c.flag + '</span>' +
                 '<span class="cw-dial-item__code">' + c.code + '</span>' +
-                '<span class="cw-dial-item__name">' + c.short + '</span>' +
+                '<span class="cw-dial-item__name">' + c.name + '</span>' +
               '</div>';
     });
     list.innerHTML = html || '<div style="padding:10px 14px;opacity:.4;font-size:12px">Keine Ergebnisse</div>';
