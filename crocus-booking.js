@@ -1601,6 +1601,16 @@ function openGiftMode() {
   gift.isFlexible = false;
   // Deselect all amount buttons
   document.querySelectorAll('.cw-gift-amount-btn').forEach(function(b){ b.classList.remove('sel'); });
+  // Reset gift form fields and dirty flags
+  ['cw-gift-name','cw-gift-email','cw-gift-phone','cw-gift-recipient','cw-gift-wish'].forEach(function(id){
+    var el = document.getElementById(id);
+    if (el) { el.value = ''; el.classList.remove('invalid'); delete el.dataset.dirty; }
+  });
+  var gDialEl = document.getElementById('cw-gift-dial');
+  if (gDialEl) { gDialEl.value = '+49'; delete gDialEl.dataset.dirty; }
+  // Re-enable submit button in case previous attempt disabled it
+  var gBtn = document.getElementById('cw-gift-submit');
+  if (gBtn) { gBtn.disabled = false; gBtn.textContent = 'Gutschein anfragen →'; }
   // Push state so mobile back button returns here, not to previous page
   if (window.history && window.history.pushState) {
     window.history.pushState({ crocusOpen: true }, '');
