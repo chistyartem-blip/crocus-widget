@@ -148,6 +148,101 @@ function apiPost(path, body) {
     .catch(function(e){ clearTimeout(timer); throw e; });
 }
 
+// ── Phone dial countries ───────────────────────────────────────
+var PHONE_COUNTRIES = [
+  // ── По умолчанию ──────────────────────────────────────────────
+  { code: '+49',  flag: '🇩🇪', name: 'Deutschland' },
+  // ── Остальные по алфавиту ─────────────────────────────────────
+  { code: '+20',  flag: '🇪🇬', name: 'Ägypten' },
+  { code: '+54',  flag: '🇦🇷', name: 'Argentinien' },
+  { code: '+374', flag: '🇦🇲', name: 'Armenien' },
+  { code: '+994', flag: '🇦🇿', name: 'Aserbaidschan' },
+  { code: '+61',  flag: '🇦🇺', name: 'Australien' },
+  { code: '+32',  flag: '🇧🇪', name: 'Belgien' },
+  { code: '+375', flag: '🇧🇾', name: 'Belarus' },
+  { code: '+387', flag: '🇧🇦', name: 'Bosnien' },
+  { code: '+55',  flag: '🇧🇷', name: 'Brasilien' },
+  { code: '+86',  flag: '🇨🇳', name: 'China' },
+  { code: '+45',  flag: '🇩🇰', name: 'Dänemark' },
+  { code: '+372', flag: '🇪🇪', name: 'Estland' },
+  { code: '+358', flag: '🇫🇮', name: 'Finnland' },
+  { code: '+33',  flag: '🇫🇷', name: 'Frankreich' },
+  { code: '+995', flag: '🇬🇪', name: 'Georgien' },
+  { code: '+30',  flag: '🇬🇷', name: 'Griechenland' },
+  { code: '+44',  flag: '🇬🇧', name: 'Großbritannien' },
+  { code: '+91',  flag: '🇮🇳', name: 'Indien' },
+  { code: '+62',  flag: '🇮🇩', name: 'Indonesien' },
+  { code: '+353', flag: '🇮🇪', name: 'Irland' },
+  { code: '+354', flag: '🇮🇸', name: 'Island' },
+  { code: '+972', flag: '🇮🇱', name: 'Israel' },
+  { code: '+39',  flag: '🇮🇹', name: 'Italien' },
+  { code: '+81',  flag: '🇯🇵', name: 'Japan' },
+  { code: '+1',   flag: '🇨🇦', name: 'Kanada' },
+  { code: '+7',   flag: '🇰🇿', name: 'Kasachstan' },
+  { code: '+996', flag: '🇰🇬', name: 'Kirgisistan' },
+  { code: '+82',  flag: '🇰🇷', name: 'Südkorea' },
+  { code: '+385', flag: '🇭🇷', name: 'Kroatien' },
+  { code: '+371', flag: '🇱🇻', name: 'Lettland' },
+  { code: '+370', flag: '🇱🇹', name: 'Litauen' },
+  { code: '+352', flag: '🇱🇺', name: 'Luxemburg' },
+  { code: '+212', flag: '🇲🇦', name: 'Marokko' },
+  { code: '+52',  flag: '🇲🇽', name: 'Mexiko' },
+  { code: '+373', flag: '🇲🇩', name: 'Moldau' },
+  { code: '+31',  flag: '🇳🇱', name: 'Niederlande' },
+  { code: '+64',  flag: '🇳🇿', name: 'Neuseeland' },
+  { code: '+47',  flag: '🇳🇴', name: 'Norwegen' },
+  { code: '+43',  flag: '🇦🇹', name: 'Österreich' },
+  { code: '+92',  flag: '🇵🇰', name: 'Pakistan' },
+  { code: '+63',  flag: '🇵🇭', name: 'Philippinen' },
+  { code: '+48',  flag: '🇵🇱', name: 'Polen' },
+  { code: '+351', flag: '🇵🇹', name: 'Portugal' },
+  { code: '+40',  flag: '🇷🇴', name: 'Rumänien' },
+  { code: '+7',   flag: '🇷🇺', name: 'Russland' },
+  { code: '+966', flag: '🇸🇦', name: 'Saudi-Arabien' },
+  { code: '+46',  flag: '🇸🇪', name: 'Schweden' },
+  { code: '+41',  flag: '🇨🇭', name: 'Schweiz' },
+  { code: '+381', flag: '🇷🇸', name: 'Serbien' },
+  { code: '+65',  flag: '🇸🇬', name: 'Singapur' },
+  { code: '+421', flag: '🇸🇰', name: 'Slowakei' },
+  { code: '+386', flag: '🇸🇮', name: 'Slowenien' },
+  { code: '+34',  flag: '🇪🇸', name: 'Spanien' },
+  { code: '+27',  flag: '🇿🇦', name: 'Südafrika' },
+  { code: '+992', flag: '🇹🇯', name: 'Tadschikistan' },
+  { code: '+66',  flag: '🇹🇭', name: 'Thailand' },
+  { code: '+420', flag: '🇨🇿', name: 'Tschechien' },
+  { code: '+90',  flag: '🇹🇷', name: 'Türkei' },
+  { code: '+993', flag: '🇹🇲', name: 'Turkmenistan' },
+  { code: '+380', flag: '🇺🇦', name: 'Ukraine' },
+  { code: '+36',  flag: '🇭🇺', name: 'Ungarn' },
+  { code: '+998', flag: '🇺🇿', name: 'Usbekistan' },
+  { code: '+971', flag: '🇦🇪', name: 'Vereinigte Arab. Emirate' },
+  { code: '+84',  flag: '🇻🇳', name: 'Vietnam' },
+  { code: '+1',   flag: '🇺🇸', name: 'USA' },
+];
+var PHONE_DIAL_OPTIONS = PHONE_COUNTRIES.map(function(c){
+  var sel = c.code === '+49' ? ' selected' : '';
+  return '<option value="'+c.code+'"'+sel+'>'+c.flag+' '+c.code+'</option>';
+}).join('');
+
+// Вернуть выбранный код страны из select (по id) или '+49' по умолчанию
+function getDialCode(selectId) {
+  var el = document.getElementById(selectId);
+  return el ? el.value : '+49';
+}
+
+// Разобрать сохранённый номер вида +49172... → { dial: '+49', local: '172...' }
+function parseStoredPhone(phone) {
+  if (!phone) return { dial: '+49', local: '' };
+  // Сортируем коды по убыванию длины чтобы +380 матчился раньше +38
+  var codes = PHONE_COUNTRIES.map(function(c){ return c.code; }).sort(function(a,b){ return b.length - a.length; });
+  for (var i = 0; i < codes.length; i++) {
+    if (phone.indexOf(codes[i]) === 0) {
+      return { dial: codes[i], local: phone.slice(codes[i].length) };
+    }
+  }
+  return { dial: '+49', local: phone.replace(/^\+49/, '') };
+}
+
 // ── CSS ────────────────────────────────────────────────────────
 var css = `
 @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300&family=DM+Sans:wght@300;400;500;600&display=swap');
@@ -168,7 +263,7 @@ var css = `
 .crocus-fab-ring:nth-child(2){border:1px solid rgba(123,45,78,.50);animation-delay:1.2s}
 .crocus-fab-ring:nth-child(3){border:1px solid rgba(201,168,124,.30);animation-delay:2.4s}
 @keyframes cwRing{0%{transform:scale(1);opacity:.85}55%{opacity:.25}100%{transform:scale(2.5);opacity:0}}
-.cw-phone-wrap{display:flex;align-items:stretch;background:rgba(61,43,31,.04);border:1px solid rgba(61,43,31,.09);border-radius:10px;overflow:hidden;transition:border-color .15s}.cw-phone-wrap:focus-within{border-color:#3d2b1f}.cw-phone-prefix{font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;color:#3d2b1f;padding:11px 10px 11px 13px;background:rgba(61,43,31,.06);border-right:1px solid rgba(61,43,31,.09);white-space:nowrap;user-select:none;flex-shrink:0}.cw-phone-wrap input{background:transparent;border:none;border-radius:0;padding:11px 13px;color:#3d2b1f;font-family:'DM Sans',sans-serif;font-size:14px;outline:none;width:100%;box-sizing:border-box}@keyframes logoPulse{0%,100%{filter:drop-shadow(0 0 4px rgba(255,255,255,.55)) drop-shadow(0 0 10px rgba(123,45,78,.60))}50%{filter:drop-shadow(0 0 8px rgba(255,255,255,.90)) drop-shadow(0 0 20px rgba(123,45,78,.90))}}
+.cw-phone-wrap{display:flex;align-items:stretch;background:rgba(61,43,31,.04);border:1px solid rgba(61,43,31,.09);border-radius:10px;overflow:hidden;transition:border-color .15s}.cw-phone-wrap:focus-within{border-color:rgba(61,43,31,.45)}.cw-phone-dial{font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;color:#fdfaf8;padding:0 8px 0 10px;background:rgba(255,255,255,.08);border:none;border-right:1px solid rgba(255,255,255,.10);white-space:nowrap;flex-shrink:0;cursor:pointer;outline:none;appearance:none;-webkit-appearance:none;height:100%;min-width:72px;letter-spacing:.01em}.cw-phone-dial:focus{background:rgba(255,255,255,.12)}.cw-phone-wrap input{background:transparent;border:none;border-radius:0;padding:11px 13px;color:#fdfaf8;font-family:'DM Sans',sans-serif;font-size:14px;outline:none;width:100%;box-sizing:border-box}.cw-phone-wrap input::placeholder{color:rgba(253,250,248,.22)}@keyframes logoPulse{0%,100%{filter:drop-shadow(0 0 4px rgba(255,255,255,.55)) drop-shadow(0 0 10px rgba(123,45,78,.60))}50%{filter:drop-shadow(0 0 8px rgba(255,255,255,.90)) drop-shadow(0 0 20px rgba(123,45,78,.90))}}
 @keyframes fabIn{from{opacity:0;transform:translateY(24px) scale(.78)}to{opacity:1;transform:translateY(0) scale(1)}}
 #crocus-fab-mobile{display:none!important}
 @media(max-width:600px){
@@ -516,7 +611,7 @@ wrap.innerHTML =
         + '<form class="cw-form" id="cw-gift-form">'
           + '<div class="cw-field"><label>Ihr Name</label><input type="text" id="cw-gift-name" placeholder="Ihr Name" required autocomplete="name"></div>'
           + '<div class="cw-field"><label>Ihre E-Mail</label><input type="email" id="cw-gift-email" placeholder="ihre@email.de" required autocomplete="email"></div>'
-          + '<div class="cw-field"><label>Telefon / WhatsApp</label><div class="cw-phone-wrap"><span class="cw-phone-prefix">+49</span><input type="tel" id="cw-gift-phone" placeholder="172 1234567" autocomplete="tel" inputmode="numeric"></div></div>'
+          + '<div class="cw-field"><label>Telefon / WhatsApp</label><div class="cw-phone-wrap"><select class="cw-phone-dial" id="cw-gift-dial" aria-label="Ländervorwahl">'+PHONE_DIAL_OPTIONS+'</select><input type="tel" id="cw-gift-phone" placeholder="172 1234567" autocomplete="tel" inputmode="numeric"></div></div>'
           + '<div class="cw-field"><label>Für wen ist der Gutschein? <span style="opacity:.45;font-size:9px">(optional)</span></label><input type="text" id="cw-gift-recipient" placeholder="z.B. für Maria zum Geburtstag"></div>'
           + '<div class="cw-field" id="cw-gift-wish-wrap" style="display:none"><label>Gewünschte Behandlung oder Wunschbetrag <span style="opacity:.45;font-size:9px">(optional)</span></label><input type="text" id="cw-gift-wish" placeholder="z.B. Maniküre + Gellack, ca. 40 €"></div>'
           + '<div class="cw-gift-info-box">'
@@ -586,7 +681,7 @@ wrap.innerHTML =
         + '<div class="cw-summary" id="cw-summary"></div>'
         + '<form class="cw-form" id="cw-form">'
           + '<div class="cw-field"><label>Name</label><input type="text" id="cw-name" placeholder="Ihr Name" required autocomplete="name"></div>'
-          + '<div class="cw-field"><label>Telefon / WhatsApp</label><div class="cw-phone-wrap"><span class="cw-phone-prefix">+49</span><input type="tel" id="cw-phone" placeholder="172 1234567" required autocomplete="tel" inputmode="numeric"></div></div>'
+          + '<div class="cw-field"><label>Telefon / WhatsApp</label><div class="cw-phone-wrap"><select class="cw-phone-dial" id="cw-dial" aria-label="Ländervorwahl">'+PHONE_DIAL_OPTIONS+'</select><input type="tel" id="cw-phone" placeholder="172 1234567" required autocomplete="tel" inputmode="numeric"></div></div>'
           + '<div class="cw-field"><label>E-Mail</label><input type="email" id="cw-email" placeholder="ihre@email.de" required autocomplete="email"></div>'
           + '<label class="cw-consent"><input type="checkbox" id="cw-consent" checked><span>Ich stimme den <a href="https://alteg.io/en/info/terms" target="_blank" rel="noopener">Nutzungsbedingungen</a> und der <a href="https://alteg.io/en/info/privacy" target="_blank" rel="noopener">Datenschutzerklärung</a> zu und willige in die Verarbeitung meiner Daten zur Terminbuchung ein.</span></label>'
           + '<label class="cw-consent" style="margin-top:6px"><input type="checkbox" id="cw-email-remind" checked><span>E-Mail-Erinnerung 1 Stunde vor dem Termin erhalten</span></label>'
@@ -1230,7 +1325,7 @@ function renderTimesLoaded(slots) {
         try {
           var saved = JSON.parse(localStorage.getItem('crocus_client') || '{}');
           if (saved.name)  { var fn = document.getElementById('cw-name');  if (fn && !fn.dataset.dirty) fn.value = saved.name; }
-          if (saved.phone) { var fp = document.getElementById('cw-phone'); if (fp && !fp.dataset.dirty) fp.value = saved.phone.replace(/^\+49/,''); }
+          if (saved.phone) { var fp = document.getElementById('cw-phone'); if (fp && !fp.dataset.dirty) { var _pp = parseStoredPhone(saved.phone); fp.value = _pp.local; var _ds = document.getElementById('cw-dial'); if (_ds && !_ds.dataset.dirty) _ds.value = _pp.dial; } }
           if (saved.email) { var fe = document.getElementById('cw-email'); if (fe && !fe.dataset.dirty) fe.value = saved.email; }
         } catch(ex) {}
       }, 180);
@@ -1281,8 +1376,9 @@ function renderSummary() {
 function submitBooking(e) {
   e.preventDefault();
   var name  = document.getElementById('cw-name').value.trim();
-  var phoneRaw = document.getElementById('cw-phone').value.trim().replace(/^0+/,'');
-  var phone = '+49' + phoneRaw;
+  var dialCode = getDialCode('cw-dial');
+  var phoneRaw = document.getElementById('cw-phone').value.trim().replace(/^0+/,'').replace(/^\+\d+/,'');
+  var phone = dialCode + phoneRaw;
   var email = document.getElementById('cw-email').value.trim();
   var consent = document.getElementById('cw-consent').checked;
   var emailRemind = document.getElementById('cw-email-remind') ? document.getElementById('cw-email-remind').checked : true;
@@ -1472,6 +1568,8 @@ function crocusReset() {
     var el = document.getElementById(id);
     if (el) { el.value = ''; el.classList.remove('invalid'); delete el.dataset.dirty; }
   });
+  var dialEl = document.getElementById('cw-dial');
+  if (dialEl) { dialEl.value = '+49'; delete dialEl.dataset.dirty; }
   var consentEl = document.getElementById('cw-consent');
   if (consentEl) { consentEl.checked = true; consentEl.parentElement.classList.remove('invalid'); }
   var remindEl = document.getElementById('cw-email-remind');
@@ -1544,8 +1642,9 @@ function submitGiftForm(e) {
   e.preventDefault();
   var name      = (document.getElementById('cw-gift-name').value || '').trim();
   var email     = (document.getElementById('cw-gift-email').value || '').trim();
-  var phoneRawG = (document.getElementById('cw-gift-phone').value || '').trim().replace(/^0+/,'').replace(/^\+49/,'');
-  var phone     = phoneRawG ? '+49' + phoneRawG : '';
+  var dialCodeG = getDialCode('cw-gift-dial');
+  var phoneRawG = (document.getElementById('cw-gift-phone').value || '').trim().replace(/^0+/,'').replace(/^\+\d+/,'');
+  var phone     = phoneRawG ? dialCodeG + phoneRawG : '';
   var recipient = (document.getElementById('cw-gift-recipient').value || '').trim();
   var wish      = (document.getElementById('cw-gift-wish') ? document.getElementById('cw-gift-wish').value || '' : '').trim();
 
@@ -1906,6 +2005,11 @@ document.getElementById('cw-gift-btn-new').addEventListener('click', function(){
     this.dataset.dirty = '1';
   });
 });
+// Dial selects — dirty on change (prevents prefill from overwriting manual choice)
+['cw-dial','cw-gift-dial'].forEach(function(id){
+  var el = document.getElementById(id);
+  if (el) el.addEventListener('change', function(){ this.dataset.dirty = '1'; });
+});
 document.addEventListener('keydown', function(e){ if(e.key==='Escape') crocusClose(); });
 
 // ── Android back button / browser back ─────────────────────────
@@ -2159,6 +2263,10 @@ if (document.readyState === 'loading') {
     '.cw-field input{background:rgba(26,8,16,.04)!important;border-color:rgba(26,8,16,.10)!important;color:#1a0810!important;}' +
     '.cw-field input::placeholder{color:rgba(26,8,16,.25)!important;}' +
     '.cw-field input:focus{border-color:rgba(192,52,104,.50)!important;background:#fff!important;}' +
+    '.cw-phone-dial{color:#1a0810!important;background:rgba(26,8,16,.06)!important;border-color:rgba(26,8,16,.09)!important;}' +
+    '.cw-phone-wrap{background:rgba(26,8,16,.04)!important;border-color:rgba(26,8,16,.10)!important;}' +
+    '.cw-phone-wrap:focus-within{border-color:rgba(192,52,104,.50)!important;}' +
+    '.cw-phone-wrap input{color:#1a0810!important;}' +
     '.cw-btn-confirm{background:linear-gradient(135deg,#c03468 0%,#96204e 100%)!important;box-shadow:0 6px 22px rgba(192,52,104,.35)!important;}' +
     '.cw-btn-confirm:hover:not(:disabled){box-shadow:0 10px 30px rgba(192,52,104,.52)!important;}' +
     '.cw-form-note{color:rgba(26,8,16,.30)!important;}' +
@@ -2347,6 +2455,10 @@ if (document.readyState === 'loading') {
     '.cw-field input{background:rgba(255,255,255,.05)!important;border-color:rgba(196,168,216,.14)!important;color:#f0eaf8!important;}' +
     '.cw-field input::placeholder{color:rgba(220,200,255,.25)!important;}' +
     '.cw-field input:focus{border-color:rgba(94,58,140,.60)!important;background:rgba(94,58,140,.07)!important;}' +
+    '.cw-phone-dial{color:#f0eaf8!important;background:rgba(196,168,216,.08)!important;border-color:rgba(196,168,216,.14)!important;}' +
+    '.cw-phone-wrap{background:rgba(255,255,255,.04)!important;border-color:rgba(196,168,216,.12)!important;}' +
+    '.cw-phone-wrap:focus-within{border-color:rgba(94,58,140,.60)!important;}' +
+    '.cw-phone-wrap input{color:#f0eaf8!important;}' +
     '.cw-btn-confirm{background:linear-gradient(135deg,#5e3a8c 0%,#3d1f6e 100%)!important;box-shadow:0 6px 22px rgba(94,58,140,.40)!important;}' +
     '.cw-btn-confirm:hover:not(:disabled){box-shadow:0 10px 30px rgba(94,58,140,.58)!important;}' +
     '.cw-form-note{color:rgba(220,200,255,.30)!important;}' +
@@ -2812,7 +2924,7 @@ if (document.readyState === 'loading') {
     '.cw-field input{background:rgba(184,200,216,.05)!important;border-color:rgba(184,200,216,.12)!important;color:#f0e8d8!important;}' +
     '.cw-field input::placeholder{color:rgba(184,200,216,.28)!important;}' +
     '.cw-field input:focus{border-color:rgba(184,200,216,.55)!important;background:rgba(184,200,216,.08)!important;}' +
-    '.cw-phone-prefix{color:#f0e8d8!important;background:rgba(184,200,216,.08)!important;border-color:rgba(184,200,216,.14)!important;}' +
+    '.cw-phone-dial{color:#f0e8d8!important;background:rgba(184,200,216,.08)!important;border-color:rgba(184,200,216,.14)!important;}' +
     '.cw-phone-wrap{background:rgba(184,200,216,.05)!important;border-color:rgba(184,200,216,.12)!important;}' +
     '.cw-phone-wrap:focus-within{border-color:rgba(184,200,216,.55)!important;}' +
     '.cw-phone-wrap input{color:#f0e8d8!important;}' +
