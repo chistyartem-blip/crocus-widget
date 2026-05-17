@@ -222,7 +222,7 @@ var PHONE_COUNTRIES = [
 // Mobile select options: flag + code + full name (readable in native picker)
 var PHONE_DIAL_OPTIONS = PHONE_COUNTRIES.map(function(c){
   var sel = c.code === '+49' ? ' selected' : '';
-  return '<option value="'+c.code+'"'+sel+'>'+c.flag+' '+c.code+'</option>';
+  return '<option value="'+c.code+'"'+sel+'>'+c.flag+' '+c.code+' '+c.name+'</option>';
 }).join('');
 
 // Вернуть выбранный код страны из select (по id) или '+49' по умолчанию
@@ -296,7 +296,7 @@ var css = `
 .cw-dial-item__name{color:rgba(253,250,248,.55);font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 /* Mobile: show native select, hide custom */
 @media(max-width:600px){
-  .cw-phone-dial{display:flex!important;appearance:auto;-webkit-appearance:menulist;min-width:90px;padding:0 6px 0 8px}
+  .cw-phone-dial{display:flex!important}
   .cw-dial-btn,.cw-dial-drop{display:none!important}
 }@keyframes logoPulse{0%,100%{filter:drop-shadow(0 0 4px rgba(255,255,255,.55)) drop-shadow(0 0 10px rgba(123,45,78,.60))}50%{filter:drop-shadow(0 0 8px rgba(255,255,255,.90)) drop-shadow(0 0 20px rgba(123,45,78,.90))}}
 @keyframes fabIn{from{opacity:0;transform:translateY(24px) scale(.78)}to{opacity:1;transform:translateY(0) scale(1)}}
@@ -646,7 +646,7 @@ wrap.innerHTML =
         + '<form class="cw-form" id="cw-gift-form">'
           + '<div class="cw-field"><label>Ihr Name</label><input type="text" id="cw-gift-name" placeholder="Ihr Name" required autocomplete="name"></div>'
           + '<div class="cw-field"><label>Ihre E-Mail</label><input type="email" id="cw-gift-email" placeholder="ihre@email.de" required autocomplete="email"></div>'
-          + '<div class="cw-field"><label>Telefon / WhatsApp</label><div class="cw-phone-wrap"><select class="cw-phone-dial" id="cw-gift-dial" aria-label="Ländervorwahl">'+PHONE_DIAL_OPTIONS+'</select><button type="button" class="cw-dial-btn" id="cw-gift-dial-btn" aria-label="Ländervorwahl"><span class="cw-dial-btn__flag">🇩🇪</span><span class="cw-dial-btn__code">+49</span><span class="cw-dial-btn__arrow">▼</span></button><div class="cw-dial-drop" id="cw-gift-dial-drop"><div class="cw-dial-search"><span class="cw-dial-search-icon">🔍</span><input type="text" placeholder="Land suchen…" id="cw-gift-dial-search" autocomplete="off"></div><div class="cw-dial-list" id="cw-gift-dial-list"></div></div><input type="tel" id="cw-gift-phone" placeholder="172 1234567" autocomplete="tel" inputmode="numeric"></div></div>'
+          + '<div class="cw-field"><label>Telefon / WhatsApp</label><div class="cw-phone-wrap"><select class="cw-phone-dial" id="cw-gift-dial" aria-label="Ländervorwahl">'+PHONE_DIAL_OPTIONS+'</select><button type="button" class="cw-dial-btn" id="cw-gift-dial-btn" aria-label="Ländervorwahl"><span class="cw-dial-btn__code">+49</span><span class="cw-dial-btn__arrow">▼</span></button><div class="cw-dial-drop" id="cw-gift-dial-drop"><div class="cw-dial-search"><span class="cw-dial-search-icon">🔍</span><input type="text" placeholder="Land suchen…" id="cw-gift-dial-search" autocomplete="off"></div><div class="cw-dial-list" id="cw-gift-dial-list"></div></div><input type="tel" id="cw-gift-phone" placeholder="172 1234567" autocomplete="tel" inputmode="numeric"></div></div>'
           + '<div class="cw-field"><label>Für wen ist der Gutschein? <span style="opacity:.45;font-size:9px">(optional)</span></label><input type="text" id="cw-gift-recipient" placeholder="z.B. für Maria zum Geburtstag"></div>'
           + '<div class="cw-field" id="cw-gift-wish-wrap" style="display:none"><label>Gewünschte Behandlung oder Wunschbetrag <span style="opacity:.45;font-size:9px">(optional)</span></label><input type="text" id="cw-gift-wish" placeholder="z.B. Maniküre + Gellack, ca. 40 €"></div>'
           + '<div class="cw-gift-info-box">'
@@ -716,7 +716,7 @@ wrap.innerHTML =
         + '<div class="cw-summary" id="cw-summary"></div>'
         + '<form class="cw-form" id="cw-form">'
           + '<div class="cw-field"><label>Name</label><input type="text" id="cw-name" placeholder="Ihr Name" required autocomplete="name"></div>'
-          + '<div class="cw-field"><label>Telefon / WhatsApp</label><div class="cw-phone-wrap"><select class="cw-phone-dial" id="cw-dial" aria-label="Ländervorwahl">'+PHONE_DIAL_OPTIONS+'</select><button type="button" class="cw-dial-btn" id="cw-dial-btn" aria-label="Ländervorwahl"><span class="cw-dial-btn__flag">🇩🇪</span><span class="cw-dial-btn__code">+49</span><span class="cw-dial-btn__arrow">▼</span></button><div class="cw-dial-drop" id="cw-dial-drop"><div class="cw-dial-search"><span class="cw-dial-search-icon">🔍</span><input type="text" placeholder="Land suchen…" id="cw-dial-search" autocomplete="off"></div><div class="cw-dial-list" id="cw-dial-list"></div></div><input type="tel" id="cw-phone" placeholder="172 1234567" required autocomplete="tel" inputmode="numeric"></div></div>'
+          + '<div class="cw-field"><label>Telefon / WhatsApp</label><div class="cw-phone-wrap"><select class="cw-phone-dial" id="cw-dial" aria-label="Ländervorwahl">'+PHONE_DIAL_OPTIONS+'</select><button type="button" class="cw-dial-btn" id="cw-dial-btn" aria-label="Ländervorwahl"><span class="cw-dial-btn__code">+49</span><span class="cw-dial-btn__arrow">▼</span></button><div class="cw-dial-drop" id="cw-dial-drop"><div class="cw-dial-search"><span class="cw-dial-search-icon">🔍</span><input type="text" placeholder="Land suchen…" id="cw-dial-search" autocomplete="off"></div><div class="cw-dial-list" id="cw-dial-list"></div></div><input type="tel" id="cw-phone" placeholder="172 1234567" required autocomplete="tel" inputmode="numeric"></div></div>'
           + '<div class="cw-field"><label>E-Mail</label><input type="email" id="cw-email" placeholder="ihre@email.de" required autocomplete="email"></div>'
           + '<label class="cw-consent"><input type="checkbox" id="cw-consent" checked><span>Ich stimme den <a href="https://alteg.io/en/info/terms" target="_blank" rel="noopener">Nutzungsbedingungen</a> und der <a href="https://alteg.io/en/info/privacy" target="_blank" rel="noopener">Datenschutzerklärung</a> zu und willige in die Verarbeitung meiner Daten zur Terminbuchung ein.</span></label>'
           + '<label class="cw-consent" style="margin-top:6px"><input type="checkbox" id="cw-email-remind" checked><span>E-Mail-Erinnerung 1 Stunde vor dem Termin erhalten</span></label>'
@@ -1442,8 +1442,8 @@ function submitBooking(e) {
 
   // Phone — min 7 digits, allowed: +, digits, spaces, hyphens, brackets
   var phoneDigits = phoneRaw.replace(/\D/g,'');
-  var phoneOk = phoneDigits.length >= 6 && phoneDigits.length <= 13;
-  setFieldState('cw-phone', phoneOk, 'Bitte gültige Telefonnummer eingeben (mind. 7 Ziffern).');
+  var phoneOk = phoneDigits.length >= 5;
+  setFieldState('cw-phone', phoneOk, 'Bitte gültige Telefonnummer eingeben (mind. 5 Ziffern).');
   if (!phoneOk) valid = false;
 
   // Email — basic check
@@ -2064,9 +2064,7 @@ function updateDialBtn(btnId, code) {
   if (!btn) return;
   var c = PHONE_COUNTRIES.filter(function(x){ return x.code === code; })[0];
   if (!c) return;
-  var flagEl = btn.querySelector('.cw-dial-btn__flag');
   var codeEl = btn.querySelector('.cw-dial-btn__code');
-  if (flagEl) flagEl.textContent = c.flag;
   if (codeEl) codeEl.textContent = c.code;
 }
 
@@ -2088,7 +2086,6 @@ function initDialDropdown(btnId, dropId, listId, searchId, selectId) {
                c.short.toLowerCase().indexOf(q) === -1) return;
       var isSel = sel.value === c.code ? ' sel' : '';
       html += '<div class="cw-dial-item' + isSel + '" data-code="' + c.code + '" data-idx="' + idx + '">' +
-                '<span class="cw-dial-item__flag">' + c.flag + '</span>' +
                 '<span class="cw-dial-item__code">' + c.code + '</span>' +
                 '<span class="cw-dial-item__name">' + c.name + '</span>' +
               '</div>';
