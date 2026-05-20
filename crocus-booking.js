@@ -1722,10 +1722,9 @@ function submitGiftForm(e) {
 
   // Send via web3forms.com — no backend needed, delivers to email
   var payload = gift.isFlexible ? {
-    _subject: '✨ Flexible Gutschein-Anfrage — ' + name,
-    _replyto: email,
-    _template: 'table',
-    _captcha: 'false',
+    subject: '✨ Flexible Gutschein-Anfrage — ' + name,
+    replyto: email,
+    from_name: 'Crocus Beauty Widget',
     Typ: 'Flexible Gutschein',
     Gutschein_Code: voucherCode,
     Name: name,
@@ -1735,10 +1734,9 @@ function submitGiftForm(e) {
     Wunsch_Behandlung_Betrag: wish || '—',
     Hinweis: 'Flexible: Details mit Kunden klären, Code nach Bezahlung weitergeben',
   } : {
-    _subject: '🎁 Gutschein-Anfrage ' + gift.amount + ' € — ' + name,
-    _replyto: email,
-    _template: 'table',
-    _captcha: 'false',
+    subject: '🎁 Gutschein-Anfrage ' + gift.amount + ' € — ' + name,
+    replyto: email,
+    from_name: 'Crocus Beauty Widget',
     Betrag: gift.amount + ' €',
     Gutschein_Code: voucherCode,
     Name: name,
