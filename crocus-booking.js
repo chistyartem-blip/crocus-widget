@@ -612,19 +612,19 @@ wrap.innerHTML =
         + '</div>'
         + '<div class="cw-gift-amounts" id="cw-gift-amounts">'
           + '<button type="button" class="cw-gift-amount-btn" data-gift-amount="30">'
-            + '<img class="cw-gift-amount-img" src="https://raw.githubusercontent.com/chistyartem-blip/crocus-widget/main/gift-30-opt.jpg" alt="Geschenkgutschein 30 €" loading="lazy">'
+            + '<img class="cw-gift-amount-img" src="https://raw.githubusercontent.com/chistyartem-blip/crocus-widget/main/gift-30-opt.webp" alt="Geschenkgutschein 30 €" loading="lazy">'
             + '<div class="cw-gift-amount-inner"><div class="cw-gift-amount-meta"><span class="cw-gift-amount-value">30 €</span><span class="cw-gift-amount-desc">Perfekt für den ersten Besuch — Maniküre oder Behandlung nach Wahl</span></div><span style="font-size:18px;color:rgba(201,168,124,.55)">›</span></div>'
           + '</button>'
           + '<button type="button" class="cw-gift-amount-btn" data-gift-amount="50">'
-            + '<img class="cw-gift-amount-img" src="https://raw.githubusercontent.com/chistyartem-blip/crocus-widget/main/gift-50-opt.jpg" alt="Geschenkgutschein 50 €" loading="lazy">'
+            + '<img class="cw-gift-amount-img" src="https://raw.githubusercontent.com/chistyartem-blip/crocus-widget/main/gift-50-opt.webp" alt="Geschenkgutschein 50 €" loading="lazy">'
             + '<div class="cw-gift-amount-inner"><div class="cw-gift-amount-meta"><span class="cw-gift-amount-value">50 €</span><span class="cw-gift-amount-desc">Maniküre, Pediküre oder Kombi — unsere meistgekaufte Wahl</span></div><span style="font-size:18px;color:rgba(201,168,124,.55)">›</span></div>'
           + '</button>'
           + '<button type="button" class="cw-gift-amount-btn" data-gift-amount="100">'
-            + '<img class="cw-gift-amount-img" src="https://raw.githubusercontent.com/chistyartem-blip/crocus-widget/main/gift-100-opt.jpg" alt="Geschenkgutschein 100 €" loading="lazy">'
+            + '<img class="cw-gift-amount-img" src="https://raw.githubusercontent.com/chistyartem-blip/crocus-widget/main/gift-100-opt.webp" alt="Geschenkgutschein 100 €" loading="lazy">'
             + '<div class="cw-gift-amount-inner"><div class="cw-gift-amount-meta"><span class="cw-gift-amount-value">100 €</span><span class="cw-gift-amount-desc">Das komplette Verwöhnprogramm — für Menschen, die es wert sind</span></div><span style="font-size:18px;color:rgba(201,168,124,.55)">›</span></div>'
           + '</button>'
           + '<button type="button" class="cw-gift-amount-btn" data-gift-flexible="true">'
-            + '<img class="cw-gift-amount-img" src="https://raw.githubusercontent.com/chistyartem-blip/crocus-widget/main/gift-flex-opt.jpg" alt="Flexible Gutschein" loading="lazy">'
+            + '<img class="cw-gift-amount-img" src="https://raw.githubusercontent.com/chistyartem-blip/crocus-widget/main/gift-flex-opt.webp" alt="Flexible Gutschein" loading="lazy">'
             + '<div class="cw-gift-amount-inner"><div class="cw-gift-amount-meta"><span class="cw-gift-amount-value">Flexible</span><span class="cw-gift-amount-desc">Betrag oder Behandlung nach Wunsch — wir klären alles gemeinsam</span></div><span style="font-size:18px;color:rgba(201,168,124,.55)">›</span></div>'
           + '</button>'
 
@@ -1720,7 +1720,7 @@ function submitGiftForm(e) {
   }
   var voucherCode = genCode();
 
-  // Send via formsubmit.co — no backend needed, delivers to email
+  // Send via web3forms.com — no backend needed, delivers to email
   var payload = gift.isFlexible ? {
     _subject: '✨ Flexible Gutschein-Anfrage — ' + name,
     _replyto: email,
@@ -1748,26 +1748,34 @@ function submitGiftForm(e) {
     Hinweis: 'Code nach Zahlungseingang an Kunden weitergeben',
   };
 
-  fetch('https://formsubmit.co/ajax/akazadavenka@gmail.com', {
+  fetch('https://api.web3forms.com/submit', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-    body: JSON.stringify(payload),
+    body: JSON.stringify(Object.assign({ access_key: 'ba6ac1b2-935d-4628-8d4b-44ebbcf6ca67' }, payload)),
   })
   .then(function(r){ return r.json(); })
-  .catch(function(){ return {}; })
-  .then(function(){
+  .then(function(data){
     btn.disabled = false;
     btn.textContent = 'Gutschein anfragen →';
-    // Tracking — gutschein_lead
-    window.dataLayer = window.dataLayer || [];
-    window.dataLayer.push({
-      event: 'gutschein_lead',
-      gutschein_amount: gift.isFlexible ? 'flexible' : (gift.amount || ''),
-      gutschein_type: gift.isFlexible ? 'flexible' : 'fixed',
-      page_location: window.location.href,
-      source: 'widget',
-    });
-    goGiftSuccess();
+    if (data.success) {
+      // Tracking — gutschein_lead
+      window.dataLayer = window.dataLayer || [];
+      window.dataLayer.push({
+        event: 'gutschein_lead',
+        gutschein_amount: gift.isFlexible ? 'flexible' : (gift.amount || ''),
+        gutschein_type: gift.isFlexible ? 'flexible' : 'fixed',
+        page_location: window.location.href,
+        source: 'widget',
+      });
+      goGiftSuccess();
+    } else {
+      alert('Fehler beim Senden. Bitte ruf uns an: +49 172 811 8528');
+    }
+  })
+  .catch(function(){
+    btn.disabled = false;
+    btn.textContent = 'Gutschein anfragen →';
+    alert('Fehler beim Senden. Bitte ruf uns an: +49 172 811 8528');
   });
 }
 
