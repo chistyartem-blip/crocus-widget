@@ -399,7 +399,7 @@ var css = `
 .cw-svc-left{flex:1;min-width:0}
 .cw-svc-name{font-family:'DM Sans',sans-serif;font-size:13.5px;font-weight:500;color:#fdfaf8;margin-bottom:2px}
 .cw-svc-dur{font-family:'DM Sans',sans-serif;font-size:10.5px;color:rgba(253,250,248,.30)}
-.cw-svc-price{font-family:'Cormorant Garamond',Georgia,serif;font-size:20px;font-weight:300;color:#c9a87c;white-space:nowrap;flex-shrink:0}.cw-svc-price-wrap{display:flex;flex-direction:column;align-items:flex-end;flex-shrink:0;gap:1px}.cw-svc-price-old{font-family:'Cormorant Garamond',Georgia,serif;font-size:14px;font-weight:300;color:rgba(201,168,124,0.45);text-decoration:line-through;white-space:nowrap}
+.cw-svc-price{font-family:'Cormorant Garamond',Georgia,serif;font-size:20px;font-weight:300;color:#c9a87c;white-space:nowrap;flex-shrink:0}.cw-svc-price-wrap{display:flex;flex-direction:column;align-items:flex-end;flex-shrink:0;gap:3px}.cw-svc-price-old{font-family:'Cormorant Garamond',Georgia,serif;font-size:16px;font-weight:400;color:rgba(220,80,80,0.85);white-space:nowrap;position:relative;display:inline-block;text-decoration:none;}.cw-svc-price-old::after{content:'';position:absolute;left:-2px;right:-2px;top:50%;height:1.5px;background:rgba(220,80,80,0.85);transform:rotate(-8deg);transform-origin:center;pointer-events:none;}
 
 /* ── Step 4: Addons ── */
 .cw-addons{display:flex;flex-direction:column;gap:8px;margin-bottom:16px}
