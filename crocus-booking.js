@@ -399,7 +399,7 @@ var css = `
 .cw-svc-left{flex:1;min-width:0}
 .cw-svc-name{font-family:'DM Sans',sans-serif;font-size:13.5px;font-weight:500;color:#fdfaf8;margin-bottom:2px}
 .cw-svc-dur{font-family:'DM Sans',sans-serif;font-size:10.5px;color:rgba(253,250,248,.30)}
-.cw-svc-price{font-family:'Cormorant Garamond',Georgia,serif;font-size:20px;font-weight:300;color:#c9a87c;white-space:nowrap;flex-shrink:0}.cw-svc-price-wrap{display:flex;flex-direction:column;align-items:flex-end;flex-shrink:0;gap:4px}.cw-svc-discount-badge{font-family:'DM Sans',sans-serif;font-size:9px;font-weight:500;letter-spacing:0.12em;text-transform:uppercase;color:rgba(220,80,80,0.75);align-self:flex-end;}.cw-svc-price-old{font-family:'Cormorant Garamond',Georgia,serif;font-size:18px;font-weight:400;color:rgba(200,200,200,0.7);white-space:nowrap;position:relative;display:inline-block;text-decoration:none;}.cw-svc-price-old::before{content:'';position:absolute;left:0;right:0;top:0;bottom:0;background:linear-gradient(to bottom right,transparent calc(50% - 0.8px),rgba(220,80,80,0.9) calc(50% - 0.8px),rgba(220,80,80,0.9) calc(50% + 0.8px),transparent calc(50% + 0.8px));pointer-events:none;}
+.cw-svc-price{font-family:'Cormorant Garamond',Georgia,serif;font-size:20px;font-weight:300;color:#c9a87c;white-space:nowrap;flex-shrink:0}.cw-svc-price-wrap{display:flex;flex-direction:column;align-items:flex-end;flex-shrink:0;gap:4px}.cw-svc-discount-badge{font-family:'DM Sans',sans-serif;font-size:9px;font-weight:500;letter-spacing:0.12em;text-transform:uppercase;color:rgba(220,80,80,0.75);align-self:flex-end;}.cw-svc-price-old{font-family:'Cormorant Garamond',Georgia,serif;font-size:18px;font-weight:400;color:rgba(160,100,100,0.85);white-space:nowrap;position:relative;display:inline-block;text-decoration:none;}.cw-svc-price-old::before{content:'';position:absolute;left:0;right:0;top:0;bottom:0;background:linear-gradient(to bottom right,transparent calc(50% - 0.8px),rgba(220,80,80,0.9) calc(50% - 0.8px),rgba(220,80,80,0.9) calc(50% + 0.8px),transparent calc(50% + 0.8px));pointer-events:none;}
 
 /* ── Step 4: Addons ── */
 .cw-addons{display:flex;flex-direction:column;gap:8px;margin-bottom:16px}
@@ -1139,7 +1139,7 @@ function renderServices(cat) {
     if (isDiscountMaster && minP > 0) {
       var oldMinP = minP + 5;
       var oldStr = minP === maxP ? (oldMinP+' €') : 'ab '+oldMinP+' €';
-      oldPriceHtml = '<div class="cw-svc-discount-badge">Angebot</div>'+'<div class="cw-svc-price-old">'+oldStr+'</div>';
+      oldPriceHtml = '<div class="cw-svc-discount-badge">Sonderpreis</div>'+'<div class="cw-svc-price-old">'+oldStr+'</div>';
     }
     var priceHtml = isDiscountMaster && minP > 0
       ? '<div class="cw-svc-price-wrap">'+oldPriceHtml+'<div class="cw-svc-price">'+priceStr+'</div></div>'
