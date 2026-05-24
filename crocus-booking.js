@@ -107,6 +107,7 @@ var ADDON_IDS_BY_SERVICE = {
 
 // Mandel доступен только для этих мастеров
 var MANDEL_STAFF_IDS   = [3020186, 3020187]; // Nelia, Sofia
+var DISCOUNT_STAFF_IDS = [3020186, 3020187]; // Nelia, Sofia — show +5€ crossed-out price
 var STILETTO_STAFF_IDS = [3020185];          // Diana only (Nagelverlängerung)
 
 // ── API ────────────────────────────────────────────────────────
@@ -398,7 +399,7 @@ var css = `
 .cw-svc-left{flex:1;min-width:0}
 .cw-svc-name{font-family:'DM Sans',sans-serif;font-size:13.5px;font-weight:500;color:#fdfaf8;margin-bottom:2px}
 .cw-svc-dur{font-family:'DM Sans',sans-serif;font-size:10.5px;color:rgba(253,250,248,.30)}
-.cw-svc-price{font-family:'Cormorant Garamond',Georgia,serif;font-size:20px;font-weight:300;color:#c9a87c;white-space:nowrap;flex-shrink:0}
+.cw-svc-price{font-family:'Cormorant Garamond',Georgia,serif;font-size:20px;font-weight:300;color:#c9a87c;white-space:nowrap;flex-shrink:0}.cw-svc-price-wrap{display:flex;flex-direction:column;align-items:flex-end;flex-shrink:0;gap:1px}.cw-svc-price-old{font-family:'Cormorant Garamond',Georgia,serif;font-size:14px;font-weight:300;color:rgba(201,168,124,0.45);text-decoration:line-through;white-space:nowrap}
 
 /* ── Step 4: Addons ── */
 .cw-addons{display:flex;flex-direction:column;gap:8px;margin-bottom:16px}
@@ -1132,6 +1133,17 @@ function renderServices(cat) {
       }
     }
     var priceStr = minP === maxP ? (minP ? minP+' €' : '—') : 'ab '+minP+' €';
+    // Зачёркнутая цена +5€ для Нели и Софии
+    var isDiscountMaster = cw.master && DISCOUNT_STAFF_IDS.indexOf(cw.master.id) !== -1;
+    var oldPriceHtml = '';
+    if (isDiscountMaster && minP > 0) {
+      var oldMinP = minP + 5;
+      var oldStr = minP === maxP ? (oldMinP+' €') : 'ab '+oldMinP+' €';
+      oldPriceHtml = '<div class="cw-svc-price-old">'+oldStr+'</div>';
+    }
+    var priceHtml = isDiscountMaster && minP > 0
+      ? '<div class="cw-svc-price-wrap">'+oldPriceHtml+'<div class="cw-svc-price">'+priceStr+'</div></div>'
+      : '<div class="cw-svc-price">'+priceStr+'</div>';
     // Длительность не показываем если 0 или null
     var durSec = s.seance_length || 0;
     var durStr = durSec > 0 ? (Math.round(durSec/60)+' Min') : '';
@@ -1143,7 +1155,7 @@ function renderServices(cat) {
         + '<div class="cw-svc-name">'+s.title+'</div>'
         + (durStr ? '<div class="cw-svc-dur">⏱ '+durStr+'</div>' : '')
       + '</div>'
-      + '<div class="cw-svc-price">'+priceStr+'</div>';
+      + priceHtml;
     btn.addEventListener('click', function(){ selectService(s); });
     list.appendChild(btn);
   });
