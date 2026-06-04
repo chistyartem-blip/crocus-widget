@@ -14,7 +14,7 @@ var CONFIG = {
 
 // ── Masters — описания и уровни ────────────────────────────────
 var MASTERS_META = {
-  3037710: {
+  3020185: {
     level:  'Top Master',
     levelColor:  '#c9a87c',
     levelBg:     'rgba(201,168,124,0.13)',
@@ -107,7 +107,7 @@ var ADDON_IDS_BY_SERVICE = {
 
 // Mandel доступен только для этих мастеров
 var MANDEL_STAFF_IDS   = [3020186, 3020187]; // Nelia, Sofia
-var STILETTO_STAFF_IDS = [3037710];          // Diana only (Nagelverlängerung)
+var STILETTO_STAFF_IDS = [3020185];          // Diana only (Nagelverlängerung)
 
 // ── API ────────────────────────────────────────────────────────
 function apiGet(path, params) {
@@ -975,7 +975,7 @@ function renderMasters() {
   });
 }
 
-var _SLOT_SERVICE = { 3037710: 13485754, 3020186: 13485753, 3020187: 13485753, 3020188: 13485771 };
+var _SLOT_SERVICE = { 3020185: 13485754, 3020186: 13485753, 3020187: 13485753, 3020188: 13485771 };
 
 function loadMasterSlot(staffId) {
   var serviceId = _SLOT_SERVICE[staffId];

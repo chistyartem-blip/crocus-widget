@@ -6,7 +6,7 @@
   var TOKEN   = 'u8xzkdpkgfc73uektn64';
   var LOC     = '1357963';
   var API     = 'https://api.alteg.io/api/v1';
-  var STAFF   = { diana:3037710, nelia:3020186, sofia:3020187 };
+  var STAFF   = { diana:3020185, nelia:3020186, sofia:3020187 };
 
   /* Service IDs */
   var SVC = {
