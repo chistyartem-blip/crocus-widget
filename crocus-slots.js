@@ -12,7 +12,7 @@ var CONFIG = {
   apiBase:      'https://crocus-proxy.vercel.app/api/proxy',
   // Мастера и их основные услуги для проверки слотов
   staff: [
-    { id: 3020185, name: 'Diana',  serviceId: 13485754 }, // Nagelkorrektur
+    { id: 3037710, name: 'Diana',  serviceId: 13485754 }, // Nagelkorrektur
     { id: 3020186, name: 'Nelia',  serviceId: 13485753 }, // Maniküre+Gel
     { id: 3020187, name: 'Sofia',  serviceId: 13485753 }, // Maniküre+Gel
     { id: 3020188, name: 'Karina', serviceId: 13485771 }, // Master Lashes — Neuset
