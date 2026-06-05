@@ -400,39 +400,6 @@
   /* ══════════════════════════════════════════════
      MAIN TAB SWITCHING
   ══════════════════════════════════════════════ */
-  function crl2SwitchToWimpern(){
-    document.querySelectorAll('[data-crl2-main]').forEach(function(t){
-      var isW = t.getAttribute('data-crl2-main')==='wimpern';
-      t.classList.toggle('crl2__main-tab--active', isW);
-      t.setAttribute('aria-selected', isW ? 'true' : 'false');
-    });
-    document.querySelectorAll('.crl2__main-panel').forEach(function(p){
-      p.classList.toggle('crl2__main-panel--active', p.id==='crl2-panel-wimpern');
-    });
-    document.querySelectorAll('.crl2__mc-card--mani').forEach(function(c){ c.style.display='none'; });
-    document.querySelectorAll('.crl2__mc-card--wimpern').forEach(function(c){ c.style.display=''; });
-    document.querySelectorAll('.crl2__mc-grid').forEach(function(g){ g.classList.add('crl2__mc-grid--single'); });
-    setTimeout(function(){
-      var panel = document.getElementById('crl2-panel-wimpern');
-      if(panel){ var y = panel.getBoundingClientRect().top + window.pageYOffset - 80; window.scrollTo({top:y,behavior:'smooth'}); }
-    }, 60);
-  }
-
-  function crl2UpdateTippenBadge(){
-    var badge = document.getElementById('crl2-tippen-badge'); if(!badge) return;
-    var inactive = document.querySelector('[data-crl2-main]:not(.crl2__main-tab--active)');
-    if(!inactive){ badge.style.opacity='0'; return; }
-    var tabsRect = inactive.parentElement.getBoundingClientRect();
-    var tabRect  = inactive.getBoundingClientRect();
-    badge.style.left = ((tabRect.left - tabsRect.left) + tabRect.width/2) + 'px';
-    badge.style.opacity = '1';
-  }
-  crl2UpdateTippenBadge();
-  window.addEventListener('resize', crl2UpdateTippenBadge);
-
-  var crl2Badge = document.getElementById('crl2-tippen-badge');
-  if(crl2Badge){ crl2Badge.addEventListener('click', function(){ var i=document.querySelector('[data-crl2-main]:not(.crl2__main-tab--active)'); if(i) i.click(); }); }
-
   document.querySelectorAll('[data-crl2-main]').forEach(function(tab){
     tab.addEventListener('click', function(){
       var key = tab.getAttribute('data-crl2-main');
@@ -440,16 +407,8 @@
       document.querySelectorAll('.crl2__mc-card--mani').forEach(function(c){ c.style.display=isW?'none':''; });
       document.querySelectorAll('.crl2__mc-card--wimpern').forEach(function(c){ c.style.display=isW?'':'none'; });
       document.querySelectorAll('.crl2__mc-grid').forEach(function(g){ g.classList.toggle('crl2__mc-grid--single',isW); });
-      setTimeout(crl2UpdateTippenBadge, 50);
     });
   });
-
-  var karinaCard = document.querySelector('[data-crl2-master="karina"]');
-  if(karinaCard){
-    karinaCard.addEventListener('click', function(e){ if(e.target.closest('[data-crl2-hint],[data-crl2-about]')) return; crl2SwitchToWimpern(); });
-  }
-  var karinaHintBtn = document.querySelector('[data-crl2-hint="karina"]');
-  if(karinaHintBtn){ karinaHintBtn.addEventListener('click', function(e){ e.stopPropagation(); crl2SwitchToWimpern(); }); }
 
 
   /* ══════════════════════════════════════════════
