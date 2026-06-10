@@ -460,13 +460,6 @@ var css = `
 .cw-consent span a:hover{color:#c9a87c}
 .cw-consent.invalid span{color:#fca5a5}
 
-/* ── Return screen ── */
-.cw-return-card{background:rgba(255,255,255,.04);border:1px solid rgba(201,168,124,.20);border-radius:14px;padding:14px 16px;display:flex;flex-direction:column;gap:8px}
-.cw-return-row{display:flex;align-items:center;justify-content:space-between;gap:8px}
-.cw-return-row span{font-family:'DM Sans',sans-serif;font-size:11px;color:rgba(253,250,248,.35)}
-.cw-return-row strong{font-family:'DM Sans',sans-serif;font-size:12.5px;color:#fdfaf8;font-weight:500;text-align:right}
-.cw-return-price{font-family:'Cormorant Garamond',Georgia,serif;font-size:22px;font-weight:300;color:#c9a87c}
-
 /* ── Success ── */
 .cw-success{display:flex;flex-direction:column;align-items:center;text-align:center;padding:36px 16px;gap:12px}
 .cw-success-icon{width:58px;height:58px;border-radius:50%;background:rgba(201,168,124,.09);border:1px solid rgba(201,168,124,.30);display:flex;align-items:center;justify-content:center;font-size:24px;color:#c9a87c;margin-bottom:4px}
@@ -567,14 +560,6 @@ wrap.innerHTML =
     + '</div>'
     + '<div id="crocus-body">'
 
-      // Return screen — shown if previous booking exists in localStorage
-      + '<div class="cw-step" id="cw-return">'
-        + '<h2 class="cw-title">Willkommen zurück! 👋</h2>'
-        + '<p class="cw-sub">Dein letzter Besuch:</p>'
-        + '<div class="cw-return-card" id="cw-return-card"></div>'
-        + '<button class="cw-btn-confirm" id="cw-btn-repeat" style="margin-top:14px">Gleichen Termin wiederholen →</button>'
-        + '<button class="cw-skip-btn" id="cw-btn-newbook" style="margin-top:10px">Neue Buchung / anderer Master</button>'
-      + '</div>'
 
       // Step 1 — Master
       + '<div class="cw-step active" id="cw-step1">'
@@ -784,9 +769,7 @@ function crocusOpen() {
     document.getElementById('crocus-modal').classList.add('open');
   });
   if (!_allMasters) loadInitialData();
-  // Show return screen if previous booking exists
-  tryShowReturnScreen();
-  // Push history entry so Android back button is intercepted
+    // Push history entry so Android back button is intercepted
   if (window.history && window.history.pushState) {
     window.history.pushState({ crocusOpen: true }, '');
   }
@@ -1493,14 +1476,6 @@ function submitBooking(e) {
       // Save client data + last booking for next visit
       try {
         localStorage.setItem('crocus_client', JSON.stringify({ name: name, phone: phone, email: email }));
-        localStorage.setItem('crocus_last_booking', JSON.stringify({
-          masterName:  cw.master.name,
-          masterId:    cw.master.id,
-          masterMeta:  cw.master._meta || {},
-          catKey:      cw.category ? cw.category.key : null,
-          service:     { id: cw.service.id, title: cw.service.title, price: cw.service.price_min || 0 },
-          addon:       cw.addon ? { id: cw.addon.id, title: cw.addon.title, price: cw.addon.price_min || 0 } : null,
-        }));
       } catch(ex) {}
       // Tracking — booking_success (Enhanced Conversions ready)
       window.dataLayer = window.dataLayer || [];
@@ -1612,16 +1587,9 @@ function crocusReset() {
   if (remindEl) remindEl.checked = true;
   document.getElementById('crocus-progress').style.display = 'flex';
   document.querySelectorAll('.cw-step').forEach(function(el){ el.classList.remove('active'); });
-  // If there's a last booking, show return screen; otherwise step 1
-  var hasLast = !!localStorage.getItem('crocus_last_booking');
-  if (hasLast) {
-    tryShowReturnScreen();
-    document.getElementById('crocus-progress').style.display = 'none';
-  } else {
-    document.getElementById('cw-step1').classList.add('active');
-    updateProgress(1);
-    if (_allMasters) renderMasters();
-  }
+  document.getElementById('cw-step1').classList.add('active');
+  updateProgress(1);
+  if (_allMasters) renderMasters();
   document.getElementById('crocus-body').scrollTop = 0;
 }
 
@@ -1777,74 +1745,6 @@ function submitGiftForm(e) {
   });
 }
 
-// ── Return screen ──────────────────────────────────────────────
-function tryShowReturnScreen() {
-  try {
-    var last = JSON.parse(localStorage.getItem('crocus_last_booking') || 'null');
-    if (!last) return;
-    // Render card
-    var svcStr = last.addon ? last.service.title + ' + ' + last.addon.title : last.service.title;
-    var price = (last.service.price || 0) + (last.addon ? (last.addon.price || 0) : 0);
-    var priceStr = price ? price + ' €' : '—';
-    var meta = last.masterMeta || {};
-    var avatarHtml = meta.avatar
-      ? '<div class="cw-return-master-divider" style="display:flex;align-items:center;gap:12px;padding-bottom:12px;border-bottom:1px solid rgba(255,255,255,.07);margin-bottom:10px">' +
-          '<div style="position:relative;flex-shrink:0">' +
-            '<img src="' + meta.avatar + '" style="width:52px;height:52px;border-radius:50%;object-fit:cover;border:2px solid rgba(201,168,124,.35);display:block"/>' +
-            '<div style="position:absolute;bottom:-1px;right:-1px;width:14px;height:14px;border-radius:50%;background:#2b6344;border:2px solid rgba(13,6,18,.9)"></div>' +
-          '</div>' +
-          '<div style="flex:1;min-width:0">' +
-            '<div class="cw-return-master-name" style="font-family:\'DM Sans\',sans-serif;font-size:14px;font-weight:600;color:#fdfaf8;display:flex;align-items:center;gap:7px;flex-wrap:wrap">' + last.masterName +
-              (meta.level ? '<span style="font-size:9px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:1px 7px;border-radius:20px;color:'+(meta.levelColor||'#c9a87c')+';background:'+(meta.levelBg||'rgba(201,168,124,.1)')+';border:1px solid '+(meta.levelBorder||'rgba(201,168,124,.3)') + '">' + meta.level + '</span>' : '') +
-            '</div>' +
-            (meta.tagline ? '<div class="cw-return-master-tagline" style="font-family:\'DM Sans\',sans-serif;font-size:11px;color:rgba(253,250,248,.38);margin-top:2px">' + meta.tagline + '</div>' : '') +
-          '</div>' +
-        '</div>'
-      : '';
-    document.getElementById('cw-return-card').innerHTML =
-      avatarHtml +
-      '<div class="cw-return-row"><span>Behandlung</span><strong>' + svcStr + '</strong></div>' +
-      '<div class="cw-return-row" style="margin-top:4px"><span>Preis</span><strong class="cw-return-price">' + priceStr + '</strong></div>';
-    // Switch to return screen (hide progress bar)
-    document.getElementById('crocus-progress').style.display = 'none';
-    document.querySelectorAll('.cw-step').forEach(function(el){ el.classList.remove('active'); });
-    document.getElementById('cw-return').classList.add('active');
-  } catch(ex) {}
-}
-
-function startRepeatBooking() {
-  try {
-    var last = JSON.parse(localStorage.getItem('crocus_last_booking') || 'null');
-    if (!last) { goStep(1); return; }
-    // If data not loaded yet, wait for it then retry
-    if (!_allMasters) {
-      var repeatBtn = document.getElementById('cw-btn-repeat');
-      if (repeatBtn) { repeatBtn.disabled = true; repeatBtn.textContent = '…'; }
-      loadInitialData(function() {
-        if (repeatBtn) { repeatBtn.disabled = false; repeatBtn.textContent = 'Gleichen Termin wiederholen →'; }
-        startRepeatBooking();
-      });
-      return;
-    }
-    // Restore master
-    var masterApi = _allMasters.filter(function(m){ return m.id === last.masterId; })[0];
-    if (!masterApi) { goStep(1); return; }
-    cw.master = masterApi;
-    cw.master._meta = last.masterMeta || {};
-    // Restore category
-    cw.category = CATEGORIES.filter(function(c){ return c.key === last.catKey; })[0] || null;
-    // Restore service & addon from cached _allServices
-    if (_allServices) {
-      cw.service = _allServices.filter(function(s){ return s.id === last.service.id; })[0] || null;
-      cw.addon   = last.addon ? (_allServices.filter(function(s){ return s.id === last.addon.id; })[0] || null) : null;
-    }
-    if (!cw.service) { goStep(1); return; }
-    // Skip to calendar
-    goStep(5);
-    renderCalendar();
-    loadAvailDates();
-  } catch(ex) { goStep(1); }
-}
 
 // ── Events ─────────────────────────────────────────────────────
 document.getElementById('crocus-fab').addEventListener('click', crocusOpen);
@@ -1990,12 +1890,6 @@ document.getElementById('cw-skip-addon').addEventListener('click', function(){ c
 document.getElementById('cw-cal-prev').addEventListener('click', calPrev);
 document.getElementById('cw-cal-next').addEventListener('click', calNext);
 document.getElementById('cw-btn-new').addEventListener('click', crocusReset);
-document.getElementById('cw-btn-repeat').addEventListener('click', startRepeatBooking);
-document.getElementById('cw-btn-newbook').addEventListener('click', function(){
-  document.getElementById('crocus-progress').style.display = 'flex';
-  goStep(1);
-  if (_allMasters) renderMasters();
-});
 document.getElementById('cw-form').addEventListener('submit', submitBooking);
 
 // Gift flow events
@@ -2198,13 +2092,6 @@ window.addEventListener('popstate', function(e) {
     return;
   }
 
-  // If return screen is active — close modal
-  var returnScreen = document.getElementById('cw-return');
-  if (returnScreen && returnScreen.classList.contains('active')) {
-    crocusClose();
-    return;
-  }
-
   var step = cw.step;
   if (step === 'success' || step === 1) {
     // On step 1 or success — close the modal entirely, no new pushState
@@ -2401,13 +2288,6 @@ if (document.readyState === 'loading') {
 
     /* Summary & form */
     '.cw-summary{background:#fff!important;border-color:rgba(192,52,104,.18)!important;}' +
-    '.cw-return-card{background:#fff!important;border-color:rgba(192,52,104,.18)!important;box-shadow:0 4px 18px rgba(192,52,104,.12)!important;}' +
-    '.cw-return-row span{color:rgba(26,8,16,.45)!important;}' +
-    '.cw-return-row strong{color:#1a0810!important;}' +
-    '.cw-return-price{color:#c03468!important;}' +
-    '.cw-return-master-name{color:#1a0810!important;}' +
-    '.cw-return-master-tagline{color:rgba(26,8,16,.45)!important;}' +
-    '.cw-return-master-divider{border-bottom-color:rgba(26,8,16,.08)!important;}' +
     '.cw-master-slot{color:rgba(26,8,16,.55)!important;}' +
     '.cw-master-slot span{color:rgba(26,8,16,.55)!important;}' +
     '.cw-master-slot-dot.grey{background:rgba(26,8,16,.20)!important;}' +
@@ -2648,12 +2528,6 @@ if (document.readyState === 'loading') {
     '.cw-btn-new{background:rgba(255,255,255,.05)!important;border-color:rgba(196,168,216,.14)!important;color:rgba(220,200,255,.55)!important;}' +
     '.cw-btn-new:hover{background:rgba(94,58,140,.10)!important;color:#f0eaf8!important;}' +
 
-    /* Return screen */
-    '.cw-return-card{background:rgba(255,255,255,.04)!important;border-color:rgba(196,168,216,.18)!important;}' +
-    '.cw-return-card img{border-color:rgba(196,168,216,.40)!important;}' +
-    '.cw-return-row span{color:rgba(220,200,255,.38)!important;}' +
-    '.cw-return-row strong{color:#f0eaf8!important;}' +
-    '.cw-return-price{color:#c4a8d8!important;}' +
 
     /* Backdrop */
     '#crocus-backdrop{background:rgba(20,8,45,.55)!important;}';
@@ -3086,13 +2960,6 @@ if (document.readyState === 'loading') {
 
     /* ── Summary & форма ── */
     '.cw-summary{background:rgba(184,200,216,.04)!important;border-color:rgba(184,200,216,.14)!important;}' +
-    '.cw-return-card{background:rgba(184,200,216,.04)!important;border-color:rgba(184,200,216,.18)!important;box-shadow:0 4px 18px rgba(0,0,0,.50)!important;}' +
-    '.cw-return-row span{color:rgba(184,200,216,.38)!important;}' +
-    '.cw-return-row strong{color:#f0e8d8!important;}' +
-    '.cw-return-price{color:#c9a87c!important;}' +
-    '.cw-return-master-name{color:#f0e8d8!important;}' +
-    '.cw-return-master-tagline{color:rgba(184,200,216,.45)!important;}' +
-    '.cw-return-master-divider{border-bottom-color:rgba(184,200,216,.10)!important;}' +
     '.cw-master-slot{color:rgba(184,200,216,.55)!important;}' +
     '.cw-sum-row span{color:rgba(184,200,216,.38)!important;}' +
     '.cw-sum-row strong{color:#f0e8d8!important;}' +
