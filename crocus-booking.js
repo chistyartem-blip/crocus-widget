@@ -43,7 +43,7 @@ var MASTERS_META = {
     levelBorder: 'rgba(201,116,142,0.32)',
     tagline: 'Maniküre & Pediküre',
     bio: 'Herzlich und präzise — man geht mit perfekten Nägeln und guter Laune raus.',
-    skills: ['Maniküre', 'Pediküre', 'Gellack'],
+    skills: ['Maniküre', 'Pediküre', 'Gellack', 'Nagelverlängerung'],
     cats: ['manikuere', 'pediküre', 'kombi'],
   },
   3020188: {
