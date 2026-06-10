@@ -8,7 +8,7 @@ if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
 var CONFIG = {
   partnerToken: 'u8xzkdpkgfc73uektn64',
   locationId:   '1357963',
-  apiBase:      'https://crocus-proxy.vercel.app/api/proxy',
+  apiBase:      'https://crocus-proxy.crocusbeautystudio.workers.dev/api/proxy',
   lang: 'de',
 };
 

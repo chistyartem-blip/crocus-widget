@@ -43,14 +43,29 @@ export default {
       });
     }
 
-    // Only proxy /api/* paths
-    if (!url.pathname.startsWith('/api/')) {
+    // Support two modes:
+    // 1. Vercel-compat: /api/proxy?path=book_services/1357963&...
+    // 2. Native: /api/book_services/1357963
+
+    let altegioPath, extraSearch;
+
+    if (url.pathname === '/api/proxy' && url.searchParams.has('path')) {
+      // Vercel-compat mode: extract path from ?path= param
+      const rawPath = url.searchParams.get('path');
+      altegioPath = '/' + rawPath.replace(/^\//, '');
+      // Rebuild query without the 'path' param
+      const qs = new URLSearchParams(url.search);
+      qs.delete('path');
+      extraSearch = qs.toString() ? '?' + qs.toString() : '';
+    } else if (url.pathname.startsWith('/api/')) {
+      // Native mode
+      altegioPath = url.pathname.replace('/api', '');
+      extraSearch = url.search;
+    } else {
       return new Response('Not found', { status: 404 });
     }
 
-    // Strip /api prefix → Altegio path
-    const altegioPath = url.pathname.replace('/api', '');
-    const altegioUrl  = ALTEGIO_BASE + altegioPath + url.search;
+    const altegioUrl = ALTEGIO_BASE + altegioPath + extraSearch;
 
     // Determine auth headers
     const isB2B = B2B_PATHS.some(p => altegioPath.startsWith(p));
