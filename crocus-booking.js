@@ -110,7 +110,14 @@ var ADDON_IDS_BY_SERVICE = {
   13485753: [13485756, 13485758, 13502359, 13502360, 13493664], // Маникюр+укрепление
   13485754: [13485756, 13485758, 13502359, 13502360, 13493664], // Коррекция
   13485755: [13485756, 13485758, 13502359, 13502360, 13493664], // Наращивание
+  13485762: [13485756], // Комби: French (Hände + Füße) — обрабатывается через KOMBI_VIRTUAL_ADDONS
 };
+
+// Для Комби — виртуальные аддоны (French дважды с разными метками)
+var KOMBI_VIRTUAL_ADDONS = [
+  { _variantKey: 'french_hands', id: 13485756, title: 'French (Hände)', _kombiLabel: 'French (Hände)' },
+  { _variantKey: 'french_feet',  id: 13485756, title: 'French (Füße)',  _kombiLabel: 'French (Füße)' },
+];
 
 // Mandel-Form (13502395) — только для Nelia и Sofia
 var MANDEL_STAFF_IDS = [3020186, 3020187];
@@ -133,6 +140,7 @@ var ADDON_NAME_OVERRIDE = {
   13493664: 'Lange Nagel',
 };
 function addonDisplayName(addon) {
+  if (addon._kombiLabel) return addon._kombiLabel;
   return ADDON_NAME_OVERRIDE[addon.id] || addon.title;
 }
 
@@ -1281,6 +1289,46 @@ function renderAddons() {
 
   console.log('[crocus] renderAddons: _addonObjs='+_addonObjs.length+' _globalAddonObjs='+_globalAddonObjs.length+' master='+(cw.master ? cw.master.id : 'null')+' service='+(cw.service ? cw.service.id : 'null'));
 
+  // === Комби: особый рендер виртуальных аддонов (French x2: Hände + Füße) ===
+  var isKombi = cw.service && cw.service.id === 13485762;
+  if (isKombi) {
+    // Найти объект French из API для цены
+    var frenchObj = _addonObjs.filter(function(o){ return o.id === 13485756; })[0]
+                 || _globalAddonObjs.filter(function(o){ return o.id === 13485756; })[0]
+                 || { id: 13485756, title: 'French', price_min: 5 };
+    KOMBI_VIRTUAL_ADDONS.forEach(function(vAddon) {
+      var displayAddon = Object.assign({}, frenchObj, vAddon);
+      var priceStr = frenchObj.price_min ? '+ '+frenchObj.price_min+' €' : '+ 5 €';
+      var btn = document.createElement('button');
+      btn.className = 'cw-addon-btn';
+      btn.dataset.variantKey = vAddon._variantKey;
+      btn.innerHTML =
+        '<div class="cw-addon-check"></div>'
+        + '<div class="cw-addon-info">'
+          + '<div class="cw-addon-name">'+vAddon._kombiLabel+'</div>'
+          + '<div class="cw-addon-price">'+priceStr+'</div>'
+        + '</div>';
+      btn.addEventListener('click', (function(da, b){
+        return function(){
+          var idx = cw.addons.findIndex(function(a){ return a._variantKey === da._variantKey; });
+          if (idx === -1) {
+            cw.addons.push(da);
+            b.classList.add('sel');
+            b.querySelector('.cw-addon-check').textContent = '✓';
+          } else {
+            cw.addons.splice(idx, 1);
+            b.classList.remove('sel');
+            b.querySelector('.cw-addon-check').textContent = '';
+          }
+          var nextBtn = document.getElementById('cw-next-addon');
+          if (nextBtn) nextBtn.style.display = cw.addons.length ? 'block' : 'none';
+        };
+      })(displayAddon, btn));
+      list.appendChild(btn);
+    });
+    return;
+  }
+
   var filteredAddons = _addonObjs.filter(function(s){
     // Фильтр по услуге: если есть ADDON_IDS_BY_SERVICE для текущей услуги — показываем только разрешённые
     if (cw.service && ADDON_IDS_BY_SERVICE[cw.service.id]) {
@@ -1302,6 +1350,7 @@ function renderAddons() {
   if (!filteredAddons.length) {
     // Аддоны пустые — загрузить напрямую из API и повторить
     console.warn('[crocus] renderAddons: empty, fetching addons from API...');
+    var serviceHasDefinedAddons = cw.service && ADDON_IDS_BY_SERVICE[cw.service.id] && ADDON_IDS_BY_SERVICE[cw.service.id].length > 0;
     apiGet('/book_services/'+CONFIG.locationId)
       .then(function(res){
         if (res.success && res.data && res.data.services) {
@@ -1313,13 +1362,22 @@ function renderAddons() {
             return;
           }
         }
-        // Всё равно пусто — пропускаем шаг
+        // Всё равно пусто — если услуга должна иметь допы, НЕ скипаем автоматически
+        if (serviceHasDefinedAddons) {
+          console.warn('[crocus] renderAddons: service has defined addons but API returned none — staying on step 4');
+          // Показываем пустой список без автоперехода (пользователь сможет нажать "Далее")
+          return;
+        }
         buildStep5Sub();
         goStep(5);
         renderCalendar();
         loadAvailDates();
       })
       .catch(function(){
+        if (serviceHasDefinedAddons) {
+          console.warn('[crocus] renderAddons: API error, staying on step 4');
+          return;
+        }
         buildStep5Sub();
         goStep(5);
         renderCalendar();
@@ -1341,20 +1399,22 @@ function renderAddons() {
         + '<div class="cw-addon-name">'+addonDisplayName(s)+'</div>'
         + (priceStr ? '<div class="cw-addon-price">'+priceStr+'</div>' : '')
       + '</div>';
-    btn.addEventListener('click', function(){
-      var idx = cw.addons.findIndex(function(a){ return a.id === s.id; });
-      if (idx === -1) {
-        cw.addons.push(s);
-        btn.classList.add('sel');
-        btn.querySelector('.cw-addon-check').textContent = '✓';
-      } else {
-        cw.addons.splice(idx, 1);
-        btn.classList.remove('sel');
-        btn.querySelector('.cw-addon-check').textContent = '';
-      }
-      var nextBtn = document.getElementById('cw-next-addon');
-      if (nextBtn) nextBtn.style.display = cw.addons.length ? 'block' : 'none';
-    });
+    btn.addEventListener('click', (function(sv, b){
+      return function(){
+        var idx = cw.addons.findIndex(function(a){ return a.id === sv.id; });
+        if (idx === -1) {
+          cw.addons.push(sv);
+          b.classList.add('sel');
+          b.querySelector('.cw-addon-check').textContent = '✓';
+        } else {
+          cw.addons.splice(idx, 1);
+          b.classList.remove('sel');
+          b.querySelector('.cw-addon-check').textContent = '';
+        }
+        var nextBtn = document.getElementById('cw-next-addon');
+        if (nextBtn) nextBtn.style.display = cw.addons.length ? 'block' : 'none';
+      };
+    })(s, btn));
     list.appendChild(btn);
   });
 }
