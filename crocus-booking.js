@@ -739,6 +739,7 @@ var cw = {
 var _allMasters  = null;
 var _allServices = null;
 var _addonObjs   = [];
+var _globalAddonObjs = []; // кэш аддонов без staff_id — никогда не обнуляется
 
 // Gift state
 var gift = {
@@ -892,8 +893,9 @@ function loadInitialData(cb) {
     if (!staffRes.success || !svcRes.success) throw new Error('API error');
     _allMasters  = staffRes.data || [];
     _allServices = (svcRes.data && svcRes.data.services) ? svcRes.data.services : [];
-    // cache addon objects
+    // cache addon objects — глобальный кэш без staff_id, используется всегда
     _addonObjs = _allServices.filter(function(s){ return ADDON_IDS.indexOf(s.id) !== -1; });
+    _globalAddonObjs = _addonObjs.slice(); // копия, не перезаписывается при смене мастера
     if (cb) { cb(); } else { renderMasters(); }
   }).catch(function(err){
     var msg = err && err.message ? err.message : String(err);
@@ -1028,7 +1030,15 @@ function selectMaster(m, meta) {
     .then(function(res) {
       if (res.success && res.data && res.data.services) {
         _allServices = res.data.services;
-        _addonObjs = _allServices.filter(function(s){ return ADDON_IDS.indexOf(s.id) !== -1; });
+        // НЕ перезаписываем _addonObjs — у staff_id запроса аддоны могут не вернуться
+        // Используем _globalAddonObjs из начального запроса без staff_id
+        if (_globalAddonObjs.length) {
+          _addonObjs = _globalAddonObjs;
+        } else {
+          // fallback: если глобальный кэш пустой — берём из текущего ответа
+          var fromCurrent = _allServices.filter(function(s){ return ADDON_IDS.indexOf(s.id) !== -1; });
+          if (fromCurrent.length) { _addonObjs = fromCurrent; _globalAddonObjs = fromCurrent.slice(); }
+        }
       }
       renderCategories(m.id);
     })
@@ -1168,7 +1178,18 @@ function renderAddons() {
   filteredAddons.sort(function(a, b){ return ADDON_IDS.indexOf(a.id) - ADDON_IDS.indexOf(b.id); });
 
   if (!filteredAddons.length) {
+    // Если аддоны пустые — возможно кэш ещё не готов или API не вернул аддоны для этого мастера
+    // В этом случае пропускаем шаг тихо (не ломаем флоу)
+    console.warn('[crocus] renderAddons: filteredAddons empty, _addonObjs='+_addonObjs.length+' _globalAddonObjs='+_globalAddonObjs.length);
+    if (_globalAddonObjs.length && !_addonObjs.length) {
+      _addonObjs = _globalAddonObjs; // восстановить из глобального кэша
+      renderAddons(); // повторный рендер
+      return;
+    }
+    buildStep5Sub();
     goStep(5);
+    renderCalendar();
+    loadAvailDates();
     return;
   }
 
