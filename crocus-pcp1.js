@@ -192,7 +192,7 @@
     sofia:{
       badge:'Master · Crocus Beauty',
       name:'<em>Sofia</em>',
-      avatar:'https://cdn.jsdelivr.net/gh/chistyartem-blip/crocus-widget@94db95b/assets/sofia.jpg',
+      avatar:'https://cdn.jsdelivr.net/gh/chistyartem-blip/crocus-widget@1a78ce1/assets/sofia.jpg',
       role:'Master-Spezialistin · Crocus Beauty',
       bio:'Sofia ist eine eigenständige Nagelkünstlerin im Crocus Beauty Studio — mit eigenem Stil und persönlichem Ansatz.\n\nSie arbeitet nach den hohen Standards des Studios: sterilisierte Instrumente, präzise Nagelhautpflege mit elektrischer Fräse und langlebiger Gel-Lack. Jede Behandlung ist sorgfältig, sauber und ästhetisch.\n\nSofia ist die ideale Wahl für Kundinnen, die ein gepflegtes Ergebnis auf Studio-Niveau zu einem attraktiven Preis schätzen — mit persönlicher Betreuung und Liebe zum Detail.',
       tags:['Pediküre','Gel-Lack','Maniküre','Aktionspreise'],

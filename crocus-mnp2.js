@@ -305,7 +305,7 @@
       ]
     },
     sofia:{
-      photo:'https://cdn.jsdelivr.net/gh/chistyartem-blip/crocus-widget@9bb8504/assets/sofia.jpg',
+      photo:'https://cdn.jsdelivr.net/gh/chistyartem-blip/crocus-widget@1a78ce1/assets/sofia.jpg',
       photoClass:'mnp2-minfo-header--sofia',
       badge:'Master · Crocus Beauty',
       name:'',

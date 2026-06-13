@@ -84,7 +84,7 @@ var CATEGORIES = [
   {
     key: 'wimpern',
     label: 'Wimpern',
-    img: 'https://cdn.jsdelivr.net/gh/chistyartem-blip/crocus-widget@main/assets/wimpern-card.png',
+    img: 'https://cdn.jsdelivr.net/gh/chistyartem-blip/crocus-widget@1a78ce1/assets/wimpern-card.png',
     desc: 'Classic · Volumen 4D/6D · Wispy Look — natürlich oder dramatisch.',
     serviceIds: [13485763,13485764,13485765,13485766,13485767,13485768,13485769,13485770,13485771,13485772,13485773],
   },
@@ -2632,7 +2632,7 @@ if (document.readyState === 'loading') {
     nelia: 'https://static.tildacdn.com/tild3537-3733-4430-b466-336537373738/WhatsApp_Image_2026-.jpeg',
     diana: 'https://static.tildacdn.com/tild3565-3731-4564-a536-376463363936/WhatsApp_Image_2026-.jpeg',
     karina: 'https://static.tildacdn.com/tild6538-3366-4130-b062-666165616361/WhatsApp_Image_2026-.jpeg',
-    sofia: 'https://cdn.jsdelivr.net/gh/chistyartem-blip/crocus-widget@413e27d/assets/sofia.jpg'
+    sofia: 'https://cdn.jsdelivr.net/gh/chistyartem-blip/crocus-widget@1a78ce1/assets/sofia.jpg'
 
   };
 
