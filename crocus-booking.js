@@ -1139,6 +1139,7 @@ function selectService(s) {
     return;
   }
   // Для услуг без допов — пропускаем шаг 4
+  console.log('[crocus] selectService id='+s.id+' NO_ADDON_check='+(NO_ADDON_SERVICE_IDS.indexOf(s.id)!==-1)+' _addonObjs.length='+_addonObjs.length);
   if (NO_ADDON_SERVICE_IDS.indexOf(s.id) !== -1 || !_addonObjs.length) {
     buildStep5Sub();
     goStep(5);
