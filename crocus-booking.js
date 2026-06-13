@@ -99,8 +99,8 @@ var NO_ADDON_SERVICE_IDS = [13485752];
 
 // Mandel-Form (13502395) — только для Nelia и Sofia
 var MANDEL_STAFF_IDS = [3020186, 3020187];
-// Stiletto (13485758) в Nagelverlängerung — только для Diana
-var STILETTO_STAFF_IDS = [3020185];
+// Stiletto (13485758) в Nagelverlängerung — Diana, Nelia, Sofia
+var STILETTO_STAFF_IDS = [3020185, 3020186, 3020187];
 
 // Допы показываются одинаково для всех разрешённых услуг — доступность и цены из Altegio API (_addonObjs)
 
