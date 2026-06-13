@@ -840,6 +840,7 @@ var _allMasters  = null;
 var _allServices = null;
 var _addonObjs   = [];
 var _globalAddonObjs = []; // кэш аддонов без staff_id — никогда не обнуляется
+var _seanceCache = {}; // кэш seance_length: ключ = staffId+'_'+serviceId → секунды
 
 // Gift state
 var gift = {
@@ -1130,6 +1131,12 @@ function selectMaster(m, meta) {
     .then(function(res) {
       if (res.success && res.data && res.data.services) {
         _allServices = res.data.services;
+        // Кэшируем seance_length per staff+service
+        _allServices.forEach(function(svc) {
+          if (svc.seance_length) {
+            _seanceCache[m.id + '_' + svc.id] = svc.seance_length;
+          }
+        });
         // НЕ перезаписываем _addonObjs — у staff_id запроса аддоны могут не вернуться
         // Используем _globalAddonObjs из начального запроса без staff_id
         if (_globalAddonObjs.length) {
@@ -1381,10 +1388,14 @@ function loadAvailDates() {
   cw.availDates = [];
   var serviceIds = [cw.service.id];
   cw.addons.forEach(function(a){ serviceIds.push(a.id); });
-  var params = { service_ids: serviceIds, staff_id: cw.master.id };
+  // apiGet автоматически добавляет [] для массивов → service_ids[]=xxx
+  var params = { 'service_ids': serviceIds, staff_id: cw.master.id };
+  // Передаём длительность из кэша если есть (критично для Kombi и длинных услуг)
+  var cachedDur = _seanceCache[cw.master.id + '_' + cw.service.id];
+  if (cachedDur) params.duration = cachedDur;
   var firstDay = new Date(cw.calY, cw.calM, 1).toISOString().split('T')[0];
   params.date = firstDay;
-  console.log('[crocus] loadAvailDates: serviceIds='+JSON.stringify(serviceIds)+' staff='+cw.master.id+' from='+firstDay);
+  console.log('[crocus] loadAvailDates: serviceIds='+JSON.stringify(serviceIds)+' staff='+cw.master.id+' dur='+(cachedDur||'?')+' from='+firstDay);
 
   apiGet('/book_dates/'+CONFIG.locationId, params)
     .then(function(res){
@@ -1444,8 +1455,13 @@ function loadTimes() {
   grid.innerHTML = '<div class="cw-loader" style="padding:16px 0"><div class="cw-spinner"></div></div>';
   // Передаём только основную услугу — аддоны не влияют на доступность слотов
   var serviceIds = [cw.service.id];
-  console.log('[crocus] loadTimes: master='+cw.master.id+' date='+cw.date+' serviceIds='+JSON.stringify(serviceIds)+' addons='+JSON.stringify(cw.addons.map(function(a){return a.id;})));
-  apiGet('/book_times/'+CONFIG.locationId+'/'+cw.master.id+'/'+cw.date, { service_ids: serviceIds })
+  // apiGet автоматически добавляет [] для массивов → service_ids[]=xxx
+  var timeParams = { 'service_ids': serviceIds };
+  // Длительность из кэша — критично для Kombi (3ч) и длинных услуг
+  var cachedDur = _seanceCache[cw.master.id + '_' + cw.service.id];
+  if (cachedDur) timeParams.duration = cachedDur;
+  console.log('[crocus] loadTimes: master='+cw.master.id+' date='+cw.date+' serviceIds='+JSON.stringify(serviceIds)+' dur='+(cachedDur||'?')+' addons='+JSON.stringify(cw.addons.map(function(a){return a.id;})));
+  apiGet('/book_times/'+CONFIG.locationId+'/'+cw.master.id+'/'+cw.date, timeParams)
     .then(function(res){
       console.log('[crocus] loadTimes response: success='+res.success+' slots='+(res.data ? res.data.length : 'N/A'));
       if (!res.success) throw new Error('API returned success=false');
