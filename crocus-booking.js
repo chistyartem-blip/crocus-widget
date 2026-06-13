@@ -90,9 +90,9 @@ var CATEGORIES = [
   },
 ];
 
-// Все возможные допы (French, Babyboomer, Stiletto, Design, Gel-Lack, Mandel, French Pediküre)
-// Länge über 2 (13493659) и Länge über 3 (13493664) — отключены
-var ADDON_IDS = [13485756, 13485757, 13485758, 13485759, 13502359, 13502360, 13502395, 13493666];
+// Все возможные допы (French, Babyboomer, Stiletto, Design, Gel-Lack, Mandel, French Pediküre, Lange Nägel)
+// Länge über 2 (13493659) — отключён (inactive), Lange Nägel (13493664) — активен
+var ADDON_IDS = [13485756, 13485757, 13485758, 13485759, 13502359, 13502360, 13502395, 13493666, 13493664];
 
 // Услуги БЕЗ допов (гигиена маникюр, педикюр, комби, ресницы)
 var NO_ADDON_SERVICE_IDS = [13485752, 13485760, 13485761, 13485762];
@@ -853,7 +853,7 @@ function goStepBack(target) {
   // Если идём назад на шаг 4 (Extra) но для этой категории допы пропускались — пропускаем
   if (target === 4) {
     var skipBack = cw.category && cw.category.key === 'wimpern';
-    if (!skipBack) skipBack = !_addonObjs.length;
+    if (!skipBack) skipBack = !!(cw.service && NO_ADDON_SERVICE_IDS.indexOf(cw.service.id) !== -1);
     if (skipBack) { goStep(3); return; }
   }
   goStep(target);
@@ -1140,7 +1140,7 @@ function selectService(s) {
   }
   // Для услуг без допов — пропускаем шаг 4
   console.log('[crocus] selectService id='+s.id+' NO_ADDON_check='+(NO_ADDON_SERVICE_IDS.indexOf(s.id)!==-1)+' _addonObjs.length='+_addonObjs.length);
-  if (NO_ADDON_SERVICE_IDS.indexOf(s.id) !== -1 || !_addonObjs.length) {
+  if (NO_ADDON_SERVICE_IDS.indexOf(s.id) !== -1) {
     buildStep5Sub();
     goStep(5);
     renderCalendar();
@@ -1863,8 +1863,7 @@ document.getElementById('cw-back3').addEventListener('click', function(){ goStep
 document.getElementById('cw-back4').addEventListener('click', function(){
   // Назад из календаря — если пропускали допы, вернуть к услугам
   var skipBack = (cw.category && cw.category.key === 'wimpern')
-    || (cw.service && NO_ADDON_SERVICE_IDS.indexOf(cw.service.id) !== -1)
-    || !_addonObjs.length;
+    || (cw.service && NO_ADDON_SERVICE_IDS.indexOf(cw.service.id) !== -1);
   goStep(skipBack ? 3 : 4);
 });
 document.getElementById('cw-back5').addEventListener('click', function(){ goStep(5); });
@@ -2088,8 +2087,7 @@ window.addEventListener('popstate', function(e) {
   if (step === 4) { goStep(3); return; }
   if (step === 5) {
     var skipBack = (cw.category && cw.category.key === 'wimpern')
-      || (cw.service && NO_ADDON_SERVICE_IDS.indexOf(cw.service.id) !== -1)
-      || !_addonObjs.length;
+      || (cw.service && NO_ADDON_SERVICE_IDS.indexOf(cw.service.id) !== -1);
     goStep(skipBack ? 3 : 4);
     return;
   }
