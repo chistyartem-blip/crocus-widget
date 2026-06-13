@@ -322,8 +322,9 @@ var css = `
 .cw-dial-item__name{color:rgba(253,250,248,.55);font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 /* Mobile: show native select, hide custom */
 @media(max-width:600px){
-  .cw-phone-dial{display:flex!important}
+  .cw-phone-dial{display:flex!important;align-items:center}
   .cw-dial-btn,.cw-dial-drop{display:none!important}
+  .cw-phone-wrap{overflow:hidden}
 }@keyframes logoPulse{0%,100%{filter:drop-shadow(0 0 4px rgba(255,255,255,.55)) drop-shadow(0 0 10px rgba(123,45,78,.60))}50%{filter:drop-shadow(0 0 8px rgba(255,255,255,.90)) drop-shadow(0 0 20px rgba(123,45,78,.90))}}
 @keyframes fabIn{from{opacity:0;transform:translateY(24px) scale(.78)}to{opacity:1;transform:translateY(0) scale(1)}}
 #crocus-fab-mobile{display:none!important}
@@ -391,12 +392,25 @@ var css = `
   /* Confirm button */
   .cw-btn-confirm{padding:14px 20px;font-size:13.5px}
 
-  /* Input fields */
-  .cw-field input{font-size:16px}/* 16px prevents iOS zoom */
+  /* Input fields — 16px prevents iOS auto-zoom */
+  .cw-field input{font-size:16px}
+  .cw-phone-wrap input{font-size:16px}
+
+  /* Phone select (native, mobile only) */
+  .cw-phone-dial{min-height:44px;font-size:16px;display:flex!important;align-items:center;padding:0 6px 0 10px;min-width:72px}
 
   /* Cat cards */
   .cw-cat-card{padding:11px 12px;gap:11px}
   .cw-cat-label{font-size:16px}
+
+  /* Calendar days — enforce square with minimum tap size */
+  .cw-day{min-height:36px;aspect-ratio:1}
+
+  /* Confirm button full tap area */
+  .cw-btn-confirm{min-height:50px}
+
+  /* Skip button tap area */
+  .cw-skip-btn{min-height:44px}
 }
 
 /* Header */
