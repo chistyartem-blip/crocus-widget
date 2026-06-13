@@ -92,7 +92,7 @@ var CATEGORIES = [
 
 // Все возможные допы (French, Babyboomer, Stiletto, Design, Gel-Lack, Mandel, French Pediküre, Lange Nägel)
 // Länge über 2 (13493659) — отключён (inactive), Lange Nägel (13493664) — активен
-var ADDON_IDS = [13485756, 13485757, 13485758, 13485759, 13502359, 13502360, 13502395, 13493666, 13493664];
+var ADDON_IDS = [13485756, 13485757, 13485758, 13485759, 13502359, 13502360, 13502395, 13493664];
 
 // Услуги БЕЗ допов (гигиена маникюр, педикюр, комби, ресницы)
 var NO_ADDON_SERVICE_IDS = [13485752];
@@ -113,8 +113,7 @@ var ADDON_NAME_OVERRIDE = {
   13502359: 'Gel-Lack (Farbe)',
   13502360: 'Design',
   13502395: 'Mandel-Form',
-  13493664: 'Lange Nägel',
-  13493666: 'Länge über 3',
+  13493664: 'Lange Nagel',
 };
 function addonDisplayName(addon) {
   return ADDON_NAME_OVERRIDE[addon.id] || addon.title;
