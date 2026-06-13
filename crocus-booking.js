@@ -90,17 +90,33 @@ var CATEGORIES = [
   },
 ];
 
-// Все возможные допы (French, Babyboomer, Stiletto, Design, Gel-Lack, Mandel, French Pediküre, Lange Nägel)
+// Все возможные допы (French, Babyboomer, Stiletto, Design, Gel-Lack, Mandel, Lange Nägel)
 // Länge über 2 (13493659) — отключён (inactive), Lange Nägel (13493664) — активен
-var ADDON_IDS = [13485756, 13485757, 13485758, 13485759, 13502359, 13502360, 13502395, 13493664];
+// Nageldesign (13485759) — исключён (дубль дороже), оставлен только Design 5€ (13502360)
+var ADDON_IDS = [13485756, 13485757, 13485758, 13502359, 13502360, 13502395, 13493664];
 
-// Услуги БЕЗ допов (гигиена маникюр, педикюр, комби, ресницы)
-var NO_ADDON_SERVICE_IDS = [13485752];
+// Услуги БЕЗ допов совсем
+// 13485752 = Гигиенический маникюр
+// 13485754 = Коррекция
+// 13485760 = Гигиенический педикюр
+var NO_ADDON_SERVICE_IDS = [13485752, 13485754, 13485760];
+
+// Допы по услугам (null = все доступные допы для этого мастера)
+// Педикюр+шеллак (13485761) — только French
+// Маникюр+укрепление (13485753) — French, Stiletto, Design, Gel-Lack, Lange Nägel (без Babyboomer, без Mandel)
+// Наращивание (13485755) — French, Stiletto, Design, Gel-Lack, Lange Nägel (без Babyboomer, без Mandel)
+var ADDON_IDS_BY_SERVICE = {
+  13485761: [13485756],                                       // Педикюр+шеллак: только French
+  13485753: [13485756, 13485758, 13502359, 13502360, 13493664], // Маникюр+укрепление
+  13485755: [13485756, 13485758, 13502359, 13502360, 13493664], // Наращивание
+};
 
 // Mandel-Form (13502395) — только для Nelia и Sofia
 var MANDEL_STAFF_IDS = [3020186, 3020187];
-// Stiletto (13485758) в Nagelverlängerung — Diana, Nelia, Sofia
+// Stiletto (13485758) — Diana, Nelia, Sofia (все мастера маникюра)
 var STILETTO_STAFF_IDS = [3020185, 3020186, 3020187];
+// Babyboomer (13485757) — только Diana
+var BABYBOOMER_STAFF_IDS = [3020185];
 
 // Допы показываются одинаково для всех разрешённых услуг — доступность и цены из Altegio API (_addonObjs)
 
@@ -1190,10 +1206,16 @@ function renderAddons() {
   console.log('[crocus] renderAddons: _addonObjs='+_addonObjs.length+' _globalAddonObjs='+_globalAddonObjs.length+' master='+(cw.master ? cw.master.id : 'null')+' service='+(cw.service ? cw.service.id : 'null'));
 
   var filteredAddons = _addonObjs.filter(function(s){
-    // Mandel — только для Nelia и Sofia
+    // Фильтр по услуге: если есть ADDON_IDS_BY_SERVICE для текущей услуги — показываем только разрешённые
+    if (cw.service && ADDON_IDS_BY_SERVICE[cw.service.id]) {
+      if (ADDON_IDS_BY_SERVICE[cw.service.id].indexOf(s.id) === -1) return false;
+    }
+    // Mandel-Form — только для Nelia и Sofia
     if (s.id === 13502395 && cw.master && MANDEL_STAFF_IDS.indexOf(cw.master.id) === -1) return false;
-    // Stiletto в Nagelverlängerung — только для Diana
-    if (s.id === 13485758 && cw.service && cw.service.id === 13485755 && cw.master && STILETTO_STAFF_IDS.indexOf(cw.master.id) === -1) return false;
+    // Stiletto — только для Diana, Nelia, Sofia
+    if (s.id === 13485758 && cw.master && STILETTO_STAFF_IDS.indexOf(cw.master.id) === -1) return false;
+    // Babyboomer — только для Diana
+    if (s.id === 13485757 && cw.master && BABYBOOMER_STAFF_IDS.indexOf(cw.master.id) === -1) return false;
     return true;
   });
   // Порядок как в ADDON_IDS
