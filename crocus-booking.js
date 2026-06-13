@@ -1279,15 +1279,19 @@ function loadAvailDates() {
   var params = { service_ids: serviceIds, staff_id: cw.master.id };
   var firstDay = new Date(cw.calY, cw.calM, 1).toISOString().split('T')[0];
   params.date = firstDay;
+  console.log('[crocus] loadAvailDates: serviceIds='+JSON.stringify(serviceIds)+' staff='+cw.master.id+' from='+firstDay);
 
   apiGet('/book_dates/'+CONFIG.locationId, params)
     .then(function(res){
       if (res.success && res.data && res.data.booking_dates) {
         cw.availDates = res.data.booking_dates;
+        console.log('[crocus] loadAvailDates: got '+cw.availDates.length+' dates: '+JSON.stringify(cw.availDates.slice(0,5)));
+      } else {
+        console.warn('[crocus] loadAvailDates: no dates in response', res);
       }
       renderCalendar();
     })
-    .catch(function(){ renderCalendar(); });
+    .catch(function(e){ console.error('[crocus] loadAvailDates error:', e); renderCalendar(); });
 }
 
 function renderCalendar() {
@@ -1335,12 +1339,15 @@ function loadTimes() {
   grid.innerHTML = '<div class="cw-loader" style="padding:16px 0"><div class="cw-spinner"></div></div>';
   var serviceIds = [cw.service.id];
   if (cw.addon) serviceIds.push(cw.addon.id);
+  console.log('[crocus] loadTimes: master='+cw.master.id+' date='+cw.date+' serviceIds='+JSON.stringify(serviceIds)+' addon='+(cw.addon ? cw.addon.id : 'null'));
   apiGet('/book_times/'+CONFIG.locationId+'/'+cw.master.id+'/'+cw.date, { service_ids: serviceIds })
     .then(function(res){
-      if (!res.success) throw new Error();
+      console.log('[crocus] loadTimes response: success='+res.success+' slots='+(res.data ? res.data.length : 'N/A'));
+      if (!res.success) throw new Error('API returned success=false');
       renderTimesLoaded(res.data || []);
     })
-    .catch(function(){
+    .catch(function(e){
+      console.error('[crocus] loadTimes error:', e);
       grid.innerHTML = '<div class="cw-error" style="grid-column:span 4">Keine Zeiten verfügbar.</div>';
     });
 }
