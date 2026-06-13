@@ -1337,8 +1337,8 @@ function selectDate(ds) {
 function loadTimes() {
   var grid = document.getElementById('cw-time-grid');
   grid.innerHTML = '<div class="cw-loader" style="padding:16px 0"><div class="cw-spinner"></div></div>';
+  // Передаём только основную услугу — аддоны не влияют на доступность слотов
   var serviceIds = [cw.service.id];
-  if (cw.addon) serviceIds.push(cw.addon.id);
   console.log('[crocus] loadTimes: master='+cw.master.id+' date='+cw.date+' serviceIds='+JSON.stringify(serviceIds)+' addon='+(cw.addon ? cw.addon.id : 'null'));
   apiGet('/book_times/'+CONFIG.locationId+'/'+cw.master.id+'/'+cw.date, { service_ids: serviceIds })
     .then(function(res){
