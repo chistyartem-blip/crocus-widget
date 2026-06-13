@@ -1167,6 +1167,13 @@ function renderAddons() {
   list.innerHTML = '';
   cw.addon = null;
 
+  // Если _addonObjs пустой — восстановить из глобального кэша
+  if (!_addonObjs.length && _globalAddonObjs.length) {
+    _addonObjs = _globalAddonObjs.slice();
+  }
+
+  console.log('[crocus] renderAddons: _addonObjs='+_addonObjs.length+' _globalAddonObjs='+_globalAddonObjs.length+' master='+(cw.master ? cw.master.id : 'null')+' service='+(cw.service ? cw.service.id : 'null'));
+
   var filteredAddons = _addonObjs.filter(function(s){
     // Mandel — только для Nelia и Sofia
     if (s.id === 13502395 && cw.master && MANDEL_STAFF_IDS.indexOf(cw.master.id) === -1) return false;
@@ -1177,19 +1184,34 @@ function renderAddons() {
   // Порядок как в ADDON_IDS
   filteredAddons.sort(function(a, b){ return ADDON_IDS.indexOf(a.id) - ADDON_IDS.indexOf(b.id); });
 
+  console.log('[crocus] renderAddons: filteredAddons='+filteredAddons.length);
+
   if (!filteredAddons.length) {
-    // Если аддоны пустые — возможно кэш ещё не готов или API не вернул аддоны для этого мастера
-    // В этом случае пропускаем шаг тихо (не ломаем флоу)
-    console.warn('[crocus] renderAddons: filteredAddons empty, _addonObjs='+_addonObjs.length+' _globalAddonObjs='+_globalAddonObjs.length);
-    if (_globalAddonObjs.length && !_addonObjs.length) {
-      _addonObjs = _globalAddonObjs; // восстановить из глобального кэша
-      renderAddons(); // повторный рендер
-      return;
-    }
-    buildStep5Sub();
-    goStep(5);
-    renderCalendar();
-    loadAvailDates();
+    // Аддоны пустые — загрузить напрямую из API и повторить
+    console.warn('[crocus] renderAddons: empty, fetching addons from API...');
+    apiGet('/book_services/'+CONFIG.locationId)
+      .then(function(res){
+        if (res.success && res.data && res.data.services) {
+          var fromApi = res.data.services.filter(function(s){ return ADDON_IDS.indexOf(s.id) !== -1; });
+          if (fromApi.length) {
+            _addonObjs = fromApi;
+            _globalAddonObjs = fromApi.slice();
+            renderAddons(); // повторный рендер
+            return;
+          }
+        }
+        // Всё равно пусто — пропускаем шаг
+        buildStep5Sub();
+        goStep(5);
+        renderCalendar();
+        loadAvailDates();
+      })
+      .catch(function(){
+        buildStep5Sub();
+        goStep(5);
+        renderCalendar();
+        loadAvailDates();
+      });
     return;
   }
 
