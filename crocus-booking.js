@@ -104,6 +104,22 @@ var STILETTO_STAFF_IDS = [3020185];
 
 // Допы показываются одинаково для всех разрешённых услуг — доступность и цены из Altegio API (_addonObjs)
 
+// Override-названия аддонов по ID (заменяют API title если совпадает)
+var ADDON_NAME_OVERRIDE = {
+  13485756: 'French',
+  13485757: 'Babyboomer',
+  13485758: 'Stiletto-Form',
+  13485759: 'Nageldesign',
+  13502359: 'Gel-Lack (Farbe)',
+  13502360: 'Design',
+  13502395: 'Mandel-Form',
+  13493664: 'Lange Nägel',
+  13493666: 'Länge über 3',
+};
+function addonDisplayName(addon) {
+  return ADDON_NAME_OVERRIDE[addon.id] || addon.title;
+}
+
 // ── API ────────────────────────────────────────────────────────
 function apiGet(path, params) {
   // Proxy URL: /api/proxy?path=<endpoint>&<other params>
@@ -1225,7 +1241,7 @@ function renderAddons() {
     btn.innerHTML =
       '<div class="cw-addon-check"></div>'
       + '<div class="cw-addon-info">'
-        + '<div class="cw-addon-name">'+s.title+'</div>'
+        + '<div class="cw-addon-name">'+addonDisplayName(s)+'</div>'
         + (priceStr ? '<div class="cw-addon-price">'+priceStr+'</div>' : '')
       + '</div>';
     btn.addEventListener('click', function(){
@@ -1255,7 +1271,7 @@ function proceedFromAddon() {
     service_name: cw.service ? cw.service.title : '',
     category: cw.category ? cw.category.label : '',
     master_name: cw.master ? cw.master.name : '',
-    addon_name: cw.addon ? cw.addon.title : '',
+    addon_name: cw.addon ? addonDisplayName(cw.addon) : '',
     page_location: window.location.href,
   });
   buildStep5Sub();
@@ -1266,7 +1282,7 @@ function proceedFromAddon() {
 
 function buildStep5Sub() {
   var parts = [cw.service.title];
-  if (cw.addon) parts.push(cw.addon.title);
+  if (cw.addon) parts.push(addonDisplayName(cw.addon));
   document.getElementById('cw-step5-sub').innerHTML =
     parts.join(' + ') + ' · <strong style="color:#fdfaf8">'+cw.master.name+'</strong>';
 }
@@ -1414,7 +1430,7 @@ function renderSummary() {
   }
   var totalPrice = getMasterPrice(cw.service) + (cw.addon ? getMasterPrice(cw.addon) : 0);
   var priceStr = totalPrice ? totalPrice+' €' : '—';
-  var svcStr = cw.addon ? cw.service.title+' + '+cw.addon.title : cw.service.title;
+  var svcStr = cw.addon ? cw.service.title+' + '+addonDisplayName(cw.addon) : cw.service.title;
 
   document.getElementById('cw-summary').innerHTML =
     '<div class="cw-sum-row"><span>Meisterin</span><strong>'+cw.master.name
@@ -1504,7 +1520,7 @@ function submitBooking(e) {
       var dateStr = cw.date
         ? new Date(cw.date+'T12:00:00').toLocaleDateString('de-DE',{weekday:'long',day:'numeric',month:'long'})
         : '';
-      var svcStr = cw.addon ? cw.service.title+' + '+cw.addon.title : cw.service.title;
+      var svcStr = cw.addon ? cw.service.title+' + '+addonDisplayName(cw.addon) : cw.service.title;
       document.getElementById('cw-success-text').innerHTML =
         '<strong>'+svcStr+'</strong> bei <strong>'+cw.master.name+'</strong><br>'+dateStr+', '+cw.time+' Uhr';
       // Save client data + last booking for next visit
@@ -1529,7 +1545,7 @@ function submitBooking(e) {
           service_category: cw.category ? cw.category.key : '',
           category: cw.category ? cw.category.label : '',
           master_name: cw.master ? cw.master.name : '',
-          addon_name: cw.addon ? cw.addon.title : '',
+          addon_name: cw.addon ? addonDisplayName(cw.addon) : '',
           booking_date: cw.date || '',
           booking_time: cw.time || '',
           source: 'widget',
