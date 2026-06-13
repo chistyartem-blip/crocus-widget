@@ -94,20 +94,15 @@ var CATEGORIES = [
 // Länge über 2 (13493659) и Länge über 3 (13493664) — отключены
 var ADDON_IDS = [13485756, 13485757, 13485758, 13485759, 13502359, 13502360, 13502395, 13493666];
 
-// Какие допы показывать для конкретной услуги (по service.id)
-var ADDON_IDS_BY_SERVICE = {
-  13485752: [],                                              // Hygienische Maniküre — нет допов
-  13485753: [],                                              // Maniküre+Gel — нет допов
-  13485754: [],                                              // Nagelkorrektur — нет допов
-  13485755: [13485758, 13485759, 13485757, 13485756, 13502360, 13502395], // Nagelverlängerung — Stiletto(Diana only), Nageldesign, Babyboomer, French, Design, Mandel
-  13485760: [],                                              // Hygienische Pediküre — нет допов
-  13485761: [13493666],                                      // Pediküre+Gel — только French Pediküre
-  13485762: [13493666, 13485756, 13485759, 13485758, 13485757, 13502360], // Kombi — без Länge, без Mandel
-};
+// Услуги БЕЗ допов (гигиена маникюр, педикюр, комби, ресницы)
+var NO_ADDON_SERVICE_IDS = [13485752, 13485760, 13485761, 13485762];
 
-// Mandel доступен только для этих мастеров
-var MANDEL_STAFF_IDS   = [3020186, 3020187]; // Nelia, Sofia
-var STILETTO_STAFF_IDS = [3020185];          // Diana only (Nagelverlängerung)
+// Mandel-Form (13502395) — только для Nelia и Sofia
+var MANDEL_STAFF_IDS = [3020186, 3020187];
+// Stiletto (13485758) в Nagelverlängerung — только для Diana
+var STILETTO_STAFF_IDS = [3020185];
+
+// Допы показываются одинаково для всех разрешённых услуг — доступность и цены из Altegio API (_addonObjs)
 
 // ── API ────────────────────────────────────────────────────────
 function apiGet(path, params) {
@@ -858,10 +853,7 @@ function goStepBack(target) {
   // Если идём назад на шаг 4 (Extra) но для этой категории допы пропускались — пропускаем
   if (target === 4) {
     var skipBack = cw.category && cw.category.key === 'wimpern';
-    if (!skipBack && cw.service) {
-      var ids = ADDON_IDS_BY_SERVICE[cw.service.id];
-      if (!ids || ids.length === 0) skipBack = true;
-    }
+    if (!skipBack) skipBack = !_addonObjs.length;
     if (skipBack) { goStep(3); return; }
   }
   goStep(target);
@@ -1146,15 +1138,8 @@ function selectService(s) {
     loadAvailDates();
     return;
   }
-  // Для остальных — смотрим по конкретной услуге
-  var allowedIds = ADDON_IDS_BY_SERVICE[s.id];
-  // Фильтруем с учётом мастера (Mandel только для Nelia/Sofia)
-  var effectiveIds = (allowedIds || []).filter(function(id){
-    if (id === 13502395 && cw.master && MANDEL_STAFF_IDS.indexOf(cw.master.id) === -1) return false;
-    if (id === 13485758 && s.id === 13485755 && cw.master && STILETTO_STAFF_IDS.indexOf(cw.master.id) === -1) return false;
-    return true;
-  });
-  if (!effectiveIds.length) {
+  // Для услуг без допов — пропускаем шаг 4
+  if (NO_ADDON_SERVICE_IDS.indexOf(s.id) !== -1 || !_addonObjs.length) {
     buildStep5Sub();
     goStep(5);
     renderCalendar();
@@ -1171,17 +1156,15 @@ function renderAddons() {
   list.innerHTML = '';
   cw.addon = null;
 
-  var allowedIds = (cw.service && ADDON_IDS_BY_SERVICE[cw.service.id]) || [];
   var filteredAddons = _addonObjs.filter(function(s){
-    if (allowedIds.indexOf(s.id) === -1) return false;
     // Mandel — только для Nelia и Sofia
     if (s.id === 13502395 && cw.master && MANDEL_STAFF_IDS.indexOf(cw.master.id) === -1) return false;
     // Stiletto в Nagelverlängerung — только для Diana
     if (s.id === 13485758 && cw.service && cw.service.id === 13485755 && cw.master && STILETTO_STAFF_IDS.indexOf(cw.master.id) === -1) return false;
     return true;
   });
-  // Сохраняем порядок как в allowedIds
-  filteredAddons.sort(function(a, b){ return allowedIds.indexOf(a.id) - allowedIds.indexOf(b.id); });
+  // Порядок как в ADDON_IDS
+  filteredAddons.sort(function(a, b){ return ADDON_IDS.indexOf(a.id) - ADDON_IDS.indexOf(b.id); });
 
   if (!filteredAddons.length) {
     goStep(5);
@@ -1878,11 +1861,9 @@ document.getElementById('cw-back2').addEventListener('click', function(){ goStep
 document.getElementById('cw-back3').addEventListener('click', function(){ goStep(3); });
 document.getElementById('cw-back4').addEventListener('click', function(){
   // Назад из календаря — если пропускали допы, вернуть к услугам
-  var skipBack = cw.category && cw.category.key === 'wimpern';
-  if (!skipBack && cw.service) {
-    var ids = ADDON_IDS_BY_SERVICE[cw.service.id];
-    if (!ids || ids.length === 0) skipBack = true;
-  }
+  var skipBack = (cw.category && cw.category.key === 'wimpern')
+    || (cw.service && NO_ADDON_SERVICE_IDS.indexOf(cw.service.id) !== -1)
+    || !_addonObjs.length;
   goStep(skipBack ? 3 : 4);
 });
 document.getElementById('cw-back5').addEventListener('click', function(){ goStep(5); });
@@ -2105,11 +2086,9 @@ window.addEventListener('popstate', function(e) {
   if (step === 3) { goStep(2); return; }
   if (step === 4) { goStep(3); return; }
   if (step === 5) {
-    var skipBack = cw.category && cw.category.key === 'wimpern';
-    if (!skipBack && cw.service) {
-      var ids = ADDON_IDS_BY_SERVICE[cw.service.id];
-      if (!ids || ids.length === 0) skipBack = true;
-    }
+    var skipBack = (cw.category && cw.category.key === 'wimpern')
+      || (cw.service && NO_ADDON_SERVICE_IDS.indexOf(cw.service.id) !== -1)
+      || !_addonObjs.length;
     goStep(skipBack ? 3 : 4);
     return;
   }
