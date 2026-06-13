@@ -97,8 +97,8 @@ var ADDON_IDS = [13485756, 13485757, 13485758, 13485759, 13502359, 13502360, 135
 // Какие допы показывать для конкретной услуги (по service.id)
 var ADDON_IDS_BY_SERVICE = {
   13485752: [],                                              // Hygienische Maniküre — нет допов
-  13485753: [13485758, 13485757, 13485756, 13502359, 13502360], // Maniküre+Gel — Stiletto, Babyboomer, French, Gel-Lack, Design
-  13485754: [13485756, 13485757, 13485758, 13502360, 13502395], // Nagelkorrektur — French, Babyboomer, Stiletto, Design, Mandel
+  13485753: [],                                              // Maniküre+Gel — нет допов
+  13485754: [],                                              // Nagelkorrektur — нет допов
   13485755: [13485758, 13485759, 13485757, 13485756, 13502360, 13502395], // Nagelverlängerung — Stiletto(Diana only), Nageldesign, Babyboomer, French, Design, Mandel
   13485760: [],                                              // Hygienische Pediküre — нет допов
   13485761: [13493666],                                      // Pediküre+Gel — только French Pediküre
