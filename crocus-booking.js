@@ -742,7 +742,7 @@ var cw = {
   master: null,       // object from MASTERS_META + API
   category: null,     // CATEGORIES item
   service: null,      // API service object
-  addon: null,        // API service object | null
+  addons: [],       // API service objects array (multi-select)
   date: null,
   time: null,
   datetime: null,
@@ -1151,7 +1151,7 @@ function renderServices(cat) {
 
 function selectService(s) {
   cw.service = s;
-  cw.addon = null;
+  cw.addons = [];
   // Tracking
   window.dataLayer = window.dataLayer || [];
   window.dataLayer.push({ event: 'booking_service_selected', service_name: s.title, category: cw.category ? cw.category.label : '', master_name: cw.master ? cw.master.name : '', page_location: window.location.href });
@@ -1180,7 +1180,7 @@ function selectService(s) {
 function renderAddons() {
   var list = document.getElementById('cw-addons-list');
   list.innerHTML = '';
-  cw.addon = null;
+  cw.addons = [];
 
   // Если _addonObjs пустой — восстановить из глобального кэша
   if (!_addonObjs.length && _globalAddonObjs.length) {
@@ -1244,19 +1244,18 @@ function renderAddons() {
         + (priceStr ? '<div class="cw-addon-price">'+priceStr+'</div>' : '')
       + '</div>';
     btn.addEventListener('click', function(){
-      var already = cw.addon && cw.addon.id === s.id;
-      // Deselect all
-      document.querySelectorAll('.cw-addon-btn').forEach(function(b){
-        b.classList.remove('sel');
-        b.querySelector('.cw-addon-check').textContent = '';
-      });
-      if (!already) {
-        cw.addon = s;
+      var idx = cw.addons.findIndex(function(a){ return a.id === s.id; });
+      if (idx === -1) {
+        cw.addons.push(s);
         btn.classList.add('sel');
         btn.querySelector('.cw-addon-check').textContent = '✓';
       } else {
-        cw.addon = null;
+        cw.addons.splice(idx, 1);
+        btn.classList.remove('sel');
+        btn.querySelector('.cw-addon-check').textContent = '';
       }
+      var nextBtn = document.getElementById('cw-next-addon');
+      if (nextBtn) nextBtn.style.display = cw.addons.length ? 'block' : 'none';
     });
     list.appendChild(btn);
   });
@@ -1270,7 +1269,7 @@ function proceedFromAddon() {
     service_name: cw.service ? cw.service.title : '',
     category: cw.category ? cw.category.label : '',
     master_name: cw.master ? cw.master.name : '',
-    addon_name: cw.addon ? addonDisplayName(cw.addon) : '',
+    addon_name: cw.addons.length ? cw.addons.map(addonDisplayName).join(', ') : '',
     page_location: window.location.href,
   });
   buildStep5Sub();
@@ -1281,7 +1280,7 @@ function proceedFromAddon() {
 
 function buildStep5Sub() {
   var parts = [cw.service.title];
-  if (cw.addon) parts.push(addonDisplayName(cw.addon));
+  cw.addons.forEach(function(a){ parts.push(addonDisplayName(a)); });
   document.getElementById('cw-step5-sub').innerHTML =
     parts.join(' + ') + ' · <strong style="color:#fdfaf8">'+cw.master.name+'</strong>';
 }
@@ -1290,7 +1289,7 @@ function buildStep5Sub() {
 function loadAvailDates() {
   cw.availDates = [];
   var serviceIds = [cw.service.id];
-  if (cw.addon) serviceIds.push(cw.addon.id);
+  cw.addons.forEach(function(a){ serviceIds.push(a.id); });
   var params = { service_ids: serviceIds, staff_id: cw.master.id };
   var firstDay = new Date(cw.calY, cw.calM, 1).toISOString().split('T')[0];
   params.date = firstDay;
@@ -1354,7 +1353,7 @@ function loadTimes() {
   grid.innerHTML = '<div class="cw-loader" style="padding:16px 0"><div class="cw-spinner"></div></div>';
   // Передаём только основную услугу — аддоны не влияют на доступность слотов
   var serviceIds = [cw.service.id];
-  console.log('[crocus] loadTimes: master='+cw.master.id+' date='+cw.date+' serviceIds='+JSON.stringify(serviceIds)+' addon='+(cw.addon ? cw.addon.id : 'null'));
+  console.log('[crocus] loadTimes: master='+cw.master.id+' date='+cw.date+' serviceIds='+JSON.stringify(serviceIds)+' addons='+JSON.stringify(cw.addons.map(function(a){return a.id;})));
   apiGet('/book_times/'+CONFIG.locationId+'/'+cw.master.id+'/'+cw.date, { service_ids: serviceIds })
     .then(function(res){
       console.log('[crocus] loadTimes response: success='+res.success+' slots='+(res.data ? res.data.length : 'N/A'));
@@ -1427,9 +1426,9 @@ function renderSummary() {
     }
     return svc.price_min || 0;
   }
-  var totalPrice = getMasterPrice(cw.service) + (cw.addon ? getMasterPrice(cw.addon) : 0);
+  var totalPrice = getMasterPrice(cw.service) + cw.addons.reduce(function(sum,a){ return sum+getMasterPrice(a); }, 0);
   var priceStr = totalPrice ? totalPrice+' €' : '—';
-  var svcStr = cw.addon ? cw.service.title+' + '+addonDisplayName(cw.addon) : cw.service.title;
+  var svcStr = cw.service.title + (cw.addons.length ? ' + '+cw.addons.map(addonDisplayName).join(' + ') : '');
 
   document.getElementById('cw-summary').innerHTML =
     '<div class="cw-sum-row"><span>Meisterin</span><strong>'+cw.master.name
@@ -1507,7 +1506,7 @@ function submitBooking(e) {
   btn.disabled = true; btn.textContent = 'Wird gesendet…';
 
   // Addon must be in the same appointment (not separate) — API requires combined services array
-  var svcIds = cw.addon ? [cw.service.id, cw.addon.id] : [cw.service.id];
+  var svcIds = [cw.service.id].concat(cw.addons.map(function(a){return a.id;}));
   var appointments = [{ id: cw.service.id, services: svcIds, staff_id: cw.master.id, datetime: cw.datetime }];
 
   console.log('[Crocus] Booking →', { phone, name, email, appointments });
@@ -1519,7 +1518,7 @@ function submitBooking(e) {
       var dateStr = cw.date
         ? new Date(cw.date+'T12:00:00').toLocaleDateString('de-DE',{weekday:'long',day:'numeric',month:'long'})
         : '';
-      var svcStr = cw.addon ? cw.service.title+' + '+addonDisplayName(cw.addon) : cw.service.title;
+      var svcStr = cw.service.title + (cw.addons.length ? ' + '+cw.addons.map(addonDisplayName).join(' + ') : '');
       document.getElementById('cw-success-text').innerHTML =
         '<strong>'+svcStr+'</strong> bei <strong>'+cw.master.name+'</strong><br>'+dateStr+', '+cw.time+' Uhr';
       // Save client data + last booking for next visit
@@ -1544,7 +1543,7 @@ function submitBooking(e) {
           service_category: cw.category ? cw.category.key : '',
           category: cw.category ? cw.category.label : '',
           master_name: cw.master ? cw.master.name : '',
-          addon_name: cw.addon ? addonDisplayName(cw.addon) : '',
+          addon_name: cw.addons.length ? cw.addons.map(addonDisplayName).join(', ') : '',
           booking_date: cw.date || '',
           booking_time: cw.time || '',
           source: 'widget',
@@ -1613,7 +1612,7 @@ function calNext() {
 
 // ── Reset ──────────────────────────────────────────────────────
 function crocusReset() {
-  cw = { step:1, master:null, category:null, service:null, addon:null,
+  cw = { step:1, master:null, category:null, service:null, addons:[],
          date:null, time:null, datetime:null,
          calY:new Date().getFullYear(), calM:new Date().getMonth(), availDates:[] };
   // Always re-enable submit button in case previous attempt left it disabled
@@ -1932,7 +1931,7 @@ document.getElementById('cw-back4').addEventListener('click', function(){
   goStep(skipBack ? 3 : 4);
 });
 document.getElementById('cw-back5').addEventListener('click', function(){ goStep(5); });
-document.getElementById('cw-skip-addon').addEventListener('click', function(){ cw.addon=null; proceedFromAddon(); });
+document.getElementById('cw-skip-addon').addEventListener('click', function(){ cw.addons=[]; proceedFromAddon(); });
 document.getElementById('cw-cal-prev').addEventListener('click', calPrev);
 document.getElementById('cw-cal-next').addEventListener('click', calNext);
 document.getElementById('cw-btn-new').addEventListener('click', crocusReset);
@@ -2175,7 +2174,7 @@ window.addEventListener('popstate', function(e) {
   // Показываем кнопку Weiter когда доп выбран
   document.getElementById('cw-addons-list').addEventListener('click', function(){
     setTimeout(function(){
-      nextBtn.style.display = cw.addon ? 'block' : 'none';
+      nextBtn.style.display = cw.addons.length ? 'block' : 'none';
     }, 50);
   });
   nextBtn.addEventListener('click', function(){ proceedFromAddon(); });
