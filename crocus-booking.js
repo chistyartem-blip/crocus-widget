@@ -1003,6 +1003,9 @@ function showError(id, msg) {
 
 // ── Load initial data ──────────────────────────────────────────
 function loadInitialData(cb) {
+  // Предзаполняем статическими данными — API обновит если вернёт данные
+  if (!_addonObjs.length) { _addonObjs = ADDON_STATIC_DATA.slice(); }
+  if (!_globalAddonObjs.length) { _globalAddonObjs = ADDON_STATIC_DATA.slice(); }
   showLoader('cw-masters-list', 'Meisterinnen laden…');
   Promise.all([
     apiGet('/book_staff/'+CONFIG.locationId),
@@ -1014,8 +1017,13 @@ function loadInitialData(cb) {
     _allMasters  = staffRes.data || [];
     _allServices = (svcRes.data && svcRes.data.services) ? svcRes.data.services : [];
     // cache addon objects — глобальный кэш без staff_id, используется всегда
-    _addonObjs = _allServices.filter(function(s){ return ADDON_IDS.indexOf(s.id) !== -1; });
-    _globalAddonObjs = _addonObjs.slice(); // копия, не перезаписывается при смене мастера
+    var apiAddons = _allServices.filter(function(s){ return ADDON_IDS.indexOf(s.id) !== -1; });
+    // Мержим: берём API данные если есть, иначе оставляем статику
+    if (apiAddons.length) {
+      _addonObjs = apiAddons;
+      _globalAddonObjs = apiAddons.slice();
+    }
+    // Иначе оставляем предзаполненные из ADDON_STATIC_DATA
     if (cb) { cb(); } else { renderMasters(); }
   }).catch(function(err){
     var msg = err && err.message ? err.message : String(err);
