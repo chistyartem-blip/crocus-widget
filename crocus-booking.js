@@ -899,6 +899,9 @@ var gift = {
 var _scrollY = 0;
 var _suppressNextHashClick = false;
 var _scrollLocked = false;
+var _crocusHistoryActive = false;
+var _closingFromPopstate = false;
+var _pendingOpenScrollY = 0;
 
 function preservePageScroll(fn) {
   var y = window.scrollY || window.pageYOffset || 0;
@@ -910,7 +913,8 @@ function preservePageScroll(fn) {
 
 function lockPageScroll() {
   if (_scrollLocked) return;
-  _scrollY = window.scrollY || window.pageYOffset || 0;
+  _scrollY = _pendingOpenScrollY || window.scrollY || window.pageYOffset || 0;
+  _pendingOpenScrollY = 0;
   _scrollLocked = true;
   document.documentElement.style.overflow = 'hidden';
   document.body.classList.add('crocus-open');
@@ -937,6 +941,22 @@ function unlockPageScroll() {
   window.scrollTo(0, savedY);
 }
 
+function ensureCrocusHistory() {
+  if (!window.history || !window.history.pushState || _crocusHistoryActive) return;
+  window.history.pushState({ crocusOpen: true }, '');
+  _crocusHistoryActive = true;
+}
+
+function keepCrocusHistory() {
+  if (!window.history || !window.history.pushState) return;
+  var y = _scrollLocked ? _scrollY : (window.scrollY || window.pageYOffset || 0);
+  window.history.pushState({ crocusOpen: true }, '');
+  _crocusHistoryActive = true;
+  requestAnimationFrame(function(){
+    if (!_scrollLocked && Math.abs((window.scrollY || window.pageYOffset || 0) - y) > 2) window.scrollTo(0, y);
+  });
+}
+
 function isCrocusOpenTrigger(el) {
   if (!el) return false;
   var attr = (el.getAttribute && (el.getAttribute('onclick') || '')) || '';
@@ -955,6 +975,7 @@ function isCrocusOpenTrigger(el) {
 document.addEventListener('click', function(ev) {
   var trigger = ev.target && ev.target.closest && ev.target.closest('a[href="#"],button,[onclick]');
   if (!trigger || !isCrocusOpenTrigger(trigger)) return;
+  _pendingOpenScrollY = window.scrollY || window.pageYOffset || 0;
   if (trigger.tagName === 'A' && trigger.getAttribute('href') === '#') {
     ev.preventDefault();
     _suppressNextHashClick = true;
@@ -962,9 +983,20 @@ document.addEventListener('click', function(ev) {
   }
 }, true);
 
+['pointerdown','mousedown','touchstart'].forEach(function(evtName) {
+  document.addEventListener(evtName, function(ev) {
+    var trigger = ev.target && ev.target.closest && ev.target.closest('a[href="#"],button,[onclick]');
+    if (!trigger || !isCrocusOpenTrigger(trigger)) return;
+    _pendingOpenScrollY = window.scrollY || window.pageYOffset || 0;
+    if (trigger.tagName === 'A' && trigger.getAttribute('href') === '#') ev.preventDefault();
+  }, true);
+});
+
 function crocusOpen() {
+  if (_pendingOpenScrollY) _scrollY = _pendingOpenScrollY;
   document.getElementById('crocus-backdrop').classList.add('open');
   lockPageScroll();
+  ensureCrocusHistory();
   requestAnimationFrame(function(){
     document.getElementById('crocus-backdrop').classList.add('visible');
     document.getElementById('crocus-modal').classList.add('open');
@@ -987,6 +1019,7 @@ function crocusClose() {
   document.getElementById('crocus-backdrop').classList.remove('visible');
   document.getElementById('crocus-modal').classList.remove('open');
   unlockPageScroll();
+  _crocusHistoryActive = false;
 
   setTimeout(function(){
     document.getElementById('crocus-backdrop').classList.remove('open');
@@ -3001,6 +3034,55 @@ initDialDropdown('cw-dial-btn',      'cw-dial-drop',      'cw-dial-list',      '
 initDialDropdown('cw-gift-dial-btn', 'cw-gift-dial-drop', 'cw-gift-dial-list', 'cw-gift-dial-search', 'cw-gift-dial');
 document.addEventListener('keydown', function(e){ if(e.key==='Escape') crocusClose(); });
 
+function crocusWidgetBack() {
+  var isGiftMode = document.getElementById('cw-gift1') && document.getElementById('cw-gift1').classList.contains('active');
+  var isGiftStep2 = document.getElementById('cw-gift2') && document.getElementById('cw-gift2').classList.contains('active');
+  var isGiftSuccess = document.getElementById('cw-gift-success') && document.getElementById('cw-gift-success').classList.contains('active');
+
+  if (isGiftStep2) {
+    document.querySelectorAll('.cw-step').forEach(function(el){ el.classList.remove('active'); });
+    document.getElementById('cw-gift1').classList.add('active');
+    document.getElementById('crocus-body').scrollTop = 0;
+    return true;
+  }
+  if (isGiftMode || isGiftSuccess) {
+    document.getElementById('crocus-progress').style.display = 'flex';
+    document.querySelectorAll('.cw-step').forEach(function(el){ el.classList.remove('active'); });
+    document.getElementById('cw-step1').classList.add('active');
+    updateProgress(1);
+    document.getElementById('crocus-body').scrollTop = 0;
+    return true;
+  }
+
+  var step = cw.step;
+  if (step === 'success' || step === 1) {
+    crocusClose();
+    return false;
+  }
+  if (step === 2) { goStep(1); return true; }
+  if (step === 3) { goStep(2); return true; }
+  if (step === 4) { goStep(3); return true; }
+  if (step === 5) {
+    var skipBack = (cw.category && cw.category.key === 'wimpern')
+      || (cw.service && NO_ADDON_SERVICE_IDS.indexOf(cw.service.id) !== -1);
+    goStep(skipBack ? 3 : 4);
+    return true;
+  }
+  if (step === 6) { goStep(5); return true; }
+  return true;
+}
+
+document.addEventListener('keydown', function(e) {
+  var modal = document.getElementById('crocus-modal');
+  if (!modal || !modal.classList.contains('open')) return;
+  var tag = e.target && e.target.tagName;
+  var typing = tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || (e.target && e.target.isContentEditable);
+  if (e.key === 'Backspace' && !typing) {
+    e.preventDefault();
+    crocusWidgetBack();
+  }
+});
+
 // ── Android back button / browser back ─────────────────────────
 window.addEventListener('popstate', function(e) {
   var modal = document.getElementById('crocus-modal');
@@ -3008,6 +3090,10 @@ window.addEventListener('popstate', function(e) {
 
   // Modal is open — intercept back navigation
   e.preventDefault();
+  _crocusHistoryActive = false;
+  var keepOpen = crocusWidgetBack();
+  if (keepOpen) keepCrocusHistory();
+  return;
 
   var isGiftMode = document.getElementById('cw-gift1') && document.getElementById('cw-gift1').classList.contains('active');
   var isGiftStep2 = document.getElementById('cw-gift2') && document.getElementById('cw-gift2').classList.contains('active');
