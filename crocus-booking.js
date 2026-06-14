@@ -1367,6 +1367,10 @@ function renderServices(cat) {
     // Длительность не показываем если 0 или null
     var durSec = s.seance_length || 0;
     var durStr = durSec > 0 ? (Math.round(durSec/60)+' Min') : '';
+    if (s.id === KOMBI_SERVICE_ID) {
+      durStr = 'nach freiem Ablauf';
+      priceStr = 'nach Slot';
+    }
 
     var btn = document.createElement('button');
     btn.className = 'cw-svc-btn';
