@@ -1447,7 +1447,10 @@ function buildStep5Sub() {
 function loadAvailDates() {
   cw.availDates = [];
   var serviceIds = [cw.service.id];
-  cw.addons.forEach(function(a){ serviceIds.push(a.id); });
+  // Для Комби (13485762) аддоны (French и т.п.) — только UI-выбор, в API не передаём
+  if (cw.service.id !== 13485762) {
+    cw.addons.forEach(function(a){ serviceIds.push(a.id); });
+  }
   // apiGet автоматически добавляет [] для массивов → service_ids[]=xxx
   var params = { 'service_ids': serviceIds, staff_id: cw.master.id };
   // Передаём длительность из кэша если есть (критично для Kombi и длинных услуг)
@@ -1672,8 +1675,11 @@ function submitBooking(e) {
   var btn = document.getElementById('cw-btn-submit');
   btn.disabled = true; btn.textContent = 'Wird gesendet…';
 
-  // Addon must be in the same appointment (not separate) — API requires combined services array
-  var svcIds = [cw.service.id].concat(cw.addons.map(function(a){return a.id;}));
+  // Addon must be in the same appointment — но для Комби (13485762) аддоны только UI, не в API
+  var svcIds = [cw.service.id];
+  if (cw.service.id !== 13485762) {
+    svcIds = svcIds.concat(cw.addons.map(function(a){return a.id;}));
+  }
   var appointments = [{ id: cw.service.id, services: svcIds, staff_id: cw.master.id, datetime: cw.datetime }];
 
   console.log('[Crocus] Booking →', { phone, name, email, appointments });
