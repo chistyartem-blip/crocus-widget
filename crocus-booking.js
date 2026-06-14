@@ -121,6 +121,10 @@ var KOMBI_VIRTUAL_ADDONS = [
 var KOMBI_SERVICE_ID = 13485762;
 var KOMBI_MANI_SERVICE_ID = 13485753;
 var KOMBI_PEDI_SERVICE_ID = 13485761;
+var KOMBI_DURATION_BY_STAFF = {
+  3020186: 12300,
+  3020187: 13500,
+};
 
 // Mandel-Form (13502395) — только для Nelia и Sofia
 var MANDEL_STAFF_IDS = [3020186, 3020187];
@@ -1257,6 +1261,9 @@ function renderServices(cat) {
     var priceStr = minP === maxP ? (minP ? minP+' €' : '—') : 'ab '+minP+' €';
     // Длительность не показываем если 0 или null
     var durSec = s.seance_length || 0;
+    if (s.id === KOMBI_SERVICE_ID) {
+      durSec = KOMBI_DURATION_BY_STAFF[cw.master.id] || durSec;
+    }
     var durStr = durSec > 0 ? (Math.round(durSec/60)+' Min') : '';
 
     var btn = document.createElement('button');
@@ -1503,6 +1510,9 @@ function loadAvailDates() {
   var params = { 'service_ids': serviceIds, staff_id: cw.master.id };
   // Передаём длительность из кэша если есть (критично для Kombi и длинных услуг)
   var cachedDur = _seanceCache[cw.master.id + '_' + cw.service.id];
+  if (cw.service.id === KOMBI_SERVICE_ID) {
+    cachedDur = KOMBI_DURATION_BY_STAFF[cw.master.id] || cachedDur;
+  }
   if (cachedDur) params.duration = cachedDur;
   var firstDay = new Date(cw.calY, cw.calM, 1).toISOString().split('T')[0];
   params.date = firstDay;
@@ -1606,6 +1616,15 @@ function comboAppointment(serviceId, datetime) {
   return { id: serviceId, services: [serviceId], staff_id: cw.master.id, datetime: datetime };
 }
 
+function atomicComboAppointment(route) {
+  return {
+    id: KOMBI_SERVICE_ID,
+    services: route.map(function(appointment){ return appointment.services[0]; }),
+    staff_id: cw.master.id,
+    datetime: route[0].datetime,
+  };
+}
+
 function checkAppointments(appointments, client) {
   client = client || {};
   return apiPost('/book_check/'+CONFIG.locationId, {
@@ -1633,38 +1652,48 @@ function loadComboTimes() {
     var pediMap = {};
     maniSlots.forEach(function(slot){ maniMap[slot.datetime] = slot; });
     pediSlots.forEach(function(slot){ pediMap[slot.datetime] = slot; });
-    var maniDuration = _seanceCache[staffId+'_'+KOMBI_MANI_SERVICE_ID] || 6300;
-    var pediDuration = _seanceCache[staffId+'_'+KOMBI_PEDI_SERVICE_ID] || 4200;
     var candidatesByStart = {};
 
     maniSlots.forEach(function(slot) {
+      var maniDuration = slot.seance_length || slot.sum_length || 7200;
       var afterMani = addSecondsToAltegioDatetime(slot.datetime, maniDuration);
       if (pediMap[afterMani]) {
-        slot.comboAppointments = [
+        var route = [
           comboAppointment(KOMBI_MANI_SERVICE_ID, slot.datetime),
           comboAppointment(KOMBI_PEDI_SERVICE_ID, afterMani),
         ];
+        slot.comboAppointments = [atomicComboAppointment(route)];
         candidatesByStart[slot.datetime] = slot;
       }
     });
 
     pediSlots.forEach(function(slot) {
       if (candidatesByStart[slot.datetime]) return;
+      var pediDuration = slot.seance_length || slot.sum_length || 5100;
       var afterPedi = addSecondsToAltegioDatetime(slot.datetime, pediDuration);
       if (maniMap[afterPedi]) {
-        slot.comboAppointments = [
+        var route = [
           comboAppointment(KOMBI_PEDI_SERVICE_ID, slot.datetime),
           comboAppointment(KOMBI_MANI_SERVICE_ID, afterPedi),
         ];
+        slot.comboAppointments = [atomicComboAppointment(route)];
         candidatesByStart[slot.datetime] = slot;
       }
     });
 
-    return Object.keys(candidatesByStart).sort().map(function(datetime) {
+    var candidates = Object.keys(candidatesByStart).sort().map(function(datetime) {
       return candidatesByStart[datetime];
     });
-  }).then(function(comboSlots) {
-    renderTimesLoaded(comboSlots);
+    var verified = [];
+    return candidates.reduce(function(chain, slot) {
+      return chain.then(function() {
+        return checkAppointments(slot.comboAppointments).then(function(res) {
+          if (res && res.success) verified.push(slot);
+        }).catch(function(){});
+      });
+    }, Promise.resolve()).then(function(){ return verified; });
+  }).then(function(verifiedSlots) {
+    renderTimesLoaded(verifiedSlots);
   }).catch(function(err) {
     console.error('[crocus] loadComboTimes error:', err);
     renderTimesLoaded([]);
@@ -1735,12 +1764,17 @@ function renderSummary() {
   var totalPrice = getMasterPrice(cw.service) + cw.addons.reduce(function(sum,a){ return sum+getMasterPrice(a); }, 0);
   var priceStr = totalPrice ? totalPrice+' €' : '—';
   var svcStr = cw.service.title + (cw.addons.length ? ' + '+cw.addons.map(addonDisplayName).join(' + ') : '');
+  var comboDurationStr = '';
+  if (cw.service.id === KOMBI_SERVICE_ID) {
+    comboDurationStr = Math.round((KOMBI_DURATION_BY_STAFF[cw.master.id] || 0) / 60)+' Min';
+  }
 
   document.getElementById('cw-summary').innerHTML =
     '<div class="cw-sum-row"><span>Meisterin</span><strong>'+cw.master.name
       +'&ensp;<span style="font-size:9px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:1px 7px;border-radius:20px;color:'+(meta.levelColor||'#c9a87c')+';background:'+(meta.levelBg||'rgba(201,168,124,.1)')+';border:1px solid '+(meta.levelBorder||'rgba(201,168,124,.3)')+'">'+((meta.level)||'Master')+'</span>'
       +'</strong></div>'
     +'<div class="cw-sum-row"><span>Behandlung</span><strong>'+svcStr+'</strong></div>'
+    +(comboDurationStr ? '<div class="cw-sum-row"><span>Dauer</span><strong>'+comboDurationStr+'</strong></div>' : '')
     +'<div class="cw-sum-row"><span>Datum &amp; Zeit</span><strong>'+dateStr+', '+cw.time+' Uhr</strong></div>'
     +'<div class="cw-sum-row cw-sum-price"><span>Preis</span><strong>'+priceStr+'</strong></div>';
 }
@@ -1846,28 +1880,6 @@ function submitBooking(e) {
         var availabilityError = new Error('Dieser Termin wurde gerade belegt. Bitte waehlen Sie eine andere Zeit.');
         availabilityError.isAvailability = true;
         throw availabilityError;
-      }
-      if (cw.service.id === KOMBI_SERVICE_ID) {
-        var createdRecords = [];
-        return appointments.reduce(function(chain, appointment, index) {
-          return chain.then(function() {
-            var partBody = Object.assign({}, bookingBody, {
-              notify_by_email: index === 0 ? bookingBody.notify_by_email : 0,
-              appointments: [appointment],
-              comment: bookingBody.comment+' Teil '+(index+1)+'/'+appointments.length,
-            });
-            return apiPost('/book_record/'+CONFIG.locationId, partBody).then(function(partRes) {
-              if (!partRes || !partRes.success) {
-                var partError = new Error((partRes && partRes.meta && partRes.meta.message) || 'Kombi konnte nicht vollstaendig gebucht werden.');
-                partError.partialRecords = createdRecords.slice();
-                throw partError;
-              }
-              createdRecords = createdRecords.concat(partRes.data || []);
-            });
-          });
-        }, Promise.resolve()).then(function() {
-          return { success: true, data: createdRecords, meta: [] };
-        });
       }
       return apiPost('/book_record/'+CONFIG.locationId, bookingBody);
     })
