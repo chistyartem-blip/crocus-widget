@@ -505,6 +505,7 @@ var css = `
 .cw-cat-text{flex:1;min-width:0}
 .cw-cat-label{font-family:'Cormorant Garamond',Georgia,serif;font-size:18px;font-weight:400;color:#fdfaf8;display:block;margin-bottom:3px}
 .cw-cat-desc{font-family:'DM Sans',sans-serif;font-size:11px;color:rgba(253,250,248,.38);line-height:1.5;display:block}
+.cw-cat-price{font-family:'DM Sans',sans-serif;font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#c9a87c;display:block;margin-top:5px}
 .cw-cat-arrow{color:rgba(253,250,248,.20);font-size:16px;flex-shrink:0}
 
 /* ── Step 3: Services ── */
@@ -1304,6 +1305,30 @@ function renderCategories(masterId) {
   // Если API не возвращает staff в book_services — показываем все категории
   var hasStaffFilter = _allServices.length && _allServices[0].staff && _allServices[0].staff.length > 0;
 
+  function priceForStaff(serviceId) {
+    var svc = _allServices.filter(function(s){ return s.id === serviceId; })[0];
+    if (!svc) return 0;
+    if (svc.staff && svc.staff.length) {
+      for (var i = 0; i < svc.staff.length; i++) {
+        if (Number(svc.staff[i].id) === Number(masterId)) {
+          return Number(svc.staff[i].price_min || svc.price_min || 0);
+        }
+      }
+      return 0;
+    }
+    return Number(svc.price_min || 0);
+  }
+
+  function categoryPriceFromAltegio(cat) {
+    if (cat.key === 'kombi') {
+      var comboPrice = priceForStaff(KOMBI_MANI_SERVICE_ID) + priceForStaff(KOMBI_PEDI_SERVICE_ID);
+      return comboPrice ? 'ab '+comboPrice+' €' : '';
+    }
+    var prices = cat.serviceIds.map(priceForStaff).filter(function(p){ return p > 0; });
+    if (!prices.length) return '';
+    return 'ab '+Math.min.apply(Math, prices)+' €';
+  }
+
   CATEGORIES.forEach(function(cat) {
     // Показываем только категории из meta.cats мастера
     var meta = MASTERS_META[cw.master.id];
@@ -1311,6 +1336,7 @@ function renderCategories(masterId) {
 
     var btn = document.createElement('button');
     btn.className = 'cw-cat-card';
+    var priceHtml = categoryPriceFromAltegio(cat);
     var imgHtml = cat.img
       ? '<img class="cw-cat-img" src="'+cat.img+'" alt="'+cat.label+'" loading="lazy">'
       : '<div class="cw-cat-img" style="background:rgba(255,255,255,.05);display:flex;align-items:center;justify-content:center;font-size:22px">👁</div>';
@@ -1319,6 +1345,7 @@ function renderCategories(masterId) {
       + '<div class="cw-cat-text">'
         + '<span class="cw-cat-label">'+cat.label+'</span>'
         + '<span class="cw-cat-desc">'+cat.desc+'</span>'
+        + (priceHtml ? '<span class="cw-cat-price">'+priceHtml+'</span>' : '')
       + '</div>'
       + '<span class="cw-cat-arrow">›</span>';
     btn.addEventListener('click', function(){ selectCategory(cat); });
@@ -1332,6 +1359,12 @@ function selectCategory(cat) {
   // Tracking
   window.dataLayer = window.dataLayer || [];
   window.dataLayer.push({ event: 'booking_category_selected', category: cat.label, master_name: cw.master ? cw.master.name : '', page_location: window.location.href });
+  if (cat.key === 'kombi') {
+    var kombiSvc = _allServices.filter(function(s){ return s.id === KOMBI_SERVICE_ID; })[0]
+      || { id: KOMBI_SERVICE_ID, title: 'Maniküre + Pediküre (Kombi)', price_min: 0, price_max: 0 };
+    selectService(kombiSvc);
+    return;
+  }
   document.getElementById('cw-step3-title').textContent = cat.label;
   document.getElementById('cw-step3-sub').innerHTML = 'Meisterin: <strong style="color:#fdfaf8">'+cw.master.name+'</strong>';
   renderServices(cat);
