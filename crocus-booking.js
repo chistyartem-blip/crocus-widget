@@ -603,11 +603,13 @@ body.crocus-open{overflow:hidden!important;touch-action:none;}
 .cw-gift-cta-title{display:block;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;color:#fdfaf8;margin-bottom:2px}
 .cw-gift-cta-sub{display:block;font-family:'DM Sans',sans-serif;font-size:11px;color:rgba(253,250,248,.38)}
 .cw-gift-cta-arrow{color:rgba(201,168,124,.55);font-size:20px;flex-shrink:0}
-.cw-express-cta{width:auto;max-width:100%;margin:2px 0 14px;background:rgba(255,255,255,.035);border:1px solid rgba(201,168,124,.24);border-radius:999px;padding:8px 12px 8px 10px;display:inline-flex;align-items:center;gap:9px;text-align:left;color:#fff;font-family:'DM Sans',sans-serif;cursor:pointer;box-shadow:none;transition:transform .16s,border-color .16s,background .16s}
-.cw-express-cta:hover{transform:translateY(-1px);border-color:rgba(201,168,124,.44);background:rgba(201,168,124,.08)}
-.cw-express-ico{height:24px;border-radius:999px;background:rgba(201,168,124,.12);border:1px solid rgba(201,168,124,.20);display:grid;place-items:center;font-size:8px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;line-height:1;padding:0 8px;flex-shrink:0;color:#c9a87c}
-.cw-express-title{display:block;font-weight:750;font-size:11.5px;letter-spacing:.045em;text-transform:uppercase;color:#fdfaf8;line-height:1.1}
-.cw-express-sub{display:block;font-size:9.8px;line-height:1.25;color:rgba(253,250,248,.48);margin-top:1px;white-space:normal}
+.cw-express-cta{position:relative;width:100%;margin:4px 0 14px;background:linear-gradient(135deg,rgba(255,255,255,.055),rgba(201,168,124,.075));border:1px solid rgba(201,168,124,.26);border-radius:16px;padding:10px 13px;display:flex;align-items:center;gap:11px;text-align:left;color:#fff;font-family:'DM Sans',sans-serif;cursor:pointer;box-shadow:0 8px 24px rgba(0,0,0,.18),0 0 0 1px rgba(255,255,255,.025) inset;overflow:hidden;transition:transform .16s,border-color .16s,background .16s,box-shadow .16s}
+.cw-express-cta::after{content:'';position:absolute;inset:-60% auto -60% -35%;width:34%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.12),transparent);transform:rotate(18deg);opacity:.38;pointer-events:none;transition:left .45s ease}
+.cw-express-cta:hover{transform:translateY(-1px);border-color:rgba(201,168,124,.46);background:linear-gradient(135deg,rgba(255,255,255,.07),rgba(201,168,124,.11));box-shadow:0 10px 28px rgba(0,0,0,.22),0 0 18px rgba(201,168,124,.10)}
+.cw-express-cta:hover::after{left:105%}
+.cw-express-ico{height:25px;border-radius:999px;background:rgba(201,168,124,.13);border:1px solid rgba(201,168,124,.24);display:grid;place-items:center;font-size:8px;font-weight:800;letter-spacing:.10em;text-transform:uppercase;line-height:1;padding:0 9px;flex-shrink:0;color:#c9a87c}
+.cw-express-title{display:block;font-weight:800;font-size:12.2px;letter-spacing:.055em;text-transform:uppercase;color:#fdfaf8;line-height:1.1}
+.cw-express-sub{display:block;font-size:10.2px;line-height:1.3;color:rgba(253,250,248,.56);margin-top:2px;white-space:normal}
 
 /* ── Gift Progress bar ── */
 .cw-gift-progress{display:flex;align-items:center;justify-content:center;gap:0;margin-bottom:18px}
@@ -691,7 +693,7 @@ wrap.innerHTML =
         + '<p class="cw-sub">Jede Meisterin hat ihre eigene Stärke — lies kurz rein und wähle die Richtige für dich.</p>'
         + '<button class="cw-express-cta" id="cw-btn-express" type="button">'
           + '<span class="cw-express-ico">Spontan</span>'
-          + '<span><span class="cw-express-title">Spontan zum Nageltermin</span><span class="cw-express-sub">Behandlung wählen — wir finden den nächsten freien Slot.</span></span>'
+          + '<span><span class="cw-express-title">Spontan-Termin sichern</span><span class="cw-express-sub">Nächster freier Nagelslot — automatisch passend gefunden.</span></span>'
         + '</button>'
         + '<div class="cw-masters" id="cw-masters-list"></div>'
         + '<div class="cw-gift-divider"><span>oder</span></div>'
@@ -1215,7 +1217,7 @@ function openExpressNails() {
   cw.datetime = null;
   cw.comboAppointments = null;
   cw.comboRoute = null;
-  document.getElementById('cw-sel-master-name').textContent = 'Spontan zum Nageltermin';
+  document.getElementById('cw-sel-master-name').textContent = 'Spontan-Termin sichern';
   var list = document.getElementById('cw-cats-list');
   list.innerHTML = '<div class="cw-loader"><div class="cw-spinner"></div><span class="cw-loader-text">Schnellste Termine werden geladen…</span></div>';
   goStep(2);
@@ -1426,7 +1428,7 @@ function selectCategory(cat) {
   }
   document.getElementById('cw-step3-title').textContent = cat.label;
   document.getElementById('cw-step3-sub').innerHTML = cw.express
-    ? '<strong style="color:#fdfaf8">Spontan zum Nageltermin</strong>'
+    ? '<strong style="color:#fdfaf8">Spontan-Termin sichern</strong>'
     : 'Meisterin: <strong style="color:#fdfaf8">'+cw.master.name+'</strong>';
   renderServices(cat);
   goStep(3);
