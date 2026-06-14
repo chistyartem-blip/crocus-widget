@@ -603,11 +603,11 @@ body.crocus-open{overflow:hidden!important;touch-action:none;}
 .cw-gift-cta-title{display:block;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;color:#fdfaf8;margin-bottom:2px}
 .cw-gift-cta-sub{display:block;font-family:'DM Sans',sans-serif;font-size:11px;color:rgba(253,250,248,.38)}
 .cw-gift-cta-arrow{color:rgba(201,168,124,.55);font-size:20px;flex-shrink:0}
-.cw-express-cta{width:100%;margin:0 0 12px;background:linear-gradient(135deg,rgba(201,168,124,.14),rgba(123,45,78,.10));border:1px solid rgba(201,168,124,.28);border-radius:14px;padding:10px 12px;display:flex;align-items:center;gap:10px;text-align:left;color:#fff;font-family:'DM Sans',sans-serif;cursor:pointer;box-shadow:0 6px 18px rgba(123,45,78,.16);transition:transform .18s,border-color .18s,box-shadow .18s,background .18s}
-.cw-express-cta:hover{transform:translateY(-1px);border-color:rgba(201,168,124,.48);background:linear-gradient(135deg,rgba(201,168,124,.20),rgba(123,45,78,.14));box-shadow:0 9px 24px rgba(123,45,78,.22)}
-.cw-express-ico{width:30px;height:30px;border-radius:10px;background:rgba(201,168,124,.13);border:1px solid rgba(201,168,124,.22);display:grid;place-items:center;font-size:14px;flex-shrink:0;color:#c9a87c}
-.cw-express-title{display:block;font-weight:750;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:#fdfaf8}
-.cw-express-sub{display:block;font-size:10.5px;line-height:1.4;color:rgba(253,250,248,.58);margin-top:1px}
+.cw-express-cta{width:auto;max-width:100%;margin:2px 0 14px;background:rgba(255,255,255,.035);border:1px solid rgba(201,168,124,.24);border-radius:999px;padding:8px 12px 8px 10px;display:inline-flex;align-items:center;gap:9px;text-align:left;color:#fff;font-family:'DM Sans',sans-serif;cursor:pointer;box-shadow:none;transition:transform .16s,border-color .16s,background .16s}
+.cw-express-cta:hover{transform:translateY(-1px);border-color:rgba(201,168,124,.44);background:rgba(201,168,124,.08)}
+.cw-express-ico{width:24px;height:24px;border-radius:50%;background:rgba(201,168,124,.12);display:grid;place-items:center;font-size:12px;flex-shrink:0;color:#c9a87c}
+.cw-express-title{display:block;font-weight:750;font-size:11.5px;letter-spacing:.045em;text-transform:uppercase;color:#fdfaf8;line-height:1.1}
+.cw-express-sub{display:block;font-size:9.8px;line-height:1.25;color:rgba(253,250,248,.48);margin-top:1px;white-space:normal}
 
 /* ── Gift Progress bar ── */
 .cw-gift-progress{display:flex;align-items:center;justify-content:center;gap:0;margin-bottom:18px}
