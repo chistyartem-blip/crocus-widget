@@ -10,8 +10,6 @@ var CONFIG = {
   locationId:   '1357963',
   apiBase:      'https://crocus-proxy.crocusbeautystudio.workers.dev/api/proxy',
   lang: 'de',
-  // Keep false while online booking is disabled in the Altegio location.
-  bookingEnabled: false,
 };
 
 // ── Masters — описания и уровни ────────────────────────────────
@@ -1089,10 +1087,6 @@ function loadMasterSlot(staffId) {
   if (!serviceId) return;
   var el = document.getElementById('cw-slot-' + staffId);
   if (!el) return;
-  if (!CONFIG.bookingEnabled) {
-    el.innerHTML = '<span class="cw-master-slot-dot grey"></span><span style="color:rgba(240,232,216,0.55);">Online-Buchung pausiert</span>';
-    return;
-  }
 
   function pad2(n) { return n < 10 ? '0'+n : String(n); }
   function fmtDate(ds) {
@@ -1495,16 +1489,6 @@ function buildStep5Sub() {
 // ── Step 5: Calendar ───────────────────────────────────────────
 function loadAvailDates() {
   cw.availDates = [];
-  if (!CONFIG.bookingEnabled) {
-    renderCalendar();
-    var timesWrap = document.getElementById('cw-times-wrap');
-    var timeGrid = document.getElementById('cw-time-grid');
-    if (timesWrap) timesWrap.style.display = 'block';
-    if (timeGrid) {
-      timeGrid.innerHTML = '<div class="cw-error" style="grid-column:span 4">Online-Buchung ist vorübergehend nicht verfügbar. Bitte kontaktieren Sie uns per WhatsApp oder Telefon.</div>';
-    }
-    return;
-  }
   var serviceIds = [cw.service.id];
   // Для Комби (13485762) аддоны (French и т.п.) — только UI-выбор, в API не передаём
   if (cw.service.id !== 13485762) {
@@ -1574,10 +1558,6 @@ function selectDate(ds) {
 
 function loadTimes() {
   var grid = document.getElementById('cw-time-grid');
-  if (!CONFIG.bookingEnabled) {
-    grid.innerHTML = '<div class="cw-error" style="grid-column:span 4">Online-Buchung ist vorübergehend nicht verfügbar. Bitte kontaktieren Sie uns per WhatsApp oder Telefon.</div>';
-    return;
-  }
   grid.innerHTML = '<div class="cw-loader" style="padding:16px 0"><div class="cw-spinner"></div></div>';
   // Передаём только основную услугу — аддоны не влияют на доступность слотов
   var serviceIds = [cw.service.id];
@@ -1826,11 +1806,6 @@ function submitBooking(e) {
     })
     .catch(function(err){
       console.error('[Crocus] Booking error:', err);
-      if (err && /not available|nicht verfügbar|selected time|ausgewählten Zeit/i.test(err.message || '')) {
-        cw.time = null;
-        cw.datetime = null;
-        loadTimes();
-      }
       btn.disabled = false; btn.textContent = 'Termin bestätigen →';
       var old = document.getElementById('cw-form').querySelector('.cw-err-msg');
       if (old) old.remove();
