@@ -1099,6 +1099,18 @@ function serviceDurationForStaff(staffId, serviceId, slot, fallback) {
     || 0;
 }
 
+function fallbackMasters() {
+  return Object.keys(MASTERS_META).map(function(id) {
+    return {
+      id: Number(id),
+      name: masterName(Number(id)),
+      specialization: MASTERS_META[id].tagline || '',
+      avatar: MASTERS_META[id].avatar || '',
+      bookable: true,
+    };
+  });
+}
+
 // ── Load initial data ──────────────────────────────────────────
 function loadInitialData(cb) {
   // Предзаполняем статическими данными — API обновит если вернёт данные
@@ -1112,7 +1124,10 @@ function loadInitialData(cb) {
     var staffRes = results[0];
     var svcRes   = results[1];
     if (!staffRes.success || !svcRes.success) throw new Error('API error');
-    _allMasters  = staffRes.data || [];
+    _allMasters = Array.isArray(staffRes.data)
+      ? staffRes.data
+      : (staffRes.data && Array.isArray(staffRes.data.staff) ? staffRes.data.staff : []);
+    if (!_allMasters.length) _allMasters = fallbackMasters();
     _allServices = (svcRes.data && svcRes.data.services) ? svcRes.data.services : [];
     // cache addon objects — глобальный кэш без staff_id, используется всегда
     var apiAddons = _allServices.filter(function(s){ return ADDON_IDS.indexOf(s.id) !== -1; });
