@@ -1902,15 +1902,11 @@ function loadExpressTimes() {
       });
     });
     candidates.sort(function(a,b){ return String(a.datetime).localeCompare(String(b.datetime)); });
-    var verified = [];
-    return candidates.reduce(function(chain, slot) {
-      return chain.then(function() {
-        if (verified.length >= 16) return;
-        return checkAppointments([slot.expressAppointment]).then(function(res) {
-          if (res && res.success) verified.push(slot);
-        }).catch(function(){});
-      });
-    }, Promise.resolve()).then(function(){ return verified; });
+    return batchCheckSlots(candidates, function(slot){ return [slot.expressAppointment]; }, {
+      maxChecks: 24,
+      target: 16,
+      concurrency: 4,
+    });
   }).then(function(slots) {
     renderTimesLoaded(slots);
   }).catch(function(e) {
@@ -1951,6 +1947,84 @@ function checkAppointments(appointments, client) {
   });
 }
 
+function verifySlotsFast(candidates, appointmentsForSlot, options) {
+  options = options || {};
+  var maxChecks = options.maxChecks || 24;
+  var target = options.target || 16;
+  var concurrency = options.concurrency || 4;
+  var queue = candidates.slice(0, maxChecks);
+  var verified = [];
+  var index = 0;
+  var active = 0;
+
+  return new Promise(function(resolve) {
+    function done() {
+      return (index >= queue.length && active === 0) || verified.length >= target;
+    }
+    function pump() {
+      if (done()) {
+        verified.sort(function(a,b){ return String(a.datetime).localeCompare(String(b.datetime)); });
+        resolve(verified.slice(0, target));
+        return;
+      }
+      while (active < concurrency && index < queue.length && verified.length < target) {
+        (function(slot) {
+          active++;
+          checkAppointments(appointmentsForSlot(slot))
+            .then(function(res) {
+              if (res && res.success) verified.push(slot);
+            })
+            .catch(function(){})
+            .then(function() {
+              active--;
+              pump();
+            });
+        })(queue[index++]);
+      }
+    }
+    pump();
+  });
+}
+
+function batchCheckSlots(candidates, appointmentsForSlot, options) {
+  options = options || {};
+  var maxChecks = options.maxChecks || 24;
+  var target = options.target || 16;
+  var limited = candidates.slice(0, maxChecks);
+  if (!limited.length) return Promise.resolve([]);
+
+  return apiPost('/batch_book_check', {
+    company_id: CONFIG.locationId,
+    max_checks: maxChecks,
+    target: target,
+    concurrency: options.concurrency || 4,
+    base: {
+      phone: '+4915700000616',
+      fullname: 'Online Booking Check',
+      email: '',
+      notify_by_email: 0,
+      lang: CONFIG.lang,
+      lang_id: 3,
+      bookform_id: 1427839,
+    },
+    candidates: limited.map(function(slot, index) {
+      return {
+        index: index,
+        key: String(slot.datetime || '') + ':' + String(slot.staff_id || ''),
+        appointments: appointmentsForSlot(slot),
+      };
+    }),
+  }).then(function(res) {
+    if (!res || !res.success || !Array.isArray(res.ok)) throw new Error('batch_check_failed');
+    var ok = {};
+    res.ok.forEach(function(item){ ok[item.index] = true; });
+    return limited.filter(function(_, index){ return !!ok[index]; }).slice(0, target);
+  }).catch(function(err) {
+    console.warn('[crocus] batch_book_check fallback:', err && err.message ? err.message : err);
+    return verifySlotsFast(candidates, appointmentsForSlot, options);
+  });
+}
+
 function loadComboTimes() {
   var timeLoads = [];
   KOMBI_STAFF_IDS.forEach(function(staffId) {
@@ -1987,14 +2061,11 @@ function loadComboTimes() {
       return candidatesByStart[datetime];
     });
     console.log('[crocus] loadComboTimes: candidates='+candidates.length+' date='+cw.date);
-    var verified = [];
-    return candidates.reduce(function(chain, slot) {
-      return chain.then(function() {
-        return checkAppointments(slot.comboAppointments).then(function(res) {
-          if (res && res.success) verified.push(slot);
-        }).catch(function(){});
-      });
-    }, Promise.resolve()).then(function(){ return verified; });
+    return batchCheckSlots(candidates, function(slot){ return slot.comboAppointments; }, {
+      maxChecks: 24,
+      target: 16,
+      concurrency: 4,
+    });
   }).then(function(verifiedSlots) {
     renderTimesLoaded(verifiedSlots);
   }).catch(function(err) {

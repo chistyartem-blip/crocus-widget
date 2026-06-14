@@ -69,6 +69,9 @@ export default {
     if (altegioPath === '/combo_book') {
       return handleComboBook(request, env);
     }
+    if (altegioPath === '/batch_book_check') {
+      return handleBatchBookCheck(request, env);
+    }
 
     const altegioUrl = ALTEGIO_BASE + altegioPath + extraSearch;
 
@@ -213,6 +216,76 @@ async function handleComboBook(request, env) {
     success: true,
     data: [earlierRecord, laterRecord],
   }, 201);
+}
+
+async function handleBatchBookCheck(request, env) {
+  if (request.method !== 'POST') {
+    return jsonResponse(request, { success: false, message: 'Method not allowed' }, 405);
+  }
+
+  let payload;
+  try {
+    payload = await request.json();
+  } catch (_) {
+    return jsonResponse(request, { success: false, message: 'Invalid JSON' }, 400);
+  }
+
+  const companyId = String(payload.company_id || '');
+  const candidates = Array.isArray(payload.candidates) ? payload.candidates : [];
+  if (!companyId || candidates.length === 0) {
+    return jsonResponse(request, { success: false, message: 'No slots to check', ok: [] }, 400);
+  }
+
+  const maxChecks = clampInt(payload.max_checks || 24, 1, 32);
+  const target = clampInt(payload.target || 16, 1, 24);
+  const concurrency = clampInt(payload.concurrency || 4, 1, 4);
+  const base = payload.base && typeof payload.base === 'object' ? payload.base : {};
+  const queue = candidates.slice(0, maxChecks).map((candidate, index) => ({
+    index,
+    key: candidate && candidate.key,
+    appointments: Array.isArray(candidate && candidate.appointments) ? candidate.appointments : [],
+  })).filter(candidate => candidate.appointments.length > 0);
+
+  const startedAt = Date.now();
+  const ok = [];
+  let cursor = 0;
+  let checked = 0;
+
+  async function worker() {
+    while (cursor < queue.length && ok.length < target) {
+      const item = queue[cursor++];
+      const result = await altegioRequest(env, `/book_check/${companyId}`, 'POST', {
+        phone: base.phone || '+4915700000616',
+        fullname: base.fullname || 'Online Booking Check',
+        email: base.email || '',
+        notify_by_email: 0,
+        lang: base.lang || 'de',
+        lang_id: base.lang_id || 3,
+        bookform_id: base.bookform_id || 1427839,
+        appointments: item.appointments,
+      });
+      checked++;
+      if (result.ok && !(result.json && result.json.success === false)) {
+        ok.push({ index: item.index, key: item.key });
+      }
+    }
+  }
+
+  await Promise.all(Array.from({ length: Math.min(concurrency, queue.length) }, () => worker()));
+  ok.sort((a, b) => a.index - b.index);
+
+  return jsonResponse(request, {
+    success: true,
+    ok: ok.slice(0, target),
+    checked,
+    duration_ms: Date.now() - startedAt,
+  }, 200);
+}
+
+function clampInt(value, min, max) {
+  const parsed = parseInt(value, 10);
+  if (!Number.isFinite(parsed)) return min;
+  return Math.max(min, Math.min(max, parsed));
 }
 
 function jsonResponse(request, body, status) {
