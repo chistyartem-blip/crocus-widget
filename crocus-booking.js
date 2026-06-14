@@ -958,7 +958,17 @@ function unlockPageScroll() {
   document.body.style.right = '';
   document.body.style.width = '';
   document.body.classList.remove('crocus-open');
-  window.scrollTo(0, savedY);
+  requestAnimationFrame(function() {
+    window.scrollTo(0, savedY);
+  });
+}
+
+function resetWidgetScroll() {
+  var body = document.getElementById('crocus-body');
+  if (!body) return;
+  requestAnimationFrame(function() {
+    body.scrollTop = 0;
+  });
 }
 
 function ensureCrocusHistory() {
@@ -1016,6 +1026,7 @@ function crocusOpen() {
   if (_pendingOpenScrollY) _scrollY = _pendingOpenScrollY;
   document.getElementById('crocus-backdrop').classList.add('open');
   lockPageScroll();
+  _crocusHistoryActive = false;
   ensureCrocusHistory();
   requestAnimationFrame(function(){
     document.getElementById('crocus-backdrop').classList.add('visible');
@@ -1100,7 +1111,7 @@ function goStep(n) {
   var id = n === 'success' ? 'cw-success' : 'cw-step'+n;
   var el = document.getElementById(id);
   if (el) el.classList.add('active');
-  document.getElementById('crocus-body').scrollTop = 0;
+  resetWidgetScroll();
   updateProgress(n);
 }
 
@@ -1462,7 +1473,7 @@ function renderCategories(masterId) {
         + '<span class="cw-cat-label">'+cat.label+'</span>'
         + '<span class="cw-cat-desc">'+cat.desc+'</span>'
         + (priceHtml ? '<span class="cw-cat-price">'+priceHtml+'</span>' : '')
-        + (cw.express ? '<span class="cw-express-status bad" id="cw-express-status-'+cat.key+'">prüfe heute & morgen</span>' : '')
+        + (cw.express ? '<span class="cw-express-status bad" id="cw-express-status-'+cat.key+'">prüfe 3 Tage</span>' : '')
       + '</div>'
       + '<span class="cw-cat-arrow">›</span>';
     btn.addEventListener('click', function(){ selectCategory(cat); });
@@ -1481,8 +1492,10 @@ function localDateString(offsetDays) {
 function expressDayLabel(ds) {
   var today = localDateString(0);
   var tomorrow = localDateString(1);
+  var dayAfterTomorrow = localDateString(2);
   if (ds === today) return 'Heute';
   if (ds === tomorrow) return 'Morgen';
+  if (ds === dayAfterTomorrow) return 'Übermorgen';
   return new Date(ds+'T12:00:00').toLocaleDateString('de-DE', { weekday:'short', day:'numeric', month:'short' });
 }
 
@@ -1494,7 +1507,7 @@ function hydrateExpressCategoryStatuses() {
     loadExpressCategoryPreview(cat).then(function(hit) {
       if (!hit) {
         el.className = 'cw-express-status bad';
-        el.textContent = 'heute & morgen voll';
+        el.textContent = '3 Tage voll';
         return;
       }
       el.className = 'cw-express-status ' + (hit.ds === localDateString(0) ? 'good' : 'warn');
@@ -1507,7 +1520,7 @@ function hydrateExpressCategoryStatuses() {
 }
 
 function loadExpressCategoryPreview(cat) {
-  var dates = [localDateString(0), localDateString(1)];
+  var dates = [localDateString(0), localDateString(1), localDateString(2)];
   var loader;
   if (cat.key === 'kombi') {
     loader = function(ds){ return loadComboSlotsForDate(ds); };
@@ -1694,6 +1707,44 @@ function renderAddons() {
       })(displayAddon, btn));
       list.appendChild(btn);
     });
+
+    var kombiById = {};
+    ADDON_STATIC_DATA.concat(_addonObjs).forEach(function(s) {
+      if (ADDON_IDS.indexOf(s.id) === -1) return;
+      if (s.id === 13485756) return;
+      kombiById[s.id] = Object.assign({}, kombiById[s.id] || {}, s);
+    });
+    var kombiExtraAddons = Object.keys(kombiById).map(function(id){ return kombiById[id]; });
+    kombiExtraAddons.sort(function(a, b){ return ADDON_IDS.indexOf(a.id) - ADDON_IDS.indexOf(b.id); });
+    kombiExtraAddons.forEach(function(s) {
+      var priceStr = s.price_min ? '+ '+s.price_min+' €' : '';
+      var btn = document.createElement('button');
+      btn.className = 'cw-addon-btn';
+      btn.dataset.id = s.id;
+      btn.innerHTML =
+        '<div class="cw-addon-check"></div>'
+        + '<div class="cw-addon-info">'
+          + '<div class="cw-addon-name">'+addonDisplayName(s)+'</div>'
+          + (priceStr ? '<div class="cw-addon-price">'+priceStr+'</div>' : '')
+        + '</div>';
+      btn.addEventListener('click', (function(sv, b){
+        return function(){
+          var idx = cw.addons.findIndex(function(a){ return !a._variantKey && a.id === sv.id; });
+          if (idx === -1) {
+            cw.addons.push(sv);
+            b.classList.add('sel');
+            b.querySelector('.cw-addon-check').textContent = '✓';
+          } else {
+            cw.addons.splice(idx, 1);
+            b.classList.remove('sel');
+            b.querySelector('.cw-addon-check').textContent = '';
+          }
+          var nextBtn = document.getElementById('cw-next-addon');
+          if (nextBtn) nextBtn.style.display = cw.addons.length ? 'block' : 'none';
+        };
+      })(s, btn));
+      list.appendChild(btn);
+    });
     return;
   }
 
@@ -1842,7 +1893,7 @@ function renderExpressTwoDayPicker() {
   document.getElementById('cw-times-wrap').style.display = 'none';
   cal.classList.add('express');
   grid.innerHTML = '';
-  [0, 1].forEach(function(offset) {
+  [0, 1, 2].forEach(function(offset) {
     var ds = localDateString(offset);
     var card = document.createElement('div');
     card.className = 'cw-express-day-card';
@@ -2534,7 +2585,7 @@ function renderSummary() {
   }
   var totalPrice = getMasterPrice(cw.service) + cw.addons.reduce(function(sum,a){ return sum+getMasterPrice(a); }, 0);
   if (cw.service.id === KOMBI_SERVICE_ID && cw.comboRoute) {
-    totalPrice = routeTotalPrice(cw.comboRoute);
+    totalPrice = routeTotalPrice(cw.comboRoute) + cw.addons.reduce(function(sum,a){ return sum + Number(a.price_min || a.price || 0); }, 0);
   }
   var priceStr = totalPrice ? totalPrice+' €' : '—';
   var svcStr = cw.service.title + (cw.addons.length ? ' + '+cw.addons.map(addonDisplayName).join(' + ') : '');
@@ -2648,6 +2699,9 @@ function submitBooking(e) {
   };
   if (cw.service.id === KOMBI_SERVICE_ID) {
     bookingBody.comment = comboStaffComment(cw.comboRoute);
+    if (cw.addons && cw.addons.length) {
+      bookingBody.comment += ' Extras: ' + cw.addons.map(addonDisplayName).join(', ') + '.';
+    }
   }
 
   console.log('[Crocus] Booking →', { phone, name, email, appointments });
@@ -2800,7 +2854,7 @@ function crocusReset() {
   document.getElementById('cw-step1').classList.add('active');
   updateProgress(1);
   if (_allMasters) renderMasters();
-  document.getElementById('crocus-body').scrollTop = 0;
+  resetWidgetScroll();
 }
 
 // ── Gift flow ──────────────────────────────────────────────────
@@ -2809,7 +2863,7 @@ function openGiftMode() {
   document.getElementById('crocus-progress').style.display = 'none';
   document.querySelectorAll('.cw-step').forEach(function(el){ el.classList.remove('active'); });
   document.getElementById('cw-gift1').classList.add('active');
-  document.getElementById('crocus-body').scrollTop = 0;
+  resetWidgetScroll();
   // Reset gift state
   gift.amount = null;
   gift.isFlexible = false;
@@ -2841,7 +2895,7 @@ function goGiftStep2() {
     document.getElementById('cw-gift-step2-sub').innerHTML = 'Gutschein: <strong id="cw-gift-selected-label">' + gift.amount + ' €</strong> — wird per E-Mail bestätigt';
     if (wishWrap) wishWrap.style.display = 'none';
   }
-  document.getElementById('crocus-body').scrollTop = 0;
+  resetWidgetScroll();
 }
 
 function goGiftSuccess() {
@@ -2853,7 +2907,7 @@ function goGiftSuccess() {
       'Wir melden uns in Kürze und klären gemeinsam alle Details zu Ihrem <strong>Flexible Gutschein</strong>.'
     : 'Vielen Dank' + (name ? ', <strong>' + name + '</strong>' : '') + '! ' +
       'Wir melden uns in Kürze per E-Mail mit den Zahlungsdetails für Ihren <strong>' + gift.amount + '&nbsp;€ Gutschein</strong>.';
-  document.getElementById('crocus-body').scrollTop = 0;
+  resetWidgetScroll();
 }
 
 function submitGiftForm(e) {
@@ -2976,7 +3030,7 @@ window.crocusOpenMasters = function() {
     document.getElementById('cw-step1').classList.add('active');
     updateProgress(1);
     if (_allMasters) renderMasters();
-    document.getElementById('crocus-body').scrollTop = 0;
+    resetWidgetScroll();
   }, 80);
 };
 
@@ -3101,19 +3155,19 @@ document.getElementById('cw-gift-back1').addEventListener('click', function(){
   document.querySelectorAll('.cw-step').forEach(function(el){ el.classList.remove('active'); });
   document.getElementById('cw-step1').classList.add('active');
   updateProgress(1);
-  document.getElementById('crocus-body').scrollTop = 0;
+  resetWidgetScroll();
 });
 
 document.getElementById('cw-gift-back2').addEventListener('click', function(){
   document.querySelectorAll('.cw-step').forEach(function(el){ el.classList.remove('active'); });
   document.getElementById('cw-gift1').classList.add('active');
-  document.getElementById('crocus-body').scrollTop = 0;
+  resetWidgetScroll();
 });
 
 document.getElementById('cgp1b').addEventListener('click', function(){
   document.querySelectorAll('.cw-step').forEach(function(el){ el.classList.remove('active'); });
   document.getElementById('cw-gift1').classList.add('active');
-  document.getElementById('crocus-body').scrollTop = 0;
+  resetWidgetScroll();
 });
 
 // Amount button clicks — direct listeners on each button
@@ -3270,7 +3324,7 @@ function crocusWidgetBack() {
   if (isGiftStep2) {
     document.querySelectorAll('.cw-step').forEach(function(el){ el.classList.remove('active'); });
     document.getElementById('cw-gift1').classList.add('active');
-    document.getElementById('crocus-body').scrollTop = 0;
+    resetWidgetScroll();
     return true;
   }
   if (isGiftMode || isGiftSuccess) {
@@ -3278,7 +3332,7 @@ function crocusWidgetBack() {
     document.querySelectorAll('.cw-step').forEach(function(el){ el.classList.remove('active'); });
     document.getElementById('cw-step1').classList.add('active');
     updateProgress(1);
-    document.getElementById('crocus-body').scrollTop = 0;
+    resetWidgetScroll();
     return true;
   }
 
@@ -3322,6 +3376,7 @@ window.addEventListener('popstate', function(e) {
   _crocusHistoryActive = false;
   var keepOpen = crocusWidgetBack();
   if (keepOpen) keepCrocusHistory();
+  else keepCrocusHistory();
   return;
 
   var isGiftMode = document.getElementById('cw-gift1') && document.getElementById('cw-gift1').classList.contains('active');
@@ -3332,7 +3387,7 @@ window.addEventListener('popstate', function(e) {
     // Gift step 2 → Gift step 1
     document.querySelectorAll('.cw-step').forEach(function(el){ el.classList.remove('active'); });
     document.getElementById('cw-gift1').classList.add('active');
-    document.getElementById('crocus-body').scrollTop = 0;
+    resetWidgetScroll();
     return;
   }
   if (isGiftMode || isGiftSuccess) {
@@ -3341,7 +3396,7 @@ window.addEventListener('popstate', function(e) {
     document.querySelectorAll('.cw-step').forEach(function(el){ el.classList.remove('active'); });
     document.getElementById('cw-step1').classList.add('active');
     updateProgress(1);
-    document.getElementById('crocus-body').scrollTop = 0;
+    resetWidgetScroll();
     return;
   }
 
