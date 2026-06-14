@@ -2016,6 +2016,17 @@ function comboRouteLabel(route) {
   return 'Maniküre: '+masterName(route.maniStaffId)+' · Pediküre: '+masterName(route.pediStaffId);
 }
 
+function comboStaffComment(route) {
+  if (!route) return 'Kombi-Termin: Maniküre und Pediküre nacheinander.';
+  if (route.maniStaffId === route.pediStaffId) {
+    return 'Kombi-Termin: Maniküre und Pediküre nacheinander bei '+masterName(route.maniStaffId)+'. Bitte als zusammengehörigen Termin behandeln.';
+  }
+  if (route.order === 'mani_first') {
+    return 'Kombi-Termin: Zuerst Maniküre bei '+masterName(route.maniStaffId)+', danach Pediküre bei '+masterName(route.pediStaffId)+'. Bitte als zusammengehörigen Termin behandeln.';
+  }
+  return 'Kombi-Termin: Zuerst Pediküre bei '+masterName(route.pediStaffId)+', danach Maniküre bei '+masterName(route.maniStaffId)+'. Bitte als zusammengehörigen Termin behandeln.';
+}
+
 function routeTotalPrice(route) {
   if (!route) return 0;
   return servicePriceForStaff(route.maniStaffId, KOMBI_MANI_SERVICE_ID)
@@ -2300,10 +2311,7 @@ function submitBooking(e) {
     appointments: appointments,
   };
   if (cw.service.id === KOMBI_SERVICE_ID) {
-    var routeComment = cw.comboRoute
-      ? comboRouteLabel(cw.comboRoute) + ' · Reihenfolge: ' + (cw.comboRoute.order === 'mani_first' ? 'Manikuere zuerst' : 'Pedikuere zuerst')
-      : 'ein Master';
-    bookingBody.comment = 'Kombi online: Manikuere und Pedikuere nacheinander. Route: ' + routeComment + '.';
+    bookingBody.comment = comboStaffComment(cw.comboRoute);
   }
 
   console.log('[Crocus] Booking →', { phone, name, email, appointments });
