@@ -1730,7 +1730,7 @@ function submitBooking(e) {
   apiPost('/book_record/'+CONFIG.locationId, { phone: phone, fullname: name, email: email, notify_by_email: emailRemind ? 1 : 0, lang: CONFIG.lang, lang_id: 3, bookform_id: 1427839, appointments: appointments })
     .then(function(res){
       console.log('[Crocus] Booking response:', res);
-      if (!res.success) throw new Error(res.message||'Buchungsfehler');
+      if (!res.success) throw new Error((res.meta && res.meta.message) || res.message || 'Buchungsfehler');
       var dateStr = cw.date
         ? new Date(cw.date+'T12:00:00').toLocaleDateString('de-DE',{weekday:'long',day:'numeric',month:'long'})
         : '';
