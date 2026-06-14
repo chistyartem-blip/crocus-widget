@@ -603,11 +603,11 @@ body.crocus-open{overflow:hidden!important;touch-action:none;}
 .cw-gift-cta-title{display:block;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;color:#fdfaf8;margin-bottom:2px}
 .cw-gift-cta-sub{display:block;font-family:'DM Sans',sans-serif;font-size:11px;color:rgba(253,250,248,.38)}
 .cw-gift-cta-arrow{color:rgba(201,168,124,.55);font-size:20px;flex-shrink:0}
-.cw-express-cta{width:100%;margin:0 0 14px;background:linear-gradient(135deg,#9b3660,#c9a87c);border:1px solid rgba(255,255,255,.18);border-radius:16px;padding:14px 16px;display:flex;align-items:center;gap:12px;text-align:left;color:#fff;font-family:'DM Sans',sans-serif;cursor:pointer;box-shadow:0 10px 30px rgba(123,45,78,.28);transition:transform .18s,box-shadow .18s}
-.cw-express-cta:hover{transform:translateY(-2px);box-shadow:0 14px 36px rgba(123,45,78,.38)}
-.cw-express-ico{width:38px;height:38px;border-radius:13px;background:rgba(255,255,255,.16);display:grid;place-items:center;font-size:18px;flex-shrink:0}
-.cw-express-title{display:block;font-weight:800;font-size:13px;letter-spacing:.08em;text-transform:uppercase}
-.cw-express-sub{display:block;font-size:11px;line-height:1.45;color:rgba(255,255,255,.78);margin-top:2px}
+.cw-express-cta{width:100%;margin:0 0 12px;background:linear-gradient(135deg,rgba(201,168,124,.14),rgba(123,45,78,.10));border:1px solid rgba(201,168,124,.28);border-radius:14px;padding:10px 12px;display:flex;align-items:center;gap:10px;text-align:left;color:#fff;font-family:'DM Sans',sans-serif;cursor:pointer;box-shadow:0 6px 18px rgba(123,45,78,.16);transition:transform .18s,border-color .18s,box-shadow .18s,background .18s}
+.cw-express-cta:hover{transform:translateY(-1px);border-color:rgba(201,168,124,.48);background:linear-gradient(135deg,rgba(201,168,124,.20),rgba(123,45,78,.14));box-shadow:0 9px 24px rgba(123,45,78,.22)}
+.cw-express-ico{width:30px;height:30px;border-radius:10px;background:rgba(201,168,124,.13);border:1px solid rgba(201,168,124,.22);display:grid;place-items:center;font-size:14px;flex-shrink:0;color:#c9a87c}
+.cw-express-title{display:block;font-weight:750;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:#fdfaf8}
+.cw-express-sub{display:block;font-size:10.5px;line-height:1.4;color:rgba(253,250,248,.58);margin-top:1px}
 
 /* ── Gift Progress bar ── */
 .cw-gift-progress{display:flex;align-items:center;justify-content:center;gap:0;margin-bottom:18px}
@@ -691,7 +691,7 @@ wrap.innerHTML =
         + '<p class="cw-sub">Jede Meisterin hat ihre eigene Stärke — lies kurz rein und wähle die Richtige für dich.</p>'
         + '<button class="cw-express-cta" id="cw-btn-express" type="button">'
           + '<span class="cw-express-ico">⚡</span>'
-          + '<span><span class="cw-express-title">Schnellster Nageltermin</span><span class="cw-express-sub">Du wählst die Behandlung — wir finden automatisch den frühesten freien Slot.</span></span>'
+          + '<span><span class="cw-express-title">Heute noch zum Nageltermin</span><span class="cw-express-sub">Behandlung wählen — wir finden den frühesten geprüften Slot.</span></span>'
         + '</button>'
         + '<div class="cw-masters" id="cw-masters-list"></div>'
         + '<div class="cw-gift-divider"><span>oder</span></div>'
@@ -1215,7 +1215,7 @@ function openExpressNails() {
   cw.datetime = null;
   cw.comboAppointments = null;
   cw.comboRoute = null;
-  document.getElementById('cw-sel-master-name').textContent = 'Schnellster freier Nageltermin';
+  document.getElementById('cw-sel-master-name').textContent = 'Heute noch zum Nageltermin';
   var list = document.getElementById('cw-cats-list');
   list.innerHTML = '<div class="cw-loader"><div class="cw-spinner"></div><span class="cw-loader-text">Schnellste Termine werden geladen…</span></div>';
   goStep(2);
@@ -1388,6 +1388,7 @@ function renderCategories(masterId) {
   }
 
   CATEGORIES.forEach(function(cat) {
+    if (cw.express && cat.key !== 'manikuere' && cat.key !== 'pediküre' && cat.key !== 'kombi') return;
     // Показываем только категории из meta.cats мастера
     var meta = cw.master ? MASTERS_META[cw.master.id] : null;
     if (meta && meta.cats && meta.cats.indexOf(cat.key) === -1) return;
@@ -1425,7 +1426,7 @@ function selectCategory(cat) {
   }
   document.getElementById('cw-step3-title').textContent = cat.label;
   document.getElementById('cw-step3-sub').innerHTML = cw.express
-    ? '<strong style="color:#fdfaf8">Schnellster freier Nageltermin</strong>'
+    ? '<strong style="color:#fdfaf8">Heute noch zum Nageltermin</strong>'
     : 'Meisterin: <strong style="color:#fdfaf8">'+cw.master.name+'</strong>';
   renderServices(cat);
   goStep(3);
@@ -1706,7 +1707,7 @@ function buildStep5Sub() {
   cw.addons.forEach(function(a){ parts.push(addonDisplayName(a)); });
   document.getElementById('cw-step5-sub').innerHTML =
     parts.join(' + ') + ' · <strong style="color:#fdfaf8">'
-      +(cw.express ? 'schnellster freier Slot' : cw.master.name)+'</strong>';
+      +(cw.express ? 'frühester geprüfter Slot' : cw.master.name)+'</strong>';
 }
 
 // ── Step 5: Calendar ───────────────────────────────────────────
