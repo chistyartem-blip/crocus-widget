@@ -2338,6 +2338,7 @@ window.addEventListener('popstate', function(e) {
   var skipBtn = document.getElementById('cw-skip-addon');
   // Клонируем как "Weiter mit Zusatz"
   var nextBtn = document.createElement('button');
+  nextBtn.id = 'cw-next-addon';
   nextBtn.className = 'cw-btn-confirm';
   nextBtn.style.marginTop = '8px';
   nextBtn.textContent = 'Weiter →';
