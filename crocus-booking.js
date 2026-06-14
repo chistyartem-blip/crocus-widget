@@ -458,7 +458,7 @@ var css = `
 .cp-line.filled{background:transparent}
 
 /* Body */
-#crocus-body{flex:1;overflow-y:auto;overflow-x:hidden;padding:18px 18px 28px;scrollbar-width:none;box-sizing:border-box;-webkit-overflow-scrolling:touch}
+#crocus-body{flex:1;overflow-y:auto;overflow-x:hidden;padding:18px 18px 28px;scrollbar-width:none;box-sizing:border-box;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;touch-action:pan-y}
 #crocus-body::-webkit-scrollbar{display:none}
 .cw-step{display:none;animation:stepIn .2s ease-out both}
 .cw-step.active{display:block}
@@ -590,7 +590,7 @@ var css = `
 .cw-btn-new:hover{background:rgba(255,255,255,.09);color:#fdfaf8}
 
 body.crocus-open .t-header,body.crocus-open header{z-index:1!important}
-body.crocus-open{overflow:hidden!important;touch-action:none;}
+body.crocus-open{overflow:hidden!important;overscroll-behavior:none;}
 
 /* ── Gift CTA button (Step 1 bottom) ── */
 .cw-gift-divider{display:flex;align-items:center;gap:10px;margin:18px 0 12px}
@@ -890,6 +890,7 @@ var gift = {
 // ── Open/Close ─────────────────────────────────────────────────
 var _scrollY = 0;
 var _suppressNextHashClick = false;
+var _scrollLocked = false;
 
 function preservePageScroll(fn) {
   var y = window.scrollY || window.pageYOffset || 0;
@@ -897,6 +898,35 @@ function preservePageScroll(fn) {
   requestAnimationFrame(function() {
     if (Math.abs((window.scrollY || window.pageYOffset || 0) - y) > 2) window.scrollTo(0, y);
   });
+}
+
+function lockPageScroll() {
+  if (_scrollLocked) return;
+  _scrollY = window.scrollY || window.pageYOffset || 0;
+  _scrollLocked = true;
+  document.documentElement.style.overflow = 'hidden';
+  document.body.classList.add('crocus-open');
+  document.body.style.overflow = 'hidden';
+  document.body.style.position = 'fixed';
+  document.body.style.top = '-' + _scrollY + 'px';
+  document.body.style.left = '0';
+  document.body.style.right = '0';
+  document.body.style.width = '100%';
+}
+
+function unlockPageScroll() {
+  if (!_scrollLocked) return;
+  var savedY = _scrollY || 0;
+  _scrollLocked = false;
+  document.documentElement.style.overflow = '';
+  document.body.style.overflow = '';
+  document.body.style.position = '';
+  document.body.style.top = '';
+  document.body.style.left = '';
+  document.body.style.right = '';
+  document.body.style.width = '';
+  document.body.classList.remove('crocus-open');
+  window.scrollTo(0, savedY);
 }
 
 function isCrocusOpenTrigger(el) {
@@ -925,27 +955,13 @@ document.addEventListener('click', function(ev) {
 }, true);
 
 function crocusOpen() {
-  // Capture scroll position immediately — before any anchor navigation
-  // (important when called from <a href="#section"> onclick)
-  _scrollY = window.scrollY || window.pageYOffset || 0;
-  preservePageScroll(function() {
-    document.getElementById('crocus-backdrop').classList.add('open');
-    // iOS scroll lock: fix body at captured position
-    document.body.classList.add('crocus-open');
-    document.body.style.overflow = 'hidden';
-    document.body.style.position = 'fixed';
-    document.body.style.top = '-' + _scrollY + 'px';
-    document.body.style.width = '100%';
-    requestAnimationFrame(function(){
-      document.getElementById('crocus-backdrop').classList.add('visible');
-      document.getElementById('crocus-modal').classList.add('open');
-    });
+  document.getElementById('crocus-backdrop').classList.add('open');
+  lockPageScroll();
+  requestAnimationFrame(function(){
+    document.getElementById('crocus-backdrop').classList.add('visible');
+    document.getElementById('crocus-modal').classList.add('open');
   });
   if (!_allMasters) loadInitialData();
-    // Push history entry so Android back button is intercepted
-  if (window.history && window.history.pushState) {
-    window.history.pushState({ crocusOpen: true }, '');
-  }
   // Tracking
   window.dataLayer = window.dataLayer || [];
   window.dataLayer.push({ event: 'open_booking_widget', page_location: window.location.href });
@@ -962,29 +978,7 @@ function crocusOpen() {
 function crocusClose() {
   document.getElementById('crocus-backdrop').classList.remove('visible');
   document.getElementById('crocus-modal').classList.remove('open');
-
-  var savedY = _scrollY;
-
-  // Сначала убираем history entry — это может вызвать scroll браузера
-  // Делаем это ДО восстановления body, чтобы потом перезаписать позицию
-  if (window.history && window.history.state && window.history.state.crocusOpen) {
-    window.history.back();
-  }
-
-  // iOS scroll lock: восстанавливаем body
-  document.body.style.overflow = '';
-  document.body.style.position = '';
-  document.body.style.top = '';
-  document.body.style.width = '';
-  document.body.classList.remove('crocus-open');
-
-  // Восстанавливаем позицию — через rAF чтобы перебить любой браузерный scroll
-  requestAnimationFrame(function() {
-    window.scrollTo(0, savedY);
-    requestAnimationFrame(function() {
-      window.scrollTo(0, savedY);
-    });
-  });
+  unlockPageScroll();
 
   setTimeout(function(){
     document.getElementById('crocus-backdrop').classList.remove('open');
@@ -2563,10 +2557,6 @@ function openGiftMode() {
   // Re-enable submit button in case previous attempt disabled it
   var gBtn = document.getElementById('cw-gift-submit');
   if (gBtn) { gBtn.disabled = false; gBtn.textContent = 'Gutschein anfragen →'; }
-  // Push state so mobile back button returns here, not to previous page
-  if (window.history && window.history.pushState) {
-    window.history.pushState({ crocusOpen: true }, '');
-  }
 }
 
 function goGiftStep2() {
@@ -2583,9 +2573,6 @@ function goGiftStep2() {
     if (wishWrap) wishWrap.style.display = 'none';
   }
   document.getElementById('crocus-body').scrollTop = 0;
-  if (window.history && window.history.pushState) {
-    window.history.pushState({ crocusOpen: true }, '');
-  }
 }
 
 function goGiftSuccess() {
@@ -3023,7 +3010,6 @@ window.addEventListener('popstate', function(e) {
     document.querySelectorAll('.cw-step').forEach(function(el){ el.classList.remove('active'); });
     document.getElementById('cw-gift1').classList.add('active');
     document.getElementById('crocus-body').scrollTop = 0;
-    window.history.pushState({ crocusOpen: true }, '');
     return;
   }
   if (isGiftMode || isGiftSuccess) {
@@ -3033,7 +3019,6 @@ window.addEventListener('popstate', function(e) {
     document.getElementById('cw-step1').classList.add('active');
     updateProgress(1);
     document.getElementById('crocus-body').scrollTop = 0;
-    window.history.pushState({ crocusOpen: true }, '');
     return;
   }
 
@@ -3045,7 +3030,6 @@ window.addEventListener('popstate', function(e) {
   }
 
   // Steps 2–6: go back one step
-  window.history.pushState({ crocusOpen: true }, '');
   if (step === 2) { goStep(1); return; }
   if (step === 3) { goStep(2); return; }
   if (step === 4) { goStep(3); return; }
@@ -3664,12 +3648,7 @@ if (document.readyState === 'loading') {
     if (!minfoCont || !minfoOv) return;
     minfoCont.innerHTML = h;
     minfoOv.classList.add('crl2-open');
-    var _minfoScrollY = window.scrollY || window.pageYOffset || 0;
-    document.body.style.overflow = 'hidden';
-    document.body.style.position = 'fixed';
-    document.body.style.top = '-' + _minfoScrollY + 'px';
-    document.body.style.width = '100%';
-    minfoOv._scrollY = _minfoScrollY;
+    lockPageScroll();
   }
 
   function selectMaster(key) {
@@ -3691,10 +3670,6 @@ if (document.readyState === 'loading') {
     if (reveal) {
       reveal.classList.add('crl2__reveal--open');
       // скролл после завершения анимации max-height (550ms transition)
-      setTimeout(function(){
-        var top = reveal.getBoundingClientRect().top + window.pageYOffset - 24;
-        window.scrollTo({ top: top, behavior: 'smooth' });
-      }, 580);
     }
   }
 
@@ -3707,13 +3682,8 @@ if (document.readyState === 'loading') {
     function closeMinfo() {
       var ov = document.getElementById('crl2-minfo-overlay');
       if (!ov) return;
-      var sy = ov._scrollY || 0;
-      document.body.style.overflow = '';
-      document.body.style.position = '';
-      document.body.style.top = '';
-      document.body.style.width = '';
-      if (sy > 0) window.scrollTo(0, sy);
       ov.classList.remove('crl2-open');
+      unlockPageScroll();
     }
     var minfoOverlay = document.getElementById('crl2-minfo-overlay');
     if (minfoOverlay) {
