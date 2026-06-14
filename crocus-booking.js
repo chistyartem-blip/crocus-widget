@@ -122,6 +122,7 @@ var KOMBI_SERVICE_ID = 13485762;
 var KOMBI_MANI_SERVICE_ID = 13485753;
 var KOMBI_PEDI_SERVICE_ID = 13485761;
 var KOMBI_DURATION_BY_STAFF = {
+  3020185: 9000,
   3020186: 12300,
   3020187: 13500,
 };
@@ -1616,15 +1617,6 @@ function comboAppointment(serviceId, datetime) {
   return { id: serviceId, services: [serviceId], staff_id: cw.master.id, datetime: datetime };
 }
 
-function atomicComboAppointment(route) {
-  return {
-    id: KOMBI_SERVICE_ID,
-    services: route.map(function(appointment){ return appointment.services[0]; }),
-    staff_id: cw.master.id,
-    datetime: route[0].datetime,
-  };
-}
-
 function checkAppointments(appointments, client) {
   client = client || {};
   return apiPost('/book_check/'+CONFIG.locationId, {
@@ -1662,7 +1654,7 @@ function loadComboTimes() {
           comboAppointment(KOMBI_MANI_SERVICE_ID, slot.datetime),
           comboAppointment(KOMBI_PEDI_SERVICE_ID, afterMani),
         ];
-        slot.comboAppointments = [atomicComboAppointment(route)];
+        slot.comboAppointments = route;
         candidatesByStart[slot.datetime] = slot;
       }
     });
@@ -1676,7 +1668,7 @@ function loadComboTimes() {
           comboAppointment(KOMBI_PEDI_SERVICE_ID, slot.datetime),
           comboAppointment(KOMBI_MANI_SERVICE_ID, afterPedi),
         ];
-        slot.comboAppointments = [atomicComboAppointment(route)];
+        slot.comboAppointments = route;
         candidatesByStart[slot.datetime] = slot;
       }
     });
@@ -1880,6 +1872,10 @@ function submitBooking(e) {
         var availabilityError = new Error('Dieser Termin wurde gerade belegt. Bitte waehlen Sie eine andere Zeit.');
         availabilityError.isAvailability = true;
         throw availabilityError;
+      }
+      if (cw.service.id === KOMBI_SERVICE_ID) {
+        bookingBody.company_id = CONFIG.locationId;
+        return apiPost('/combo_book', bookingBody);
       }
       return apiPost('/book_record/'+CONFIG.locationId, bookingBody);
     })

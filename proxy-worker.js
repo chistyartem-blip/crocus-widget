@@ -65,6 +65,10 @@ export default {
       return new Response('Not found', { status: 404 });
     }
 
+    if (altegioPath === '/combo_book') {
+      return handleComboBook(request, env);
+    }
+
     const altegioUrl = ALTEGIO_BASE + altegioPath + extraSearch;
 
     // Determine auth headers
@@ -107,6 +111,119 @@ export default {
     }
   }
 };
+
+async function altegioRequest(env, path, method, body) {
+  const res = await fetch(ALTEGIO_BASE + path, {
+    method,
+    headers: {
+      'Authorization': `Bearer ${env.ALTEGIO_PARTNER_TOKEN}`,
+      'Accept': 'application/vnd.api.v2+json',
+      'Content-Type': 'application/json',
+      'Accept-Language': 'de',
+    },
+    body: body == null ? null : JSON.stringify(body),
+  });
+  const text = await res.text();
+  let json = null;
+  try {
+    json = text ? JSON.parse(text) : null;
+  } catch (_) {}
+  return { ok: res.ok, status: res.status, text, json };
+}
+
+function responseData(result) {
+  if (!result || !result.json) return null;
+  return result.json.data !== undefined ? result.json.data : result.json;
+}
+
+function createdRecord(result) {
+  const data = responseData(result);
+  const record = Array.isArray(data) ? data[0] : data;
+  return record && record.record_id && record.record_hash ? record : null;
+}
+
+async function deleteCreatedRecord(env, record) {
+  if (!record) return false;
+  const path = `/user/records/${encodeURIComponent(record.record_id)}/${encodeURIComponent(record.record_hash)}`;
+  const result = await altegioRequest(env, path, 'DELETE');
+  return result.ok;
+}
+
+async function handleComboBook(request, env) {
+  if (request.method !== 'POST') {
+    return jsonResponse(request, { success: false, message: 'Method not allowed' }, 405);
+  }
+
+  let payload;
+  try {
+    payload = await request.json();
+  } catch (_) {
+    return jsonResponse(request, { success: false, message: 'Invalid JSON' }, 400);
+  }
+
+  const companyId = String(payload.company_id || '');
+  const appointments = Array.isArray(payload.appointments) ? payload.appointments : [];
+  if (!companyId || appointments.length !== 2) {
+    return jsonResponse(request, { success: false, message: 'Kombi requires exactly two appointments' }, 400);
+  }
+
+  const ordered = appointments.slice().sort((a, b) => String(a.datetime).localeCompare(String(b.datetime)));
+  const baseBody = { ...payload };
+  delete baseBody.company_id;
+  delete baseBody.appointments;
+
+  const check = await altegioRequest(env, `/book_check/${companyId}`, 'POST', {
+    ...baseBody,
+    notify_by_email: 0,
+    appointments: ordered,
+  });
+  if (!check.ok || (check.json && check.json.success === false)) {
+    return jsonResponse(request, check.json || { success: false, message: 'Selected time is unavailable' }, check.status || 409);
+  }
+
+  // Reserve the later resource first. The customer notification is sent only
+  // after the earlier appointment is also created successfully.
+  const laterResult = await altegioRequest(env, `/book_record/${companyId}`, 'POST', {
+    ...baseBody,
+    notify_by_email: 0,
+    appointments: [ordered[1]],
+  });
+  const laterRecord = createdRecord(laterResult);
+  if (!laterResult.ok || !laterRecord) {
+    return jsonResponse(request, laterResult.json || { success: false, message: 'Kombi booking failed' }, laterResult.status || 409);
+  }
+
+  const earlierResult = await altegioRequest(env, `/book_record/${companyId}`, 'POST', {
+    ...baseBody,
+    notify_by_email: payload.notify_by_email ? 1 : 0,
+    appointments: [ordered[0]],
+  });
+  const earlierRecord = createdRecord(earlierResult);
+  if (!earlierResult.ok || !earlierRecord) {
+    const rolledBack = await deleteCreatedRecord(env, laterRecord);
+    return jsonResponse(request, {
+      success: false,
+      message: 'Selected time is unavailable',
+      rolled_back: rolledBack,
+    }, 409);
+  }
+
+  return jsonResponse(request, {
+    success: true,
+    data: [earlierRecord, laterRecord],
+  }, 201);
+}
+
+function jsonResponse(request, body, status) {
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: {
+      ...corsHeaders(request),
+      'Content-Type': 'application/json',
+      'Cache-Control': 'no-store',
+    },
+  });
+}
 
 function corsHeaders(request) {
   const origin = request.headers.get('Origin') || '*';
