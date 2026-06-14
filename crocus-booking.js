@@ -1624,56 +1624,47 @@ function loadComboTimes() {
   var staffId = cw.master.id;
   var basePath = '/book_times/'+CONFIG.locationId+'/'+staffId+'/'+cw.date;
   Promise.all([
-    apiGet(basePath, { service_ids: [KOMBI_SERVICE_ID] }),
     apiGet(basePath, { service_ids: [KOMBI_MANI_SERVICE_ID] }),
     apiGet(basePath, { service_ids: [KOMBI_PEDI_SERVICE_ID] }),
   ]).then(function(results) {
-    var comboSlots = results[0].success ? (results[0].data || []) : [];
-    var maniSlots = results[1].success ? (results[1].data || []) : [];
-    var pediSlots = results[2].success ? (results[2].data || []) : [];
+    var maniSlots = results[0].success ? (results[0].data || []) : [];
+    var pediSlots = results[1].success ? (results[1].data || []) : [];
     var maniMap = {};
     var pediMap = {};
-    maniSlots.forEach(function(slot){ maniMap[slot.datetime] = true; });
-    pediSlots.forEach(function(slot){ pediMap[slot.datetime] = true; });
+    maniSlots.forEach(function(slot){ maniMap[slot.datetime] = slot; });
+    pediSlots.forEach(function(slot){ pediMap[slot.datetime] = slot; });
     var maniDuration = _seanceCache[staffId+'_'+KOMBI_MANI_SERVICE_ID] || 6300;
     var pediDuration = _seanceCache[staffId+'_'+KOMBI_PEDI_SERVICE_ID] || 4200;
-    var candidates = [];
+    var candidatesByStart = {};
 
-    comboSlots.forEach(function(slot) {
-      var route = null;
+    maniSlots.forEach(function(slot) {
       var afterMani = addSecondsToAltegioDatetime(slot.datetime, maniDuration);
-      if (maniMap[slot.datetime] && pediMap[afterMani]) {
-        route = [
+      if (pediMap[afterMani]) {
+        slot.comboAppointments = [
           comboAppointment(KOMBI_MANI_SERVICE_ID, slot.datetime),
           comboAppointment(KOMBI_PEDI_SERVICE_ID, afterMani),
         ];
-      } else {
-        var afterPedi = addSecondsToAltegioDatetime(slot.datetime, pediDuration);
-        if (pediMap[slot.datetime] && maniMap[afterPedi]) {
-          route = [
-            comboAppointment(KOMBI_PEDI_SERVICE_ID, slot.datetime),
-            comboAppointment(KOMBI_MANI_SERVICE_ID, afterPedi),
-          ];
-        }
+        candidatesByStart[slot.datetime] = slot;
       }
-      if (route) candidates.push({ slot: slot, appointments: route });
     });
 
-    var verified = [];
-    return candidates.reduce(function(chain, candidate) {
-      return chain.then(function() {
-        return checkAppointments(candidate.appointments)
-          .then(function(res) {
-            if (res && res.success) {
-              candidate.slot.comboAppointments = candidate.appointments;
-              verified.push(candidate.slot);
-            }
-          })
-          .catch(function(){});
-      });
-    }, Promise.resolve()).then(function(){ return verified; });
-  }).then(function(slots) {
-    renderTimesLoaded(slots);
+    pediSlots.forEach(function(slot) {
+      if (candidatesByStart[slot.datetime]) return;
+      var afterPedi = addSecondsToAltegioDatetime(slot.datetime, pediDuration);
+      if (maniMap[afterPedi]) {
+        slot.comboAppointments = [
+          comboAppointment(KOMBI_PEDI_SERVICE_ID, slot.datetime),
+          comboAppointment(KOMBI_MANI_SERVICE_ID, afterPedi),
+        ];
+        candidatesByStart[slot.datetime] = slot;
+      }
+    });
+
+    return Object.keys(candidatesByStart).sort().map(function(datetime) {
+      return candidatesByStart[datetime];
+    });
+  }).then(function(comboSlots) {
+    renderTimesLoaded(comboSlots);
   }).catch(function(err) {
     console.error('[crocus] loadComboTimes error:', err);
     renderTimesLoaded([]);
