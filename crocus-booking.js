@@ -605,7 +605,7 @@ body.crocus-open{overflow:hidden!important;touch-action:none;}
 .cw-gift-cta-arrow{color:rgba(201,168,124,.55);font-size:20px;flex-shrink:0}
 .cw-express-cta{width:auto;max-width:100%;margin:2px 0 14px;background:rgba(255,255,255,.035);border:1px solid rgba(201,168,124,.24);border-radius:999px;padding:8px 12px 8px 10px;display:inline-flex;align-items:center;gap:9px;text-align:left;color:#fff;font-family:'DM Sans',sans-serif;cursor:pointer;box-shadow:none;transition:transform .16s,border-color .16s,background .16s}
 .cw-express-cta:hover{transform:translateY(-1px);border-color:rgba(201,168,124,.44);background:rgba(201,168,124,.08)}
-.cw-express-ico{width:24px;height:24px;border-radius:50%;background:rgba(201,168,124,.12);display:grid;place-items:center;font-size:12px;flex-shrink:0;color:#c9a87c}
+.cw-express-ico{height:24px;border-radius:999px;background:rgba(201,168,124,.12);border:1px solid rgba(201,168,124,.20);display:grid;place-items:center;font-size:8px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;line-height:1;padding:0 8px;flex-shrink:0;color:#c9a87c}
 .cw-express-title{display:block;font-weight:750;font-size:11.5px;letter-spacing:.045em;text-transform:uppercase;color:#fdfaf8;line-height:1.1}
 .cw-express-sub{display:block;font-size:9.8px;line-height:1.25;color:rgba(253,250,248,.48);margin-top:1px;white-space:normal}
 
@@ -690,8 +690,8 @@ wrap.innerHTML =
         + '<h2 class="cw-title">Wähle deine Meisterin</h2>'
         + '<p class="cw-sub">Jede Meisterin hat ihre eigene Stärke — lies kurz rein und wähle die Richtige für dich.</p>'
         + '<button class="cw-express-cta" id="cw-btn-express" type="button">'
-          + '<span class="cw-express-ico">⚡</span>'
-          + '<span><span class="cw-express-title">Heute noch zum Nageltermin</span><span class="cw-express-sub">Behandlung wählen — wir finden den frühesten geprüften Slot.</span></span>'
+          + '<span class="cw-express-ico">Spontan</span>'
+          + '<span><span class="cw-express-title">Spontan zum Nageltermin</span><span class="cw-express-sub">Behandlung wählen — wir finden den nächsten freien Slot.</span></span>'
         + '</button>'
         + '<div class="cw-masters" id="cw-masters-list"></div>'
         + '<div class="cw-gift-divider"><span>oder</span></div>'
@@ -1215,7 +1215,7 @@ function openExpressNails() {
   cw.datetime = null;
   cw.comboAppointments = null;
   cw.comboRoute = null;
-  document.getElementById('cw-sel-master-name').textContent = 'Heute noch zum Nageltermin';
+  document.getElementById('cw-sel-master-name').textContent = 'Spontan zum Nageltermin';
   var list = document.getElementById('cw-cats-list');
   list.innerHTML = '<div class="cw-loader"><div class="cw-spinner"></div><span class="cw-loader-text">Schnellste Termine werden geladen…</span></div>';
   goStep(2);
@@ -1426,7 +1426,7 @@ function selectCategory(cat) {
   }
   document.getElementById('cw-step3-title').textContent = cat.label;
   document.getElementById('cw-step3-sub').innerHTML = cw.express
-    ? '<strong style="color:#fdfaf8">Heute noch zum Nageltermin</strong>'
+    ? '<strong style="color:#fdfaf8">Spontan zum Nageltermin</strong>'
     : 'Meisterin: <strong style="color:#fdfaf8">'+cw.master.name+'</strong>';
   renderServices(cat);
   goStep(3);
