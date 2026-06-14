@@ -603,6 +603,11 @@ body.crocus-open{overflow:hidden!important;touch-action:none;}
 .cw-gift-cta-title{display:block;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;color:#fdfaf8;margin-bottom:2px}
 .cw-gift-cta-sub{display:block;font-family:'DM Sans',sans-serif;font-size:11px;color:rgba(253,250,248,.38)}
 .cw-gift-cta-arrow{color:rgba(201,168,124,.55);font-size:20px;flex-shrink:0}
+.cw-express-cta{width:100%;margin:0 0 14px;background:linear-gradient(135deg,#9b3660,#c9a87c);border:1px solid rgba(255,255,255,.18);border-radius:16px;padding:14px 16px;display:flex;align-items:center;gap:12px;text-align:left;color:#fff;font-family:'DM Sans',sans-serif;cursor:pointer;box-shadow:0 10px 30px rgba(123,45,78,.28);transition:transform .18s,box-shadow .18s}
+.cw-express-cta:hover{transform:translateY(-2px);box-shadow:0 14px 36px rgba(123,45,78,.38)}
+.cw-express-ico{width:38px;height:38px;border-radius:13px;background:rgba(255,255,255,.16);display:grid;place-items:center;font-size:18px;flex-shrink:0}
+.cw-express-title{display:block;font-weight:800;font-size:13px;letter-spacing:.08em;text-transform:uppercase}
+.cw-express-sub{display:block;font-size:11px;line-height:1.45;color:rgba(255,255,255,.78);margin-top:2px}
 
 /* ── Gift Progress bar ── */
 .cw-gift-progress{display:flex;align-items:center;justify-content:center;gap:0;margin-bottom:18px}
@@ -684,6 +689,10 @@ wrap.innerHTML =
       + '<div class="cw-step active" id="cw-step1">'
         + '<h2 class="cw-title">Wähle deine Meisterin</h2>'
         + '<p class="cw-sub">Jede Meisterin hat ihre eigene Stärke — lies kurz rein und wähle die Richtige für dich.</p>'
+        + '<button class="cw-express-cta" id="cw-btn-express" type="button">'
+          + '<span class="cw-express-ico">⚡</span>'
+          + '<span><span class="cw-express-title">Schnellster Nageltermin</span><span class="cw-express-sub">Du wählst die Behandlung — wir finden automatisch den frühesten freien Slot.</span></span>'
+        + '</button>'
         + '<div class="cw-masters" id="cw-masters-list"></div>'
         + '<div class="cw-gift-divider"><span>oder</span></div>'
         + '<button class="cw-gift-cta" id="cw-btn-gift">'
@@ -857,6 +866,7 @@ var cw = {
   datetime: null,
   comboAppointments: null,
   comboRoute: null,
+  express: false,
   calY: new Date().getFullYear(),
   calM: new Date().getMonth(),
   availDates: [],
@@ -1194,6 +1204,29 @@ function renderMasters() {
   });
 }
 
+function openExpressNails() {
+  cw.express = true;
+  cw.master = null;
+  cw.category = null;
+  cw.service = null;
+  cw.addons = [];
+  cw.date = null;
+  cw.time = null;
+  cw.datetime = null;
+  cw.comboAppointments = null;
+  cw.comboRoute = null;
+  document.getElementById('cw-sel-master-name').textContent = 'Schnellster freier Nageltermin';
+  var list = document.getElementById('cw-cats-list');
+  list.innerHTML = '<div class="cw-loader"><div class="cw-spinner"></div><span class="cw-loader-text">Schnellste Termine werden geladen…</span></div>';
+  goStep(2);
+  apiGet('/book_services/'+CONFIG.locationId)
+    .then(function(res) {
+      if (res.success && res.data && res.data.services) _allServices = res.data.services;
+      renderCategories(KOMBI_STAFF_IDS[0]);
+    })
+    .catch(function(){ renderCategories(KOMBI_STAFF_IDS[0]); });
+}
+
 var _SLOT_SERVICE = { 3020185: 13485754, 3020186: 13485753, 3020187: 13485753, 3020188: 13485771 };
 
 function loadMasterSlot(staffId) {
@@ -1258,6 +1291,7 @@ function loadMasterSlot(staffId) {
 }
 
 function selectMaster(m, meta) {
+  cw.express = false;
   cw.master = m;
   cw.master._meta = meta;
   // Tracking
@@ -1320,6 +1354,30 @@ function renderCategories(masterId) {
   }
 
   function categoryPriceFromAltegio(cat) {
+    if (cw.express) {
+      if (cat.key === 'kombi') {
+        var comboPrices = KOMBI_STAFF_IDS.map(function(staffId) {
+          return (function(oldMasterId) {
+            masterId = staffId;
+            var p = priceForStaff(KOMBI_MANI_SERVICE_ID) + priceForStaff(KOMBI_PEDI_SERVICE_ID);
+            masterId = oldMasterId;
+            return p;
+          })(masterId);
+        }).filter(function(p){ return p > 0; });
+        return comboPrices.length ? 'ab '+Math.min.apply(Math, comboPrices)+' €' : '';
+      }
+      var allPrices = [];
+      KOMBI_STAFF_IDS.forEach(function(staffId) {
+        cat.serviceIds.forEach(function(serviceId) {
+          var oldMasterId = masterId;
+          masterId = staffId;
+          var p = priceForStaff(serviceId);
+          masterId = oldMasterId;
+          if (p > 0) allPrices.push(p);
+        });
+      });
+      return allPrices.length ? 'ab '+Math.min.apply(Math, allPrices)+' €' : '';
+    }
     if (cat.key === 'kombi') {
       var comboPrice = priceForStaff(KOMBI_MANI_SERVICE_ID) + priceForStaff(KOMBI_PEDI_SERVICE_ID);
       return comboPrice ? 'ab '+comboPrice+' €' : '';
@@ -1331,7 +1389,7 @@ function renderCategories(masterId) {
 
   CATEGORIES.forEach(function(cat) {
     // Показываем только категории из meta.cats мастера
-    var meta = MASTERS_META[cw.master.id];
+    var meta = cw.master ? MASTERS_META[cw.master.id] : null;
     if (meta && meta.cats && meta.cats.indexOf(cat.key) === -1) return;
 
     var btn = document.createElement('button');
@@ -1366,7 +1424,9 @@ function selectCategory(cat) {
     return;
   }
   document.getElementById('cw-step3-title').textContent = cat.label;
-  document.getElementById('cw-step3-sub').innerHTML = 'Meisterin: <strong style="color:#fdfaf8">'+cw.master.name+'</strong>';
+  document.getElementById('cw-step3-sub').innerHTML = cw.express
+    ? '<strong style="color:#fdfaf8">Schnellster freier Nageltermin</strong>'
+    : 'Meisterin: <strong style="color:#fdfaf8">'+cw.master.name+'</strong>';
   renderServices(cat);
   goStep(3);
 }
@@ -1403,6 +1463,16 @@ function renderServices(cat) {
     if (s.id === KOMBI_SERVICE_ID) {
       durStr = 'nach freiem Ablauf';
       priceStr = 'nach Slot';
+    }
+    if (cw.express && s.staff && s.staff.length) {
+      var staffPrices = s.staff
+        .filter(function(st){ return KOMBI_STAFF_IDS.indexOf(Number(st.id)) !== -1; })
+        .map(function(st){ return Number(st.price_min || s.price_min || 0); })
+        .filter(function(p){ return p > 0; });
+      if (staffPrices.length) {
+        minP = Math.min.apply(Math, staffPrices);
+        maxP = Math.max.apply(Math, staffPrices);
+      }
     }
 
     var btn = document.createElement('button');
@@ -1635,7 +1705,8 @@ function buildStep5Sub() {
   var parts = [cw.service.title];
   cw.addons.forEach(function(a){ parts.push(addonDisplayName(a)); });
   document.getElementById('cw-step5-sub').innerHTML =
-    parts.join(' + ') + ' · <strong style="color:#fdfaf8">'+cw.master.name+'</strong>';
+    parts.join(' + ') + ' · <strong style="color:#fdfaf8">'
+      +(cw.express ? 'schnellster freier Slot' : cw.master.name)+'</strong>';
 }
 
 // ── Step 5: Calendar ───────────────────────────────────────────
@@ -1643,6 +1714,10 @@ function loadAvailDates() {
   cw.availDates = [];
   if (cw.service.id === KOMBI_SERVICE_ID) {
     loadComboAvailDates();
+    return;
+  }
+  if (cw.express) {
+    loadExpressAvailDates();
     return;
   }
   var serviceIds = [cw.service.id];
@@ -1670,6 +1745,28 @@ function loadAvailDates() {
       renderCalendar();
     })
     .catch(function(e){ console.error('[crocus] loadAvailDates error:', e); renderCalendar(); });
+}
+
+function loadExpressAvailDates() {
+  var firstDay = new Date(cw.calY, cw.calM, 1).toISOString().split('T')[0];
+  Promise.all(KOMBI_STAFF_IDS.map(function(staffId) {
+    return apiGet('/book_dates/'+CONFIG.locationId, {
+      staff_id: staffId,
+      service_ids: [cw.service.id],
+      date: firstDay,
+    }).catch(function(){ return null; });
+  })).then(function(results) {
+    var dates = {};
+    results.forEach(function(res) {
+      var list = res && res.data && res.data.booking_dates ? res.data.booking_dates : [];
+      list.forEach(function(ds){ dates[ds] = true; });
+    });
+    cw.availDates = Object.keys(dates).sort();
+    renderCalendar();
+  }).catch(function(e) {
+    console.error('[crocus] loadExpressAvailDates error:', e);
+    renderCalendar();
+  });
 }
 
 function loadComboAvailDates() {
@@ -1758,6 +1855,10 @@ function loadTimes() {
     loadComboTimes();
     return;
   }
+  if (cw.express) {
+    loadExpressTimes();
+    return;
+  }
   // Передаём только основную услугу — аддоны не влияют на доступность слотов
   var serviceIds = [cw.service.id];
   // apiGet автоматически добавляет [] для массивов → service_ids[]=xxx
@@ -1776,6 +1877,43 @@ function loadTimes() {
       console.error('[crocus] loadTimes error:', e);
       grid.innerHTML = '<div class="cw-error" style="grid-column:span 4">Keine Zeiten verfügbar.</div>';
     });
+}
+
+function loadExpressTimes() {
+  var grid = document.getElementById('cw-time-grid');
+  Promise.all(KOMBI_STAFF_IDS.map(function(staffId) {
+    return fetchStaffServices(staffId).then(function() {
+      return apiGet('/book_times/'+CONFIG.locationId+'/'+staffId+'/'+cw.date, { service_ids: [cw.service.id] });
+    }).then(function(res) {
+      return { staffId: staffId, slots: res && res.success ? (res.data || []) : [] };
+    }).catch(function(){ return { staffId: staffId, slots: [] }; });
+  })).then(function(results) {
+    var candidates = [];
+    results.forEach(function(item) {
+      item.slots.forEach(function(slot) {
+        candidates.push(Object.assign({}, slot, {
+          staff_id: item.staffId,
+          expressMaster: masterById(item.staffId) || fallbackMasters().filter(function(m){ return Number(m.id) === Number(item.staffId); })[0],
+          expressAppointment: comboAppointment(cw.service.id, item.staffId, slot.datetime),
+        }));
+      });
+    });
+    candidates.sort(function(a,b){ return String(a.datetime).localeCompare(String(b.datetime)); });
+    var verified = [];
+    return candidates.reduce(function(chain, slot) {
+      return chain.then(function() {
+        if (verified.length >= 16) return;
+        return checkAppointments([slot.expressAppointment]).then(function(res) {
+          if (res && res.success) verified.push(slot);
+        }).catch(function(){});
+      });
+    }, Promise.resolve()).then(function(){ return verified; });
+  }).then(function(slots) {
+    renderTimesLoaded(slots);
+  }).catch(function(e) {
+    console.error('[crocus] loadExpressTimes error:', e);
+    grid.innerHTML = '<div class="cw-error" style="grid-column:span 4">Keine Zeiten verfügbar.</div>';
+  });
 }
 
 function addSecondsToAltegioDatetime(datetime, seconds) {
@@ -1994,6 +2132,10 @@ function renderTimesLoaded(slots) {
     btn.className = 'cw-time free'+(isSel?' sel':'');
     btn.textContent = slot.time;
     btn.addEventListener('click', function(){
+      if (cw.express && slot.expressMaster) {
+        cw.master = slot.expressMaster;
+        cw.master._meta = MASTERS_META[cw.master.id] || {};
+      }
       cw.time = slot.time;
 
       cw.datetime = slot.datetime;
@@ -2471,6 +2613,7 @@ function submitGiftForm(e) {
 
 // ── Events ─────────────────────────────────────────────────────
 document.getElementById('crocus-fab').addEventListener('click', crocusOpen);
+document.getElementById('cw-btn-express').addEventListener('click', openExpressNails);
 window.crocusOpen = crocusOpen;
 window.crocusClose = crocusClose;
 window.openGiftMode = openGiftMode;
