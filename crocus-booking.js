@@ -118,6 +118,9 @@ var KOMBI_VIRTUAL_ADDONS = [
   { _variantKey: 'french_hands', id: 13485756, title: 'French (Hände)', _kombiLabel: 'French (Hände)' },
   { _variantKey: 'french_feet',  id: 13485756, title: 'French (Füße)',  _kombiLabel: 'French (Füße)' },
 ];
+var KOMBI_SERVICE_ID = 13485762;
+var KOMBI_MANI_SERVICE_ID = 13485753;
+var KOMBI_PEDI_SERVICE_ID = 13485761;
 
 // Mandel-Form (13502395) — только для Nelia и Sofia
 var MANDEL_STAFF_IDS = [3020186, 3020187];
@@ -850,6 +853,7 @@ var cw = {
   date: null,
   time: null,
   datetime: null,
+  comboAppointments: null,
   calY: new Date().getFullYear(),
   calM: new Date().getMonth(),
   availDates: [],
@@ -1271,6 +1275,7 @@ function renderServices(cat) {
 function selectService(s) {
   cw.service = s;
   cw.addons = [];
+  cw.comboAppointments = null;
   // Tracking
   window.dataLayer = window.dataLayer || [];
   window.dataLayer.push({ event: 'booking_service_selected', service_name: s.title, category: cw.category ? cw.category.label : '', master_name: cw.master ? cw.master.name : '', page_location: window.location.href });
@@ -1550,7 +1555,7 @@ function renderCalendar() {
 }
 
 function selectDate(ds) {
-  cw.date = ds; cw.time = null;
+  cw.date = ds; cw.time = null; cw.datetime = null; cw.comboAppointments = null;
   document.getElementById('cw-times-wrap').style.display = 'block';
   renderCalendar();
   loadTimes();
@@ -1559,6 +1564,10 @@ function selectDate(ds) {
 function loadTimes() {
   var grid = document.getElementById('cw-time-grid');
   grid.innerHTML = '<div class="cw-loader" style="padding:16px 0"><div class="cw-spinner"></div></div>';
+  if (cw.service.id === KOMBI_SERVICE_ID) {
+    loadComboTimes();
+    return;
+  }
   // Передаём только основную услугу — аддоны не влияют на доступность слотов
   var serviceIds = [cw.service.id];
   // apiGet автоматически добавляет [] для массивов → service_ids[]=xxx
@@ -1579,6 +1588,98 @@ function loadTimes() {
     });
 }
 
+function addSecondsToAltegioDatetime(datetime, seconds) {
+  var match = datetime.match(/([+-])(\d{2}):(\d{2})$/);
+  var offsetMinutes = 0;
+  var suffix = '';
+  if (match) {
+    offsetMinutes = (parseInt(match[2], 10) * 60 + parseInt(match[3], 10)) * (match[1] === '-' ? -1 : 1);
+    suffix = match[0];
+  }
+  var local = new Date(new Date(datetime).getTime() + seconds * 1000 + offsetMinutes * 60000);
+  function pad(n){ return String(n).padStart(2, '0'); }
+  return local.getUTCFullYear()+'-'+pad(local.getUTCMonth()+1)+'-'+pad(local.getUTCDate())
+    +'T'+pad(local.getUTCHours())+':'+pad(local.getUTCMinutes())+':'+pad(local.getUTCSeconds())+suffix;
+}
+
+function comboAppointment(serviceId, datetime) {
+  return { id: serviceId, services: [serviceId], staff_id: cw.master.id, datetime: datetime };
+}
+
+function checkAppointments(appointments, client) {
+  client = client || {};
+  return apiPost('/book_check/'+CONFIG.locationId, {
+    phone: client.phone || '+4915700000616',
+    fullname: client.fullname || 'Online Booking Check',
+    email: client.email || '',
+    notify_by_email: 0,
+    lang: CONFIG.lang,
+    lang_id: 3,
+    bookform_id: 1427839,
+    appointments: appointments,
+  });
+}
+
+function loadComboTimes() {
+  var staffId = cw.master.id;
+  var basePath = '/book_times/'+CONFIG.locationId+'/'+staffId+'/'+cw.date;
+  Promise.all([
+    apiGet(basePath, { service_ids: [KOMBI_SERVICE_ID] }),
+    apiGet(basePath, { service_ids: [KOMBI_MANI_SERVICE_ID] }),
+    apiGet(basePath, { service_ids: [KOMBI_PEDI_SERVICE_ID] }),
+  ]).then(function(results) {
+    var comboSlots = results[0].success ? (results[0].data || []) : [];
+    var maniSlots = results[1].success ? (results[1].data || []) : [];
+    var pediSlots = results[2].success ? (results[2].data || []) : [];
+    var maniMap = {};
+    var pediMap = {};
+    maniSlots.forEach(function(slot){ maniMap[slot.datetime] = true; });
+    pediSlots.forEach(function(slot){ pediMap[slot.datetime] = true; });
+    var maniDuration = _seanceCache[staffId+'_'+KOMBI_MANI_SERVICE_ID] || 6300;
+    var pediDuration = _seanceCache[staffId+'_'+KOMBI_PEDI_SERVICE_ID] || 4200;
+    var candidates = [];
+
+    comboSlots.forEach(function(slot) {
+      var route = null;
+      var afterMani = addSecondsToAltegioDatetime(slot.datetime, maniDuration);
+      if (maniMap[slot.datetime] && pediMap[afterMani]) {
+        route = [
+          comboAppointment(KOMBI_MANI_SERVICE_ID, slot.datetime),
+          comboAppointment(KOMBI_PEDI_SERVICE_ID, afterMani),
+        ];
+      } else {
+        var afterPedi = addSecondsToAltegioDatetime(slot.datetime, pediDuration);
+        if (pediMap[slot.datetime] && maniMap[afterPedi]) {
+          route = [
+            comboAppointment(KOMBI_PEDI_SERVICE_ID, slot.datetime),
+            comboAppointment(KOMBI_MANI_SERVICE_ID, afterPedi),
+          ];
+        }
+      }
+      if (route) candidates.push({ slot: slot, appointments: route });
+    });
+
+    var verified = [];
+    return candidates.reduce(function(chain, candidate) {
+      return chain.then(function() {
+        return checkAppointments(candidate.appointments)
+          .then(function(res) {
+            if (res && res.success) {
+              candidate.slot.comboAppointments = candidate.appointments;
+              verified.push(candidate.slot);
+            }
+          })
+          .catch(function(){});
+      });
+    }, Promise.resolve()).then(function(){ return verified; });
+  }).then(function(slots) {
+    renderTimesLoaded(slots);
+  }).catch(function(err) {
+    console.error('[crocus] loadComboTimes error:', err);
+    renderTimesLoaded([]);
+  });
+}
+
 function renderTimesLoaded(slots) {
   var grid = document.getElementById('cw-time-grid');
   if (!slots) return;
@@ -1596,6 +1697,7 @@ function renderTimesLoaded(slots) {
       cw.time = slot.time;
 
       cw.datetime = slot.datetime;
+      cw.comboAppointments = slot.comboAppointments || null;
       renderTimesLoaded(slots);
       setTimeout(function(){
         renderSummary();
@@ -1720,19 +1822,42 @@ function submitBooking(e) {
 
   // Addon must be in the same appointment — но для Комби (13485762) аддоны только UI, не в API
   var svcIds = [cw.service.id];
-  if (cw.service.id !== 13485762) {
+  if (cw.service.id !== KOMBI_SERVICE_ID) {
     svcIds = svcIds.concat(cw.addons.map(function(a){return a.id;}));
   }
-  var appointments = [{
+  var appointments = cw.service.id === KOMBI_SERVICE_ID && cw.comboAppointments
+    ? cw.comboAppointments
+    : [{
     id: cw.service.id,
     services: svcIds,
     staff_id: cw.master.id,
     datetime: cw.datetime,
   }];
+  var bookingBody = {
+    phone: phone,
+    fullname: name,
+    email: email,
+    notify_by_email: emailRemind ? 1 : 0,
+    lang: CONFIG.lang,
+    lang_id: 3,
+    bookform_id: 1427839,
+    appointments: appointments,
+  };
+  if (cw.service.id === KOMBI_SERVICE_ID) {
+    bookingBody.comment = 'Kombi: Manikuere und Pedikuere nacheinander. Online-Gesamtpreis: 80 EUR.';
+  }
 
   console.log('[Crocus] Booking →', { phone, name, email, appointments });
 
-  apiPost('/book_record/'+CONFIG.locationId, { phone: phone, fullname: name, email: email, notify_by_email: emailRemind ? 1 : 0, lang: CONFIG.lang, lang_id: 3, bookform_id: 1427839, appointments: appointments })
+  checkAppointments(appointments, { phone: phone, fullname: name, email: email })
+    .then(function(checkRes) {
+      if (!checkRes || !checkRes.success) {
+        var availabilityError = new Error('Dieser Termin wurde gerade belegt. Bitte waehlen Sie eine andere Zeit.');
+        availabilityError.isAvailability = true;
+        throw availabilityError;
+      }
+      return apiPost('/book_record/'+CONFIG.locationId, bookingBody);
+    })
     .then(function(res){
       console.log('[Crocus] Booking response:', res);
       if (!res.success) throw new Error((res.meta && res.meta.message) || res.message || 'Buchungsfehler');
@@ -1806,6 +1931,13 @@ function submitBooking(e) {
     })
     .catch(function(err){
       console.error('[Crocus] Booking error:', err);
+      if (err && err.isAvailability) {
+        cw.time = null;
+        cw.datetime = null;
+        cw.comboAppointments = null;
+        goStep(5);
+        loadTimes();
+      }
       btn.disabled = false; btn.textContent = 'Termin bestätigen →';
       var old = document.getElementById('cw-form').querySelector('.cw-err-msg');
       if (old) old.remove();
@@ -1822,19 +1954,19 @@ function submitBooking(e) {
 // ── Calendar nav ───────────────────────────────────────────────
 function calPrev() {
   if (cw.calM === 0){ cw.calM=11; cw.calY--; } else cw.calM--;
-  cw.date=null; cw.time=null;
+  cw.date=null; cw.time=null; cw.datetime=null; cw.comboAppointments=null;
   renderCalendar(); loadAvailDates();
 }
 function calNext() {
   if (cw.calM === 11){ cw.calM=0; cw.calY++; } else cw.calM++;
-  cw.date=null; cw.time=null;
+  cw.date=null; cw.time=null; cw.datetime=null; cw.comboAppointments=null;
   renderCalendar(); loadAvailDates();
 }
 
 // ── Reset ──────────────────────────────────────────────────────
 function crocusReset() {
   cw = { step:1, master:null, category:null, service:null, addons:[],
-         date:null, time:null, datetime:null,
+         date:null, time:null, datetime:null, comboAppointments:null,
          calY:new Date().getFullYear(), calM:new Date().getMonth(), availDates:[] };
   // Always re-enable submit button in case previous attempt left it disabled
   var submitBtn = document.getElementById('cw-btn-submit');
