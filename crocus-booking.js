@@ -1484,7 +1484,7 @@ function renderServices(cat) {
     // Цена конкретного мастера из staff[], иначе общий price_min/max
     var minP = s.price_min || 0;
     var maxP = s.price_max || 0;
-    if (s.staff && s.staff.length) {
+    if (!cw.express && cw.master && s.staff && s.staff.length) {
       var staffEntry = null;
       for (var si = 0; si < s.staff.length; si++) {
         if (s.staff[si].id === cw.master.id) { staffEntry = s.staff[si]; break; }
@@ -1510,10 +1510,13 @@ function renderServices(cat) {
       if (staffPrices.length) {
         minP = Math.min.apply(Math, staffPrices);
         maxP = Math.max.apply(Math, staffPrices);
+        priceStr = minP === maxP ? minP+' &euro;' : 'ab '+minP+' &euro;';
+        priceStr = minP === maxP ? minP+' â‚¬' : 'ab '+minP+' â‚¬';
       }
     }
 
     var btn = document.createElement('button');
+    if (cw.express) priceStr = minP === maxP ? minP+' &euro;' : 'ab '+minP+' &euro;';
     btn.className = 'cw-svc-btn';
     btn.innerHTML =
       '<div class="cw-svc-left">'
@@ -2085,24 +2088,24 @@ function loadComboTimes() {
       pediSlots.forEach(function(slot){ byStaff[staffId].pediMap[slot.datetime] = slot; });
     });
 
-    var candidatesByStart = {};
+    var candidates = [];
     KOMBI_STAFF_IDS.forEach(function(maniStaffId) {
       KOMBI_STAFF_IDS.forEach(function(pediStaffId) {
-        buildComboPairCandidates(byStaff, maniStaffId, pediStaffId, candidatesByStart);
+        buildComboPairCandidates(byStaff, maniStaffId, pediStaffId, candidates);
       });
     });
 
-    var candidates = Object.keys(candidatesByStart).sort().map(function(datetime) {
-      return candidatesByStart[datetime];
+    candidates.sort(function(a,b) {
+      return String(a.datetime).localeCompare(String(b.datetime)) || routeSortKey(a.comboRoute).localeCompare(routeSortKey(b.comboRoute));
     });
     console.log('[crocus] loadComboTimes: candidates='+candidates.length+' date='+cw.date);
     return batchCheckSlots(candidates, function(slot){ return slot.comboAppointments; }, {
-      maxChecks: 24,
+      maxChecks: 48,
       target: 16,
       concurrency: 4,
     });
   }).then(function(verifiedSlots) {
-    renderTimesLoaded(verifiedSlots);
+    renderTimesLoaded(dedupeComboSlots(verifiedSlots));
   }).catch(function(err) {
     console.error('[crocus] loadComboTimes error:', err);
     renderTimesLoaded([]);
@@ -2163,7 +2166,22 @@ function putBestCandidate(candidatesByStart, candidate) {
   }
 }
 
-function buildComboPairCandidates(byStaff, maniStaffId, pediStaffId, candidatesByStart) {
+function dedupeComboSlots(slots) {
+  var bestByStart = {};
+  (slots || []).forEach(function(slot) {
+    var key = slot.datetime;
+    if (!bestByStart[key] || routeSortKey(slot.comboRoute) < routeSortKey(bestByStart[key].comboRoute)) {
+      bestByStart[key] = slot;
+    }
+  });
+  return Object.keys(bestByStart).sort().map(function(key){ return bestByStart[key]; }).slice(0, 16);
+}
+
+function addComboCandidate(candidates, candidate) {
+  candidates.push(candidate);
+}
+
+function buildComboPairCandidates(byStaff, maniStaffId, pediStaffId, candidates) {
   var maniData = byStaff[maniStaffId];
   var pediData = byStaff[pediStaffId];
   if (!maniData || !pediData) return;
@@ -2176,7 +2194,7 @@ function buildComboPairCandidates(byStaff, maniStaffId, pediStaffId, candidatesB
     if (!pediSlot) return;
     var pediDuration = serviceDurationForStaff(pediStaffId, KOMBI_PEDI_SERVICE_ID, pediSlot, 0);
     if (!pediDuration) return;
-    putBestCandidate(candidatesByStart, makeComboCandidate({
+    addComboCandidate(candidates, makeComboCandidate({
       startSlot: maniSlot,
       order: 'mani_first',
       maniStaffId: maniStaffId,
@@ -2196,7 +2214,7 @@ function buildComboPairCandidates(byStaff, maniStaffId, pediStaffId, candidatesB
     if (!maniSlot) return;
     var maniDuration = serviceDurationForStaff(maniStaffId, KOMBI_MANI_SERVICE_ID, maniSlot, 0);
     if (!maniDuration) return;
-    putBestCandidate(candidatesByStart, makeComboCandidate({
+    addComboCandidate(candidates, makeComboCandidate({
       startSlot: pediSlot,
       order: 'pedi_first',
       maniStaffId: maniStaffId,
@@ -2256,6 +2274,14 @@ function renderTimesLoaded(slots) {
         cw.master = slot.expressMaster;
         cw.master._meta = MASTERS_META[cw.master.id] || {};
       }
+      if (cw.express && !cw.master && slot.comboRoute) {
+        cw.master = masterById(slot.comboRoute.maniStaffId) || masterById(slot.comboRoute.pediStaffId) || fallbackMasters()[0];
+        cw.master._meta = MASTERS_META[cw.master.id] || {};
+      }
+      if (cw.express && !cw.master && slot.staff_id) {
+        cw.master = masterById(slot.staff_id) || fallbackMasters()[0];
+        cw.master._meta = MASTERS_META[cw.master.id] || {};
+      }
       cw.time = slot.time;
 
       cw.datetime = slot.datetime;
@@ -2291,7 +2317,7 @@ function renderTimesLoaded(slots) {
 
 // ── Step 6: Summary + Submit ───────────────────────────────────
 function renderSummary() {
-  var meta = cw.master._meta || {};
+  var meta = (cw.master && cw.master._meta) || {};
   var dateStr = cw.date
     ? new Date(cw.date+'T12:00:00').toLocaleDateString('de-DE',{weekday:'short',day:'numeric',month:'long'})
     : '';
@@ -2299,7 +2325,7 @@ function renderSummary() {
   function getMasterPrice(svc) {
     if (svc.staff && svc.staff.length) {
       for (var i = 0; i < svc.staff.length; i++) {
-        if (svc.staff[i].id === cw.master.id) return svc.staff[i].price_min || 0;
+        if (cw.master && svc.staff[i].id === cw.master.id) return svc.staff[i].price_min || 0;
       }
     }
     return svc.price_min || 0;
@@ -2317,7 +2343,7 @@ function renderSummary() {
   }
   var masterSummary = cw.service.id === KOMBI_SERVICE_ID && cw.comboRoute
     ? comboRouteLabel(cw.comboRoute)
-    : cw.master.name;
+    : (cw.master ? cw.master.name : 'Schnellster freier Slot');
 
   document.getElementById('cw-summary').innerHTML =
     '<div class="cw-sum-row"><span>Meisterin</span><strong>'+masterSummary
@@ -3063,6 +3089,7 @@ function crocusWidgetBack() {
   if (step === 3) { goStep(2); return true; }
   if (step === 4) { goStep(3); return true; }
   if (step === 5) {
+    if (cw.express) { goStep(2); return true; }
     var skipBack = (cw.category && cw.category.key === 'wimpern')
       || (cw.service && NO_ADDON_SERVICE_IDS.indexOf(cw.service.id) !== -1);
     goStep(skipBack ? 3 : 4);
