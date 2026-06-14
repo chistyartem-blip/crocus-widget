@@ -1847,6 +1847,28 @@ function submitBooking(e) {
         availabilityError.isAvailability = true;
         throw availabilityError;
       }
+      if (cw.service.id === KOMBI_SERVICE_ID) {
+        var createdRecords = [];
+        return appointments.reduce(function(chain, appointment, index) {
+          return chain.then(function() {
+            var partBody = Object.assign({}, bookingBody, {
+              notify_by_email: index === 0 ? bookingBody.notify_by_email : 0,
+              appointments: [appointment],
+              comment: bookingBody.comment+' Teil '+(index+1)+'/'+appointments.length,
+            });
+            return apiPost('/book_record/'+CONFIG.locationId, partBody).then(function(partRes) {
+              if (!partRes || !partRes.success) {
+                var partError = new Error((partRes && partRes.meta && partRes.meta.message) || 'Kombi konnte nicht vollstaendig gebucht werden.');
+                partError.partialRecords = createdRecords.slice();
+                throw partError;
+              }
+              createdRecords = createdRecords.concat(partRes.data || []);
+            });
+          });
+        }, Promise.resolve()).then(function() {
+          return { success: true, data: createdRecords, meta: [] };
+        });
+      }
       return apiPost('/book_record/'+CONFIG.locationId, bookingBody);
     })
     .then(function(res){
