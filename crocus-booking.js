@@ -617,6 +617,26 @@ body.crocus-open{overflow:hidden!important;overscroll-behavior:none;}
 @keyframes cwExpressPulse{0%,100%{box-shadow:0 12px 30px rgba(0,0,0,.23),0 0 0 1px rgba(255,255,255,.035) inset,0 1px 0 rgba(255,255,255,.08) inset}50%{box-shadow:0 12px 30px rgba(0,0,0,.23),0 0 18px rgba(201,168,124,.13),0 0 0 1px rgba(255,255,255,.045) inset,0 1px 0 rgba(255,255,255,.10) inset}}
 @keyframes cwExpressSweep{0%,58%{transform:translateX(-115%);opacity:0}66%{opacity:.55}82%,100%{transform:translateX(115%);opacity:0}}
 @media (prefers-reduced-motion:reduce){.cw-express-cta,.cw-express-glow{animation:none!important}}
+.cw-express-status{display:inline-flex;align-items:center;gap:5px;margin-top:6px;font-size:10px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;border-radius:999px;padding:4px 8px;border:1px solid rgba(255,255,255,.10);color:rgba(253,250,248,.55);background:rgba(255,255,255,.04)}
+.cw-express-status::before{content:'';width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,.25)}
+.cw-express-status.good{color:#a8f0c0;border-color:rgba(46,204,113,.30);background:rgba(46,204,113,.10)}
+.cw-express-status.good::before{background:#2ecc71;box-shadow:0 0 8px rgba(46,204,113,.45)}
+.cw-express-status.warn{color:#ffd99a;border-color:rgba(230,166,60,.34);background:rgba(230,166,60,.10)}
+.cw-express-status.warn::before{background:#e6a63c;box-shadow:0 0 8px rgba(230,166,60,.45)}
+.cw-express-status.bad{color:rgba(253,250,248,.46);border-color:rgba(255,255,255,.10);background:rgba(255,255,255,.035)}
+.cw-express-status.bad::before{background:rgba(255,255,255,.28)}
+.cw-calendar.express{background:transparent;border:none;margin-top:10px}
+.cw-calendar.express .cw-cal-nav{display:none}
+.cw-calendar.express .cw-cal-grid{display:flex;flex-direction:column;gap:11px}
+.cw-express-day-card{position:relative;width:100%;border-radius:16px;border:1px solid rgba(255,255,255,.10);background:linear-gradient(135deg,rgba(255,255,255,.045),rgba(255,255,255,.025));padding:13px;text-align:left;overflow:hidden}
+.cw-express-day-card.good{border-color:rgba(46,204,113,.32);background:linear-gradient(135deg,rgba(46,204,113,.105),rgba(255,255,255,.025))}
+.cw-express-day-card.warn{border-color:rgba(230,166,60,.34);background:linear-gradient(135deg,rgba(230,166,60,.10),rgba(255,255,255,.025))}
+.cw-express-day-card.bad{opacity:.72}
+.cw-express-day-head{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:10px}
+.cw-express-day-title{font-family:'Cormorant Garamond',Georgia,serif;font-size:22px;color:#fdfaf8;line-height:1}
+.cw-express-day-date{display:block;font-family:'DM Sans',sans-serif;font-size:10px;color:rgba(253,250,248,.45);margin-top:3px}
+.cw-express-day-times{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.cw-express-day-note{font-family:'DM Sans',sans-serif;font-size:11px;color:rgba(253,250,248,.48);line-height:1.45;margin-top:2px}
 
 /* ── Gift Progress bar ── */
 .cw-gift-progress{display:flex;align-items:center;justify-content:center;gap:0;margin-bottom:18px}
@@ -1442,11 +1462,67 @@ function renderCategories(masterId) {
         + '<span class="cw-cat-label">'+cat.label+'</span>'
         + '<span class="cw-cat-desc">'+cat.desc+'</span>'
         + (priceHtml ? '<span class="cw-cat-price">'+priceHtml+'</span>' : '')
+        + (cw.express ? '<span class="cw-express-status bad" id="cw-express-status-'+cat.key+'">prüfe heute & morgen</span>' : '')
       + '</div>'
       + '<span class="cw-cat-arrow">›</span>';
     btn.addEventListener('click', function(){ selectCategory(cat); });
     list.appendChild(btn);
   });
+  if (cw.express) hydrateExpressCategoryStatuses();
+}
+
+function localDateString(offsetDays) {
+  var d = new Date();
+  d.setDate(d.getDate() + (offsetDays || 0));
+  function pad(n){ return String(n).padStart(2,'0'); }
+  return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
+}
+
+function expressDayLabel(ds) {
+  var today = localDateString(0);
+  var tomorrow = localDateString(1);
+  if (ds === today) return 'Heute';
+  if (ds === tomorrow) return 'Morgen';
+  return new Date(ds+'T12:00:00').toLocaleDateString('de-DE', { weekday:'short', day:'numeric', month:'short' });
+}
+
+function hydrateExpressCategoryStatuses() {
+  CATEGORIES.forEach(function(cat) {
+    if (cat.key !== 'manikuere' && cat.key !== 'pediküre' && cat.key !== 'kombi') return;
+    var el = document.getElementById('cw-express-status-' + cat.key);
+    if (!el) return;
+    loadExpressCategoryPreview(cat).then(function(hit) {
+      if (!hit) {
+        el.className = 'cw-express-status bad';
+        el.textContent = 'heute & morgen voll';
+        return;
+      }
+      el.className = 'cw-express-status ' + (hit.ds === localDateString(0) ? 'good' : 'warn');
+      el.textContent = expressDayLabel(hit.ds) + ' ab ' + hit.time;
+    }).catch(function() {
+      el.className = 'cw-express-status bad';
+      el.textContent = 'auf Anfrage';
+    });
+  });
+}
+
+function loadExpressCategoryPreview(cat) {
+  var dates = [localDateString(0), localDateString(1)];
+  var loader;
+  if (cat.key === 'kombi') {
+    loader = function(ds){ return loadComboSlotsForDate(ds); };
+  } else {
+    var primaryServiceId = cat.serviceIds[0];
+    loader = function(ds){ return loadSingleExpressSlotsForDate(primaryServiceId, ds, 6); };
+  }
+  return dates.reduce(function(chain, ds) {
+    return chain.then(function(found) {
+      if (found) return found;
+      return loader(ds).then(function(slots) {
+        return slots && slots.length ? { ds: ds, time: slots[0].time, slots: slots } : null;
+      });
+    });
+  }, Promise.resolve(null));
 }
 
 function selectCategory(cat) {
@@ -1550,6 +1626,10 @@ function selectService(s) {
   if (NO_ADDON_SERVICE_IDS.indexOf(s.id) !== -1) {
     buildStep5Sub();
     goStep(5);
+    if (cw.express) {
+      renderExpressTwoDayPicker();
+      return;
+    }
     renderCalendar();
     loadAvailDates();
   } else {
@@ -1738,6 +1818,10 @@ function proceedFromAddon() {
   });
   buildStep5Sub();
   goStep(5);
+  if (cw.express) {
+    renderExpressTwoDayPicker();
+    return;
+  }
   renderCalendar();
   loadAvailDates();
 }
@@ -1751,6 +1835,71 @@ function buildStep5Sub() {
 }
 
 // ── Step 5: Calendar ───────────────────────────────────────────
+function renderExpressTwoDayPicker() {
+  cw.date = null; cw.time = null; cw.datetime = null; cw.comboAppointments = null; cw.comboRoute = null;
+  var cal = document.querySelector('#cw-step5 .cw-calendar');
+  var grid = document.getElementById('cw-cal-grid');
+  document.getElementById('cw-times-wrap').style.display = 'none';
+  cal.classList.add('express');
+  grid.innerHTML = '';
+  [0, 1].forEach(function(offset) {
+    var ds = localDateString(offset);
+    var card = document.createElement('div');
+    card.className = 'cw-express-day-card';
+    card.id = 'cw-express-day-' + offset;
+    card.innerHTML =
+      '<div class="cw-express-day-head">'
+        + '<div><div class="cw-express-day-title">'+expressDayLabel(ds)+'</div><span class="cw-express-day-date">'+new Date(ds+'T12:00:00').toLocaleDateString('de-DE',{weekday:'long',day:'numeric',month:'long'})+'</span></div>'
+        + '<span class="cw-express-status bad">prüfe Slots</span>'
+      + '</div>'
+      + '<div class="cw-express-day-note">Wir suchen den schnellsten geprüften Termin.</div>';
+    grid.appendChild(card);
+    loadExpressDaySlots(ds).then(function(slots) {
+      updateExpressDayCard(card, ds, slots);
+    }).catch(function(err) {
+      console.error('[crocus] express day load failed:', err);
+      updateExpressDayCard(card, ds, []);
+    });
+  });
+}
+
+function updateExpressDayCard(card, ds, slots) {
+  var cls = slots && slots.length ? (ds === localDateString(0) ? 'good' : 'warn') : 'bad';
+  card.className = 'cw-express-day-card ' + cls;
+  if (!slots || !slots.length) {
+    card.innerHTML =
+      '<div class="cw-express-day-head">'
+        + '<div><div class="cw-express-day-title">'+expressDayLabel(ds)+'</div><span class="cw-express-day-date">'+new Date(ds+'T12:00:00').toLocaleDateString('de-DE',{weekday:'long',day:'numeric',month:'long'})+'</span></div>'
+        + '<span class="cw-express-status bad">nicht verfügbar</span>'
+      + '</div>'
+      + '<div class="cw-express-day-note">Keine passenden Slots für diesen Tag.</div>';
+    return;
+  }
+  card.innerHTML =
+    '<div class="cw-express-day-head">'
+      + '<div><div class="cw-express-day-title">'+expressDayLabel(ds)+'</div><span class="cw-express-day-date">'+new Date(ds+'T12:00:00').toLocaleDateString('de-DE',{weekday:'long',day:'numeric',month:'long'})+'</span></div>'
+      + '<span class="cw-express-status '+cls+'">ab '+slots[0].time+'</span>'
+    + '</div>'
+    + '<div class="cw-express-day-times"></div>';
+  var times = card.querySelector('.cw-express-day-times');
+  slots.slice(0, 8).forEach(function(slot) {
+    var btn = document.createElement('button');
+    btn.className = 'cw-time free';
+    btn.textContent = slot.time;
+    btn.addEventListener('click', function(){
+      cw.date = ds;
+      chooseTimeSlot(slot, slots);
+    });
+    times.appendChild(btn);
+  });
+}
+
+function loadExpressDaySlots(ds) {
+  return cw.service.id === KOMBI_SERVICE_ID
+    ? loadComboSlotsForDate(ds)
+    : loadSingleExpressSlotsForDate(cw.service.id, ds, 16);
+}
+
 function loadAvailDates() {
   cw.availDates = [];
   if (cw.service.id === KOMBI_SERVICE_ID) {
@@ -1850,8 +1999,11 @@ function loadComboAvailDates() {
 }
 
 function renderCalendar() {
+  var cal = document.querySelector('#cw-step5 .cw-calendar');
+  if (cal) cal.classList.remove('express');
   document.getElementById('cw-cal-title').textContent = MONTHS[cw.calM]+' '+cw.calY;
   var grid = document.getElementById('cw-cal-grid');
+  grid.className = 'cw-cal-grid';
   var today = new Date().toISOString().split('T')[0];
   var daysInMonth = new Date(cw.calY, cw.calM+1, 0).getDate();
   var firstWeekDay = (new Date(cw.calY, cw.calM, 1).getDay()+6) % 7;
@@ -1920,11 +2072,10 @@ function loadTimes() {
     });
 }
 
-function loadExpressTimes() {
-  var grid = document.getElementById('cw-time-grid');
-  Promise.all(KOMBI_STAFF_IDS.map(function(staffId) {
+function loadSingleExpressSlotsForDate(serviceId, ds, target) {
+  return Promise.all(KOMBI_STAFF_IDS.map(function(staffId) {
     return fetchStaffServices(staffId).then(function() {
-      return apiGet('/book_times/'+CONFIG.locationId+'/'+staffId+'/'+cw.date, { service_ids: [cw.service.id] });
+      return apiGet('/book_times/'+CONFIG.locationId+'/'+staffId+'/'+ds, { service_ids: [serviceId] });
     }).then(function(res) {
       return { staffId: staffId, slots: res && res.success ? (res.data || []) : [] };
     }).catch(function(){ return { staffId: staffId, slots: [] }; });
@@ -1935,17 +2086,32 @@ function loadExpressTimes() {
         candidates.push(Object.assign({}, slot, {
           staff_id: item.staffId,
           expressMaster: masterById(item.staffId) || fallbackMasters().filter(function(m){ return Number(m.id) === Number(item.staffId); })[0],
-          expressAppointment: comboAppointment(cw.service.id, item.staffId, slot.datetime),
+          expressAppointment: comboAppointment(serviceId, item.staffId, slot.datetime),
         }));
       });
     });
     candidates.sort(function(a,b){ return String(a.datetime).localeCompare(String(b.datetime)); });
     return batchCheckSlots(candidates, function(slot){ return [slot.expressAppointment]; }, {
       maxChecks: 24,
-      target: 16,
+      target: target || 16,
       concurrency: 4,
-    });
-  }).then(function(slots) {
+    }).then(dedupeTimeSlots);
+  });
+}
+
+function dedupeTimeSlots(slots) {
+  var byTime = {};
+  (slots || []).forEach(function(slot) {
+    var key = slot.datetime || slot.time;
+    if (!byTime[key]) byTime[key] = slot;
+  });
+  return Object.keys(byTime).sort().map(function(key){ return byTime[key]; });
+}
+
+function loadExpressTimes() {
+  var grid = document.getElementById('cw-time-grid');
+  loadSingleExpressSlotsForDate(cw.service.id, cw.date, 16)
+  .then(function(slots) {
     renderTimesLoaded(slots);
   }).catch(function(e) {
     console.error('[crocus] loadExpressTimes error:', e);
@@ -2063,15 +2229,15 @@ function batchCheckSlots(candidates, appointmentsForSlot, options) {
   });
 }
 
-function loadComboTimes() {
+function loadComboSlotsForDate(ds) {
   var timeLoads = [];
   KOMBI_STAFF_IDS.forEach(function(staffId) {
     timeLoads.push(fetchStaffServices(staffId));
-    timeLoads.push(apiGet('/book_times/'+CONFIG.locationId+'/'+staffId+'/'+cw.date, { service_ids: [KOMBI_MANI_SERVICE_ID] }).catch(function(){ return null; }));
-    timeLoads.push(apiGet('/book_times/'+CONFIG.locationId+'/'+staffId+'/'+cw.date, { service_ids: [KOMBI_PEDI_SERVICE_ID] }).catch(function(){ return null; }));
+    timeLoads.push(apiGet('/book_times/'+CONFIG.locationId+'/'+staffId+'/'+ds, { service_ids: [KOMBI_MANI_SERVICE_ID] }).catch(function(){ return null; }));
+    timeLoads.push(apiGet('/book_times/'+CONFIG.locationId+'/'+staffId+'/'+ds, { service_ids: [KOMBI_PEDI_SERVICE_ID] }).catch(function(){ return null; }));
   });
 
-  Promise.all(timeLoads).then(function(results) {
+  return Promise.all(timeLoads).then(function(results) {
     var byStaff = {};
     KOMBI_STAFF_IDS.forEach(function(staffId, idx) {
       var maniRes = results[idx * 3 + 1];
@@ -2098,14 +2264,20 @@ function loadComboTimes() {
     candidates.sort(function(a,b) {
       return String(a.datetime).localeCompare(String(b.datetime)) || routeSortKey(a.comboRoute).localeCompare(routeSortKey(b.comboRoute));
     });
-    console.log('[crocus] loadComboTimes: candidates='+candidates.length+' date='+cw.date);
+    console.log('[crocus] loadComboTimes: candidates='+candidates.length+' date='+ds);
     return batchCheckSlots(candidates, function(slot){ return slot.comboAppointments; }, {
       maxChecks: 48,
       target: 16,
       concurrency: 4,
     });
   }).then(function(verifiedSlots) {
-    renderTimesLoaded(dedupeComboSlots(verifiedSlots));
+    return dedupeComboSlots(verifiedSlots);
+  });
+}
+
+function loadComboTimes() {
+  loadComboSlotsForDate(cw.date).then(function(verifiedSlots) {
+    renderTimesLoaded(verifiedSlots);
   }).catch(function(err) {
     console.error('[crocus] loadComboTimes error:', err);
     renderTimesLoaded([]);
@@ -2254,6 +2426,36 @@ function makeComboCandidate(opts) {
       ];
   candidate.comboRoute = route;
   return candidate;
+}
+
+function chooseTimeSlot(slot, slots) {
+  if (cw.express && slot.expressMaster) {
+    cw.master = slot.expressMaster;
+    cw.master._meta = MASTERS_META[cw.master.id] || {};
+  }
+  if (cw.express && !cw.master && slot.comboRoute) {
+    cw.master = masterById(slot.comboRoute.maniStaffId) || masterById(slot.comboRoute.pediStaffId) || fallbackMasters()[0];
+    cw.master._meta = MASTERS_META[cw.master.id] || {};
+  }
+  if (cw.express && !cw.master && slot.staff_id) {
+    cw.master = masterById(slot.staff_id) || fallbackMasters()[0];
+    cw.master._meta = MASTERS_META[cw.master.id] || {};
+  }
+  cw.time = slot.time;
+  cw.datetime = slot.datetime;
+  cw.comboAppointments = slot.comboAppointments || null;
+  cw.comboRoute = slot.comboRoute || null;
+  if (slots) renderTimesLoaded(slots);
+  setTimeout(function(){
+    renderSummary();
+    goStep(6);
+    try {
+      var saved = JSON.parse(localStorage.getItem('crocus_client') || '{}');
+      if (saved.name)  { var fn = document.getElementById('cw-name');  if (fn && !fn.dataset.dirty) fn.value = saved.name; }
+      if (saved.phone) { var fp = document.getElementById('cw-phone'); if (fp && !fp.dataset.dirty) { var _pp = parseStoredPhone(saved.phone); fp.value = _pp.local; var _ds = document.getElementById('cw-dial'); if (_ds && !_ds.dataset.dirty) _ds.value = _pp.dial; } }
+      if (saved.email) { var fe = document.getElementById('cw-email'); if (fe && !fe.dataset.dirty) fe.value = saved.email; }
+    } catch(ex) {}
+  }, 120);
 }
 
 function renderTimesLoaded(slots) {
