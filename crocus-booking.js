@@ -1362,10 +1362,15 @@ function renderAddons() {
             return;
           }
         }
-        // Всё равно пусто — если услуга должна иметь допы, НЕ скипаем автоматически
+        // Всё равно пусто — если услуга должна иметь допы, создаём fallback-объекты из констант
         if (serviceHasDefinedAddons) {
-          console.warn('[crocus] renderAddons: service has defined addons but API returned none — staying on step 4');
-          // Показываем пустой список без автоперехода (пользователь сможет нажать "Далее")
+          console.warn('[crocus] renderAddons: API returned no addons — using static fallback');
+          var fallback = ADDON_IDS.map(function(id){
+            return { id: id, title: ADDON_NAME_OVERRIDE[id] || ('Addon '+id), price_min: 0, price_max: 0 };
+          });
+          _addonObjs = fallback;
+          _globalAddonObjs = fallback.slice();
+          renderAddons();
           return;
         }
         buildStep5Sub();
@@ -1375,7 +1380,13 @@ function renderAddons() {
       })
       .catch(function(){
         if (serviceHasDefinedAddons) {
-          console.warn('[crocus] renderAddons: API error, staying on step 4');
+          console.warn('[crocus] renderAddons: API error — using static fallback');
+          var fallback = ADDON_IDS.map(function(id){
+            return { id: id, title: ADDON_NAME_OVERRIDE[id] || ('Addon '+id), price_min: 0, price_max: 0 };
+          });
+          _addonObjs = fallback;
+          _globalAddonObjs = fallback.slice();
+          renderAddons();
           return;
         }
         buildStep5Sub();
