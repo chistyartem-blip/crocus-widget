@@ -1723,8 +1723,12 @@ function submitBooking(e) {
   if (cw.service.id !== 13485762) {
     svcIds = svcIds.concat(cw.addons.map(function(a){return a.id;}));
   }
-  var services = svcIds.map(function(sid){ return { id: sid }; });
-  var appointments = [{ id: cw.master.id, services: services, datetime: cw.datetime }];
+  var appointments = [{
+    id: cw.service.id,
+    services: svcIds,
+    staff_id: cw.master.id,
+    datetime: cw.datetime,
+  }];
 
   console.log('[Crocus] Booking →', { phone, name, email, appointments });
 
