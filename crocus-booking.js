@@ -121,11 +121,7 @@ var KOMBI_VIRTUAL_ADDONS = [
 var KOMBI_SERVICE_ID = 13485762;
 var KOMBI_MANI_SERVICE_ID = 13485753;
 var KOMBI_PEDI_SERVICE_ID = 13485761;
-var KOMBI_DURATION_BY_STAFF = {
-  3020185: 9000,
-  3020186: 12300,
-  3020187: 13500,
-};
+var KOMBI_STAFF_IDS = [3020185, 3020186, 3020187];
 
 // Mandel-Form (13502395) — только для Nelia и Sofia
 var MANDEL_STAFF_IDS = [3020186, 3020187];
@@ -859,6 +855,7 @@ var cw = {
   time: null,
   datetime: null,
   comboAppointments: null,
+  comboRoute: null,
   calY: new Date().getFullYear(),
   calM: new Date().getMonth(),
   availDates: [],
@@ -869,6 +866,7 @@ var _allServices = null;
 var _addonObjs   = [];
 var _globalAddonObjs = []; // кэш аддонов без staff_id — никогда не обнуляется
 var _seanceCache = {}; // кэш seance_length: ключ = staffId+'_'+serviceId → секунды
+var _serviceCacheByStaff = {};
 
 // Gift state
 var gift = {
@@ -878,20 +876,57 @@ var gift = {
 
 // ── Open/Close ─────────────────────────────────────────────────
 var _scrollY = 0;
+var _suppressNextHashClick = false;
+
+function preservePageScroll(fn) {
+  var y = window.scrollY || window.pageYOffset || 0;
+  fn();
+  requestAnimationFrame(function() {
+    if (Math.abs((window.scrollY || window.pageYOffset || 0) - y) > 2) window.scrollTo(0, y);
+  });
+}
+
+function isCrocusOpenTrigger(el) {
+  if (!el) return false;
+  var attr = (el.getAttribute && (el.getAttribute('onclick') || '')) || '';
+  if (attr.indexOf('crocusOpen') !== -1) return true;
+  if (el.closest && el.closest('[data-crocus-open]')) return true;
+  var href = (el.getAttribute && el.getAttribute('href')) || '';
+  var text = (el.textContent || '').toLowerCase();
+  return href === '#' && (
+    text.indexOf('termin') !== -1 ||
+    text.indexOf('buchen') !== -1 ||
+    text.indexOf('book') !== -1 ||
+    text.indexOf('gutschein') !== -1
+  );
+}
+
+document.addEventListener('click', function(ev) {
+  var trigger = ev.target && ev.target.closest && ev.target.closest('a[href="#"],button,[onclick]');
+  if (!trigger || !isCrocusOpenTrigger(trigger)) return;
+  if (trigger.tagName === 'A' && trigger.getAttribute('href') === '#') {
+    ev.preventDefault();
+    _suppressNextHashClick = true;
+    setTimeout(function(){ _suppressNextHashClick = false; }, 0);
+  }
+}, true);
+
 function crocusOpen() {
   // Capture scroll position immediately — before any anchor navigation
   // (important when called from <a href="#section"> onclick)
   _scrollY = window.scrollY || window.pageYOffset || 0;
-  document.getElementById('crocus-backdrop').classList.add('open');
-  // iOS scroll lock: fix body at captured position
-  document.body.classList.add('crocus-open');
-  document.body.style.overflow = 'hidden';
-  document.body.style.position = 'fixed';
-  document.body.style.top = '-' + _scrollY + 'px';
-  document.body.style.width = '100%';
-  requestAnimationFrame(function(){
-    document.getElementById('crocus-backdrop').classList.add('visible');
-    document.getElementById('crocus-modal').classList.add('open');
+  preservePageScroll(function() {
+    document.getElementById('crocus-backdrop').classList.add('open');
+    // iOS scroll lock: fix body at captured position
+    document.body.classList.add('crocus-open');
+    document.body.style.overflow = 'hidden';
+    document.body.style.position = 'fixed';
+    document.body.style.top = '-' + _scrollY + 'px';
+    document.body.style.width = '100%';
+    requestAnimationFrame(function(){
+      document.getElementById('crocus-backdrop').classList.add('visible');
+      document.getElementById('crocus-modal').classList.add('open');
+    });
   });
   if (!_allMasters) loadInitialData();
     // Push history entry so Android back button is intercepted
@@ -1008,6 +1043,60 @@ function showLoader(id, text) {
 }
 function showError(id, msg) {
   document.getElementById(id).innerHTML = '<div class="cw-error">'+msg+'</div>';
+}
+
+function masterById(staffId) {
+  staffId = Number(staffId);
+  return (_allMasters || []).filter(function(m){ return Number(m.id) === staffId; })[0]
+    || { id: staffId, name: 'Master' };
+}
+
+function masterName(staffId) {
+  return masterById(staffId).name || 'Master';
+}
+
+function fetchStaffServices(staffId) {
+  staffId = Number(staffId);
+  if (_serviceCacheByStaff[staffId]) return Promise.resolve(_serviceCacheByStaff[staffId]);
+  return apiGet('/book_services/'+CONFIG.locationId, { staff_id: staffId })
+    .then(function(res) {
+      var list = res && res.success && res.data && res.data.services ? res.data.services : [];
+      var map = {};
+      list.forEach(function(svc) {
+        map[svc.id] = svc;
+        if (svc.seance_length) _seanceCache[staffId + '_' + svc.id] = svc.seance_length;
+      });
+      _serviceCacheByStaff[staffId] = map;
+      return map;
+    })
+    .catch(function() {
+      _serviceCacheByStaff[staffId] = {};
+      return _serviceCacheByStaff[staffId];
+    });
+}
+
+function serviceForStaff(staffId, serviceId) {
+  var map = _serviceCacheByStaff[Number(staffId)] || {};
+  return map[serviceId] || (_allServices || []).filter(function(s){ return s.id === serviceId; })[0] || {};
+}
+
+function servicePriceForStaff(staffId, serviceId) {
+  var svc = serviceForStaff(staffId, serviceId);
+  if (svc.price_min != null) return Number(svc.price_min) || 0;
+  if (svc.staff && svc.staff.length) {
+    for (var i = 0; i < svc.staff.length; i++) {
+      if (Number(svc.staff[i].id) === Number(staffId)) return Number(svc.staff[i].price_min) || 0;
+    }
+  }
+  return Number(svc.price_max || 0) || 0;
+}
+
+function serviceDurationForStaff(staffId, serviceId, slot, fallback) {
+  return (slot && (slot.seance_length || slot.sum_length))
+    || _seanceCache[Number(staffId) + '_' + serviceId]
+    || (serviceForStaff(staffId, serviceId).seance_length || 0)
+    || fallback
+    || 0;
 }
 
 // ── Load initial data ──────────────────────────────────────────
@@ -1262,9 +1351,6 @@ function renderServices(cat) {
     var priceStr = minP === maxP ? (minP ? minP+' €' : '—') : 'ab '+minP+' €';
     // Длительность не показываем если 0 или null
     var durSec = s.seance_length || 0;
-    if (s.id === KOMBI_SERVICE_ID) {
-      durSec = KOMBI_DURATION_BY_STAFF[cw.master.id] || durSec;
-    }
     var durStr = durSec > 0 ? (Math.round(durSec/60)+' Min') : '';
 
     var btn = document.createElement('button');
@@ -1284,6 +1370,7 @@ function selectService(s) {
   cw.service = s;
   cw.addons = [];
   cw.comboAppointments = null;
+  cw.comboRoute = null;
   // Tracking
   window.dataLayer = window.dataLayer || [];
   window.dataLayer.push({ event: 'booking_service_selected', service_name: s.title, category: cw.category ? cw.category.label : '', master_name: cw.master ? cw.master.name : '', page_location: window.location.href });
@@ -1502,6 +1589,10 @@ function buildStep5Sub() {
 // ── Step 5: Calendar ───────────────────────────────────────────
 function loadAvailDates() {
   cw.availDates = [];
+  if (cw.service.id === KOMBI_SERVICE_ID) {
+    loadComboAvailDates();
+    return;
+  }
   var serviceIds = [cw.service.id];
   // Для Комби (13485762) аддоны (French и т.п.) — только UI-выбор, в API не передаём
   if (cw.service.id !== 13485762) {
@@ -1511,9 +1602,6 @@ function loadAvailDates() {
   var params = { 'service_ids': serviceIds, staff_id: cw.master.id };
   // Передаём длительность из кэша если есть (критично для Kombi и длинных услуг)
   var cachedDur = _seanceCache[cw.master.id + '_' + cw.service.id];
-  if (cw.service.id === KOMBI_SERVICE_ID) {
-    cachedDur = KOMBI_DURATION_BY_STAFF[cw.master.id] || cachedDur;
-  }
   if (cachedDur) params.duration = cachedDur;
   var firstDay = new Date(cw.calY, cw.calM, 1).toISOString().split('T')[0];
   params.date = firstDay;
@@ -1530,6 +1618,45 @@ function loadAvailDates() {
       renderCalendar();
     })
     .catch(function(e){ console.error('[crocus] loadAvailDates error:', e); renderCalendar(); });
+}
+
+function loadComboAvailDates() {
+  var firstDay = new Date(cw.calY, cw.calM, 1).toISOString().split('T')[0];
+  console.log('[crocus] loadComboAvailDates: staff='+JSON.stringify(KOMBI_STAFF_IDS)+' from='+firstDay);
+  var serviceLoads = KOMBI_STAFF_IDS.map(function(staffId){ return fetchStaffServices(staffId); });
+  var dateLoads = [];
+  KOMBI_STAFF_IDS.forEach(function(staffId) {
+    dateLoads.push(apiGet('/book_dates/'+CONFIG.locationId, {
+      staff_id: staffId,
+      service_ids: [KOMBI_MANI_SERVICE_ID],
+      date: firstDay,
+    }).catch(function(){ return null; }));
+    dateLoads.push(apiGet('/book_dates/'+CONFIG.locationId, {
+      staff_id: staffId,
+      service_ids: [KOMBI_PEDI_SERVICE_ID],
+      date: firstDay,
+    }).catch(function(){ return null; }));
+  });
+
+  Promise.all(serviceLoads.concat(dateLoads)).then(function(results) {
+    var offset = serviceLoads.length;
+    var maniDates = {};
+    var pediDates = {};
+    KOMBI_STAFF_IDS.forEach(function(staffId, idx) {
+      var maniRes = results[offset + idx * 2];
+      var pediRes = results[offset + idx * 2 + 1];
+      var maniList = maniRes && maniRes.data && maniRes.data.booking_dates ? maniRes.data.booking_dates : (maniRes && maniRes.booking_dates || []);
+      var pediList = pediRes && pediRes.data && pediRes.data.booking_dates ? pediRes.data.booking_dates : (pediRes && pediRes.booking_dates || []);
+      maniList.forEach(function(ds){ maniDates[ds] = true; });
+      pediList.forEach(function(ds){ pediDates[ds] = true; });
+    });
+    cw.availDates = Object.keys(maniDates).filter(function(ds){ return !!pediDates[ds]; }).sort();
+    console.log('[crocus] loadComboAvailDates: got '+cw.availDates.length+' dates: '+JSON.stringify(cw.availDates.slice(0,5)));
+    renderCalendar();
+  }).catch(function(e) {
+    console.error('[crocus] loadComboAvailDates error:', e);
+    renderCalendar();
+  });
 }
 
 function renderCalendar() {
@@ -1566,7 +1693,7 @@ function renderCalendar() {
 }
 
 function selectDate(ds) {
-  cw.date = ds; cw.time = null; cw.datetime = null; cw.comboAppointments = null;
+  cw.date = ds; cw.time = null; cw.datetime = null; cw.comboAppointments = null; cw.comboRoute = null;
   document.getElementById('cw-times-wrap').style.display = 'block';
   renderCalendar();
   loadTimes();
@@ -1613,8 +1740,8 @@ function addSecondsToAltegioDatetime(datetime, seconds) {
     +'T'+pad(local.getUTCHours())+':'+pad(local.getUTCMinutes())+':'+pad(local.getUTCSeconds())+suffix;
 }
 
-function comboAppointment(serviceId, datetime) {
-  return { id: serviceId, services: [serviceId], staff_id: cw.master.id, datetime: datetime };
+function comboAppointment(serviceId, staffId, datetime) {
+  return { id: serviceId, services: [serviceId], staff_id: Number(staffId), datetime: datetime };
 }
 
 function checkAppointments(appointments, client) {
@@ -1632,50 +1759,41 @@ function checkAppointments(appointments, client) {
 }
 
 function loadComboTimes() {
-  var staffId = cw.master.id;
-  var basePath = '/book_times/'+CONFIG.locationId+'/'+staffId+'/'+cw.date;
-  Promise.all([
-    apiGet(basePath, { service_ids: [KOMBI_MANI_SERVICE_ID] }),
-    apiGet(basePath, { service_ids: [KOMBI_PEDI_SERVICE_ID] }),
-  ]).then(function(results) {
-    var maniSlots = results[0].success ? (results[0].data || []) : [];
-    var pediSlots = results[1].success ? (results[1].data || []) : [];
-    var maniMap = {};
-    var pediMap = {};
-    maniSlots.forEach(function(slot){ maniMap[slot.datetime] = slot; });
-    pediSlots.forEach(function(slot){ pediMap[slot.datetime] = slot; });
-    var candidatesByStart = {};
+  var timeLoads = [];
+  KOMBI_STAFF_IDS.forEach(function(staffId) {
+    timeLoads.push(fetchStaffServices(staffId));
+    timeLoads.push(apiGet('/book_times/'+CONFIG.locationId+'/'+staffId+'/'+cw.date, { service_ids: [KOMBI_MANI_SERVICE_ID] }).catch(function(){ return null; }));
+    timeLoads.push(apiGet('/book_times/'+CONFIG.locationId+'/'+staffId+'/'+cw.date, { service_ids: [KOMBI_PEDI_SERVICE_ID] }).catch(function(){ return null; }));
+  });
 
-    maniSlots.forEach(function(slot) {
-      var maniDuration = slot.seance_length || slot.sum_length || 7200;
-      var afterMani = addSecondsToAltegioDatetime(slot.datetime, maniDuration);
-      if (pediMap[afterMani]) {
-        var route = [
-          comboAppointment(KOMBI_MANI_SERVICE_ID, slot.datetime),
-          comboAppointment(KOMBI_PEDI_SERVICE_ID, afterMani),
-        ];
-        slot.comboAppointments = route;
-        candidatesByStart[slot.datetime] = slot;
-      }
+  Promise.all(timeLoads).then(function(results) {
+    var byStaff = {};
+    KOMBI_STAFF_IDS.forEach(function(staffId, idx) {
+      var maniRes = results[idx * 3 + 1];
+      var pediRes = results[idx * 3 + 2];
+      var maniSlots = maniRes && maniRes.success ? (maniRes.data || []) : [];
+      var pediSlots = pediRes && pediRes.success ? (pediRes.data || []) : [];
+      byStaff[staffId] = {
+        mani: maniSlots,
+        pedi: pediSlots,
+        maniMap: {},
+        pediMap: {},
+      };
+      maniSlots.forEach(function(slot){ byStaff[staffId].maniMap[slot.datetime] = slot; });
+      pediSlots.forEach(function(slot){ byStaff[staffId].pediMap[slot.datetime] = slot; });
     });
 
-    pediSlots.forEach(function(slot) {
-      if (candidatesByStart[slot.datetime]) return;
-      var pediDuration = slot.seance_length || slot.sum_length || 5100;
-      var afterPedi = addSecondsToAltegioDatetime(slot.datetime, pediDuration);
-      if (maniMap[afterPedi]) {
-        var route = [
-          comboAppointment(KOMBI_PEDI_SERVICE_ID, slot.datetime),
-          comboAppointment(KOMBI_MANI_SERVICE_ID, afterPedi),
-        ];
-        slot.comboAppointments = route;
-        candidatesByStart[slot.datetime] = slot;
-      }
+    var candidatesByStart = {};
+    KOMBI_STAFF_IDS.forEach(function(maniStaffId) {
+      KOMBI_STAFF_IDS.forEach(function(pediStaffId) {
+        buildComboPairCandidates(byStaff, maniStaffId, pediStaffId, candidatesByStart);
+      });
     });
 
     var candidates = Object.keys(candidatesByStart).sort().map(function(datetime) {
       return candidatesByStart[datetime];
     });
+    console.log('[crocus] loadComboTimes: candidates='+candidates.length+' date='+cw.date);
     var verified = [];
     return candidates.reduce(function(chain, slot) {
       return chain.then(function() {
@@ -1690,6 +1808,124 @@ function loadComboTimes() {
     console.error('[crocus] loadComboTimes error:', err);
     renderTimesLoaded([]);
   });
+}
+
+function comboPriority(maniStaffId, pediStaffId) {
+  var selectedId = Number(cw.master && cw.master.id);
+  var sameMaster = Number(maniStaffId) === Number(pediStaffId);
+  if (sameMaster && Number(maniStaffId) === selectedId) return 0;
+  if (sameMaster) return 1;
+  if (Number(maniStaffId) === selectedId || Number(pediStaffId) === selectedId) return 2;
+  return 3;
+}
+
+function comboRouteLabel(route) {
+  if (!route) return cw.master ? cw.master.name : '';
+  if (route.maniStaffId === route.pediStaffId) return masterName(route.maniStaffId);
+  return 'Maniküre: '+masterName(route.maniStaffId)+' · Pediküre: '+masterName(route.pediStaffId);
+}
+
+function routeTotalPrice(route) {
+  if (!route) return 0;
+  return servicePriceForStaff(route.maniStaffId, KOMBI_MANI_SERVICE_ID)
+    + servicePriceForStaff(route.pediStaffId, KOMBI_PEDI_SERVICE_ID);
+}
+
+function routeTotalDuration(route) {
+  if (!route) return 0;
+  return (route.maniDuration || 0) + (route.pediDuration || 0);
+}
+
+function routeSortKey(route) {
+  return [
+    route.priority,
+    route.maniStaffId === route.pediStaffId ? 0 : 1,
+    route.endDatetime || '',
+    route.maniStaffId,
+    route.pediStaffId,
+  ].join('|');
+}
+
+function putBestCandidate(candidatesByStart, candidate) {
+  var current = candidatesByStart[candidate.datetime];
+  if (!current || routeSortKey(candidate.comboRoute) < routeSortKey(current.comboRoute)) {
+    candidatesByStart[candidate.datetime] = candidate;
+  }
+}
+
+function buildComboPairCandidates(byStaff, maniStaffId, pediStaffId, candidatesByStart) {
+  var maniData = byStaff[maniStaffId];
+  var pediData = byStaff[pediStaffId];
+  if (!maniData || !pediData) return;
+
+  maniData.mani.forEach(function(maniSlot) {
+    var maniDuration = serviceDurationForStaff(maniStaffId, KOMBI_MANI_SERVICE_ID, maniSlot, 0);
+    if (!maniDuration) return;
+    var pediStart = addSecondsToAltegioDatetime(maniSlot.datetime, maniDuration);
+    var pediSlot = pediData.pediMap[pediStart];
+    if (!pediSlot) return;
+    var pediDuration = serviceDurationForStaff(pediStaffId, KOMBI_PEDI_SERVICE_ID, pediSlot, 0);
+    if (!pediDuration) return;
+    putBestCandidate(candidatesByStart, makeComboCandidate({
+      startSlot: maniSlot,
+      order: 'mani_first',
+      maniStaffId: maniStaffId,
+      pediStaffId: pediStaffId,
+      maniDatetime: maniSlot.datetime,
+      pediDatetime: pediStart,
+      maniDuration: maniDuration,
+      pediDuration: pediDuration,
+    }));
+  });
+
+  pediData.pedi.forEach(function(pediSlot) {
+    var pediDuration = serviceDurationForStaff(pediStaffId, KOMBI_PEDI_SERVICE_ID, pediSlot, 0);
+    if (!pediDuration) return;
+    var maniStart = addSecondsToAltegioDatetime(pediSlot.datetime, pediDuration);
+    var maniSlot = maniData.maniMap[maniStart];
+    if (!maniSlot) return;
+    var maniDuration = serviceDurationForStaff(maniStaffId, KOMBI_MANI_SERVICE_ID, maniSlot, 0);
+    if (!maniDuration) return;
+    putBestCandidate(candidatesByStart, makeComboCandidate({
+      startSlot: pediSlot,
+      order: 'pedi_first',
+      maniStaffId: maniStaffId,
+      pediStaffId: pediStaffId,
+      maniDatetime: maniStart,
+      pediDatetime: pediSlot.datetime,
+      maniDuration: maniDuration,
+      pediDuration: pediDuration,
+    }));
+  });
+}
+
+function makeComboCandidate(opts) {
+  var route = {
+    order: opts.order,
+    maniStaffId: Number(opts.maniStaffId),
+    pediStaffId: Number(opts.pediStaffId),
+    maniDatetime: opts.maniDatetime,
+    pediDatetime: opts.pediDatetime,
+    maniDuration: opts.maniDuration,
+    pediDuration: opts.pediDuration,
+    priority: comboPriority(opts.maniStaffId, opts.pediStaffId),
+  };
+  route.endDatetime = addSecondsToAltegioDatetime(
+    opts.order === 'mani_first' ? opts.pediDatetime : opts.maniDatetime,
+    opts.order === 'mani_first' ? opts.pediDuration : opts.maniDuration
+  );
+  var candidate = Object.assign({}, opts.startSlot);
+  candidate.comboAppointments = opts.order === 'mani_first'
+    ? [
+        comboAppointment(KOMBI_MANI_SERVICE_ID, opts.maniStaffId, opts.maniDatetime),
+        comboAppointment(KOMBI_PEDI_SERVICE_ID, opts.pediStaffId, opts.pediDatetime),
+      ]
+    : [
+        comboAppointment(KOMBI_PEDI_SERVICE_ID, opts.pediStaffId, opts.pediDatetime),
+        comboAppointment(KOMBI_MANI_SERVICE_ID, opts.maniStaffId, opts.maniDatetime),
+      ];
+  candidate.comboRoute = route;
+  return candidate;
 }
 
 function renderTimesLoaded(slots) {
@@ -1710,6 +1946,7 @@ function renderTimesLoaded(slots) {
 
       cw.datetime = slot.datetime;
       cw.comboAppointments = slot.comboAppointments || null;
+      cw.comboRoute = slot.comboRoute || null;
       renderTimesLoaded(slots);
       setTimeout(function(){
         renderSummary();
@@ -1754,15 +1991,22 @@ function renderSummary() {
     return svc.price_min || 0;
   }
   var totalPrice = getMasterPrice(cw.service) + cw.addons.reduce(function(sum,a){ return sum+getMasterPrice(a); }, 0);
+  if (cw.service.id === KOMBI_SERVICE_ID && cw.comboRoute) {
+    totalPrice = routeTotalPrice(cw.comboRoute);
+  }
   var priceStr = totalPrice ? totalPrice+' €' : '—';
   var svcStr = cw.service.title + (cw.addons.length ? ' + '+cw.addons.map(addonDisplayName).join(' + ') : '');
   var comboDurationStr = '';
   if (cw.service.id === KOMBI_SERVICE_ID) {
-    comboDurationStr = Math.round((KOMBI_DURATION_BY_STAFF[cw.master.id] || 0) / 60)+' Min';
+    var routeDuration = cw.comboRoute ? routeTotalDuration(cw.comboRoute) : 0;
+    comboDurationStr = routeDuration ? Math.round(routeDuration / 60)+' Min' : '';
   }
+  var masterSummary = cw.service.id === KOMBI_SERVICE_ID && cw.comboRoute
+    ? comboRouteLabel(cw.comboRoute)
+    : cw.master.name;
 
   document.getElementById('cw-summary').innerHTML =
-    '<div class="cw-sum-row"><span>Meisterin</span><strong>'+cw.master.name
+    '<div class="cw-sum-row"><span>Meisterin</span><strong>'+masterSummary
       +'&ensp;<span style="font-size:9px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:1px 7px;border-radius:20px;color:'+(meta.levelColor||'#c9a87c')+';background:'+(meta.levelBg||'rgba(201,168,124,.1)')+';border:1px solid '+(meta.levelBorder||'rgba(201,168,124,.3)')+'">'+((meta.level)||'Master')+'</span>'
       +'</strong></div>'
     +'<div class="cw-sum-row"><span>Behandlung</span><strong>'+svcStr+'</strong></div>'
@@ -1861,7 +2105,10 @@ function submitBooking(e) {
     appointments: appointments,
   };
   if (cw.service.id === KOMBI_SERVICE_ID) {
-    bookingBody.comment = 'Kombi: Manikuere und Pedikuere nacheinander. Online-Gesamtpreis: 80 EUR.';
+    var routeComment = cw.comboRoute
+      ? comboRouteLabel(cw.comboRoute) + ' · Reihenfolge: ' + (cw.comboRoute.order === 'mani_first' ? 'Manikuere zuerst' : 'Pedikuere zuerst')
+      : 'ein Master';
+    bookingBody.comment = 'Kombi online: Manikuere und Pedikuere nacheinander. Route: ' + routeComment + '.';
   }
 
   console.log('[Crocus] Booking →', { phone, name, email, appointments });
@@ -1886,8 +2133,9 @@ function submitBooking(e) {
         ? new Date(cw.date+'T12:00:00').toLocaleDateString('de-DE',{weekday:'long',day:'numeric',month:'long'})
         : '';
       var svcStr = cw.service.title + (cw.addons.length ? ' + '+cw.addons.map(addonDisplayName).join(' + ') : '');
+      var successMaster = cw.service.id === KOMBI_SERVICE_ID && cw.comboRoute ? comboRouteLabel(cw.comboRoute) : cw.master.name;
       document.getElementById('cw-success-text').innerHTML =
-        '<strong>'+svcStr+'</strong> bei <strong>'+cw.master.name+'</strong><br>'+dateStr+', '+cw.time+' Uhr';
+        '<strong>'+svcStr+'</strong> bei <strong>'+successMaster+'</strong><br>'+dateStr+', '+cw.time+' Uhr';
       // Save client data + last booking for next visit
       try {
         localStorage.setItem('crocus_client', JSON.stringify({ name: name, phone: phone, email: email }));
@@ -1956,6 +2204,7 @@ function submitBooking(e) {
         cw.time = null;
         cw.datetime = null;
         cw.comboAppointments = null;
+        cw.comboRoute = null;
         goStep(5);
         loadTimes();
       }
@@ -1975,19 +2224,19 @@ function submitBooking(e) {
 // ── Calendar nav ───────────────────────────────────────────────
 function calPrev() {
   if (cw.calM === 0){ cw.calM=11; cw.calY--; } else cw.calM--;
-  cw.date=null; cw.time=null; cw.datetime=null; cw.comboAppointments=null;
+  cw.date=null; cw.time=null; cw.datetime=null; cw.comboAppointments=null; cw.comboRoute=null;
   renderCalendar(); loadAvailDates();
 }
 function calNext() {
   if (cw.calM === 11){ cw.calM=0; cw.calY++; } else cw.calM++;
-  cw.date=null; cw.time=null; cw.datetime=null; cw.comboAppointments=null;
+  cw.date=null; cw.time=null; cw.datetime=null; cw.comboAppointments=null; cw.comboRoute=null;
   renderCalendar(); loadAvailDates();
 }
 
 // ── Reset ──────────────────────────────────────────────────────
 function crocusReset() {
   cw = { step:1, master:null, category:null, service:null, addons:[],
-         date:null, time:null, datetime:null, comboAppointments:null,
+         date:null, time:null, datetime:null, comboAppointments:null, comboRoute:null,
          calY:new Date().getFullYear(), calM:new Date().getMonth(), availDates:[] };
   // Always re-enable submit button in case previous attempt left it disabled
   var submitBtn = document.getElementById('cw-btn-submit');
