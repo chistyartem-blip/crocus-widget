@@ -139,6 +139,17 @@ var ADDON_NAME_OVERRIDE = {
   13502395: 'Mandel-Form',
   13493664: 'Lange Nagel',
 };
+
+// Статические данные аддонов — используются как немедленный fallback если API пуст
+var ADDON_STATIC_DATA = [
+  { id: 13485756, title: 'French',           price_min: 5  },
+  { id: 13485757, title: 'Babyboomer',        price_min: 10 },
+  { id: 13485758, title: 'Stiletto-Form',     price_min: 10 },
+  { id: 13502359, title: 'Gel-Lack (Farbe)',  price_min: 5  },
+  { id: 13502360, title: 'Design',            price_min: 5  },
+  { id: 13502395, title: 'Mandel-Form',       price_min: 5  },
+  { id: 13493664, title: 'Lange Nagel',       price_min: 10 },
+];
 function addonDisplayName(addon) {
   if (addon._kombiLabel) return addon._kombiLabel;
   return ADDON_NAME_OVERRIDE[addon.id] || addon.title;
@@ -1282,9 +1293,15 @@ function renderAddons() {
   list.innerHTML = '';
   cw.addons = [];
 
-  // Если _addonObjs пустой — восстановить из глобального кэша
+  // Если _addonObjs пустой — восстановить из глобального кэша или статики
   if (!_addonObjs.length && _globalAddonObjs.length) {
     _addonObjs = _globalAddonObjs.slice();
+  }
+  if (!_addonObjs.length) {
+    // Ни кэш ни глобальный кэш не заполнены — используем статику немедленно
+    _addonObjs = ADDON_STATIC_DATA.slice();
+    _globalAddonObjs = ADDON_STATIC_DATA.slice();
+    console.warn('[crocus] renderAddons: _addonObjs empty — initialized from ADDON_STATIC_DATA');
   }
 
   console.log('[crocus] renderAddons: _addonObjs='+_addonObjs.length+' _globalAddonObjs='+_globalAddonObjs.length+' master='+(cw.master ? cw.master.id : 'null')+' service='+(cw.service ? cw.service.id : 'null'));
@@ -1348,52 +1365,59 @@ function renderAddons() {
   console.log('[crocus] renderAddons: filteredAddons='+filteredAddons.length);
 
   if (!filteredAddons.length) {
-    // Аддоны пустые — загрузить напрямую из API и повторить
-    console.warn('[crocus] renderAddons: empty, fetching addons from API...');
+    // filteredAddons пустой — немедленно восстанавливаем из статического fallback
     var serviceHasDefinedAddons = cw.service && ADDON_IDS_BY_SERVICE[cw.service.id] && ADDON_IDS_BY_SERVICE[cw.service.id].length > 0;
-    apiGet('/book_services/'+CONFIG.locationId)
-      .then(function(res){
-        if (res.success && res.data && res.data.services) {
-          var fromApi = res.data.services.filter(function(s){ return ADDON_IDS.indexOf(s.id) !== -1; });
-          if (fromApi.length) {
-            _addonObjs = fromApi;
-            _globalAddonObjs = fromApi.slice();
-            renderAddons(); // повторный рендер
-            return;
-          }
+    if (serviceHasDefinedAddons) {
+      console.warn('[crocus] renderAddons: filteredAddons empty — applying ADDON_STATIC_DATA immediately');
+      _addonObjs = ADDON_STATIC_DATA.slice();
+      _globalAddonObjs = ADDON_STATIC_DATA.slice();
+      // Повторный рендер с статическими данными (синхронно)
+      var filteredStatic = _addonObjs.filter(function(s){
+        if (cw.service && ADDON_IDS_BY_SERVICE[cw.service.id]) {
+          if (ADDON_IDS_BY_SERVICE[cw.service.id].indexOf(s.id) === -1) return false;
         }
-        // Всё равно пусто — если услуга должна иметь допы, создаём fallback-объекты из констант
-        if (serviceHasDefinedAddons) {
-          console.warn('[crocus] renderAddons: API returned no addons — using static fallback');
-          var fallback = ADDON_IDS.map(function(id){
-            return { id: id, title: ADDON_NAME_OVERRIDE[id] || ('Addon '+id), price_min: 0, price_max: 0 };
-          });
-          _addonObjs = fallback;
-          _globalAddonObjs = fallback.slice();
-          renderAddons();
-          return;
-        }
-        buildStep5Sub();
-        goStep(5);
-        renderCalendar();
-        loadAvailDates();
-      })
-      .catch(function(){
-        if (serviceHasDefinedAddons) {
-          console.warn('[crocus] renderAddons: API error — using static fallback');
-          var fallback = ADDON_IDS.map(function(id){
-            return { id: id, title: ADDON_NAME_OVERRIDE[id] || ('Addon '+id), price_min: 0, price_max: 0 };
-          });
-          _addonObjs = fallback;
-          _globalAddonObjs = fallback.slice();
-          renderAddons();
-          return;
-        }
-        buildStep5Sub();
-        goStep(5);
-        renderCalendar();
-        loadAvailDates();
+        if (s.id === 13502395 && cw.master && MANDEL_STAFF_IDS.indexOf(cw.master.id) === -1) return false;
+        if (s.id === 13485758 && cw.master && STILETTO_STAFF_IDS.indexOf(cw.master.id) === -1) return false;
+        if (s.id === 13485757 && cw.master && BABYBOOMER_STAFF_IDS.indexOf(cw.master.id) === -1) return false;
+        return true;
       });
+      filteredStatic.sort(function(a, b){ return ADDON_IDS.indexOf(a.id) - ADDON_IDS.indexOf(b.id); });
+      filteredStatic.forEach(function(s) {
+        var priceStr = s.price_min ? '+ '+s.price_min+' €' : '';
+        var btn = document.createElement('button');
+        btn.className = 'cw-addon-btn';
+        btn.dataset.id = s.id;
+        btn.innerHTML =
+          '<div class="cw-addon-check"></div>'
+          + '<div class="cw-addon-info">'
+            + '<div class="cw-addon-name">'+addonDisplayName(s)+'</div>'
+            + (priceStr ? '<div class="cw-addon-price">'+priceStr+'</div>' : '')
+          + '</div>';
+        btn.addEventListener('click', (function(sv, b){
+          return function(){
+            var idx = cw.addons.findIndex(function(a){ return a.id === sv.id; });
+            if (idx === -1) {
+              cw.addons.push(sv);
+              b.classList.add('sel');
+              b.querySelector('.cw-addon-check').textContent = '✓';
+            } else {
+              cw.addons.splice(idx, 1);
+              b.classList.remove('sel');
+              b.querySelector('.cw-addon-check').textContent = '';
+            }
+            var nextBtn = document.getElementById('cw-next-addon');
+            if (nextBtn) nextBtn.style.display = cw.addons.length ? 'block' : 'none';
+          };
+        })(s, btn));
+        list.appendChild(btn);
+      });
+      return; // Статика отрендерена — конец
+    }
+    // Услуга не должна иметь допов — пропустить шаг
+    buildStep5Sub();
+    goStep(5);
+    renderCalendar();
+    loadAvailDates();
     return;
   }
 
