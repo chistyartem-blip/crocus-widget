@@ -11,6 +11,14 @@ on:
         type: boolean
         required: true
         default: false
+      report_mode:
+        description: "Report mode"
+        type: choice
+        required: false
+        default: "deep"
+        options:
+          - small
+          - deep
 
 jobs:
   governor:
@@ -37,6 +45,7 @@ jobs:
           GOOGLE_ADS_LOGIN_CUSTOMER_ID: ${{ secrets.GOOGLE_ADS_LOGIN_CUSTOMER_ID }}
           ADS_GOVERNOR_APPLY: ${{ github.event_name == 'workflow_dispatch' && inputs.apply && 'true' || github.event_name != 'workflow_dispatch' && vars.ADS_GOVERNOR_APPLY || 'false' }}
           ADS_GOVERNOR_FORCE_TELEGRAM: ${{ github.event_name == 'workflow_dispatch' && 'true' || 'false' }}
+          ADS_GOVERNOR_REPORT_MODE: ${{ github.event_name == 'workflow_dispatch' && inputs.report_mode || '' }}
           ADS_GOVERNOR_MAX_DAILY_BUDGET_EUR: ${{ vars.ADS_GOVERNOR_MAX_DAILY_BUDGET_EUR || '30' }}
           ADS_GOVERNOR_LOOKAHEAD_DAYS: ${{ vars.ADS_GOVERNOR_LOOKAHEAD_DAYS || '14' }}
           ADS_GOVERNOR_REPORT_EVERY_HOURS: ${{ vars.ADS_GOVERNOR_REPORT_EVERY_HOURS || '3' }}

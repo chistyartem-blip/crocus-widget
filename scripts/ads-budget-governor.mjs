@@ -13,6 +13,7 @@ const CONFIG = {
   lookAheadDays: envNumber('ADS_GOVERNOR_LOOKAHEAD_DAYS', 14),
   reportEveryHours: envNumber('ADS_GOVERNOR_REPORT_EVERY_HOURS', 3),
   forceTelegram: envBool('ADS_GOVERNOR_FORCE_TELEGRAM', false),
+  reportMode: env('ADS_GOVERNOR_REPORT_MODE', ''),
   altegioProxyBase: env('ALTEGIO_PROXY_BASE', 'https://crocus-proxy.crocusbeautystudio.workers.dev/api/proxy'),
   altegioLocationId: env('ALTEGIO_LOCATION_ID', '1357963'),
   telegram: {
@@ -984,6 +985,8 @@ function padHour(hour) {
 }
 
 function reportKind(date) {
+  if (CONFIG.reportMode === 'small') return 'ops';
+  if (CONFIG.reportMode === 'deep') return 'manual';
   if (CONFIG.forceTelegram) return 'manual';
   const local = new Date(date.toLocaleString('en-US', { timeZone: 'Europe/Berlin' }));
   return local.getHours() === 8 ? 'daily' : 'ops';
