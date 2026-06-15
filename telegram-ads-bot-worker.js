@@ -51,6 +51,12 @@ export default {
       return json({ ok: true, dispatched: 'dryrun' });
     }
 
+    if (env.OPENAI_API_KEY) {
+      const answer = await askOpenAI(env, text);
+      await sendTelegram(env, chatId, answer);
+      return json({ ok: true, answered: 'openai' });
+    }
+
     await sendTelegram(env, chatId, `${R('unknown')}\n\n${commandsText()}`);
     return json({ ok: true, skipped: 'unknown command' });
   },
@@ -97,6 +103,39 @@ async function sendTelegram(env, chatId, text) {
     body: JSON.stringify({ chat_id: chatId, text, disable_web_page_preview: true }),
   });
   if (!res.ok) throw new Error(`Telegram send failed: ${res.status}`);
+}
+
+async function askOpenAI(env, userText) {
+  const model = env.OPENAI_MODEL || 'gpt-4o-mini';
+  const system = [
+    'You are a concise Russian-speaking performance marketing assistant for Crocus Beauty Studio in Goeppingen.',
+    'Context: budget cap is 30 EUR/day total; campaigns are PMax, Slim Manikuere, Slim Pedikuere.',
+    'The system is slot-aware: Altegio slots decide what to push, hold, or protect.',
+    'Never invent live metrics. If the user asks for current spend, clicks, conversions, slots, or decisions, tell them to ask for a fresh check/status in Russian. The workflow must pull real Google Ads and Altegio data.',
+    'Explain decisions in plain Russian for a business owner and spouse, not as a technical log.',
+    'Do not reveal secrets, tokens, IDs, or internal credentials.',
+    'If the user asks to apply changes, tell them to write an apply request in Russian. The guarded workflow will handle it.',
+  ].join('\n');
+
+  const res = await fetch('https://api.openai.com/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${env.OPENAI_API_KEY}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      model,
+      temperature: 0.35,
+      max_tokens: 650,
+      messages: [
+        { role: 'system', content: system },
+        { role: 'user', content: userText },
+      ],
+    }),
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) return `${R('ai_error')} ${data.error?.message || res.status}`;
+  return (data.choices?.[0]?.message?.content || R('ai_empty')).slice(0, 3500);
 }
 
 function json(body, status = 200) {

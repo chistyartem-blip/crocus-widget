@@ -48,6 +48,7 @@ Worker secrets:
 - `TELEGRAM_CHAT_ID`
 - `TELEGRAM_WEBHOOK_SECRET`
 - `GITHUB_TOKEN`
+- `OPENAI_API_KEY` optional, for free-form chat
 
 Worker vars:
 
@@ -55,6 +56,7 @@ Worker vars:
 - `GITHUB_REPO=crocus-widget`
 - `GITHUB_WORKFLOW_ID=ads-budget-governor.yml`
 - `GITHUB_REF=main`
+- `OPENAI_MODEL=gpt-4o-mini` optional
 
 Commands:
 
@@ -64,6 +66,8 @@ Commands:
 - `/apply`
 
 `/dryrun` and `/apply` trigger the GitHub Actions workflow. The governor then sends the report back to Telegram after it finishes.
+
+If `OPENAI_API_KEY` is configured, non-command messages become a Russian marketing chat assistant for this Crocus Ads context. It must not invent live stats; for current numbers it asks the user to run a fresh check.
 
 Webhook setup:
 

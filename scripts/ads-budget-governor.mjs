@@ -471,7 +471,7 @@ async function altegioGet(altegioPath, query) {
     for (const item of values) url.searchParams.append(key, String(item));
   }
 
-  const res = await fetch(url, { headers: { Accept: 'application/vnd.api.v2+json' } });
+  const res = await fetchWithRetry(url, { headers: { Accept: 'application/vnd.api.v2+json' } });
   if (!res.ok) throw new Error(`Altegio ${res.status} for ${altegioPath}`);
   return res.json();
 }
@@ -483,7 +483,7 @@ async function googleAccessToken() {
     refresh_token: CONFIG.google.refreshToken,
     grant_type: 'refresh_token',
   });
-  const res = await fetch('https://oauth2.googleapis.com/token', { method: 'POST', body });
+  const res = await fetchWithRetry('https://oauth2.googleapis.com/token', { method: 'POST', body });
   const data = await res.json();
   if (!res.ok) throw new Error(`Google OAuth failed: ${data.error || res.status}`);
   return data.access_token;
@@ -491,7 +491,7 @@ async function googleAccessToken() {
 
 async function gadsSearch(accessToken, query) {
   const url = `https://googleads.googleapis.com/${CONFIG.google.apiVersion}/customers/${CONFIG.google.customerId}/googleAds:searchStream`;
-  const res = await fetch(url, {
+  const res = await fetchWithRetry(url, {
     method: 'POST',
     headers: googleHeaders(accessToken),
     body: JSON.stringify({ query: query.replace(/\s+/g, ' ').trim() }),
@@ -503,7 +503,7 @@ async function gadsSearch(accessToken, query) {
 
 async function googleMutate(accessToken, service, operations) {
   const url = `https://googleads.googleapis.com/${CONFIG.google.apiVersion}/customers/${CONFIG.google.customerId}/${service}:mutate`;
-  const res = await fetch(url, {
+  const res = await fetchWithRetry(url, {
     method: 'POST',
     headers: googleHeaders(accessToken),
     body: JSON.stringify({ operations, partialFailure: false }),
@@ -529,24 +529,40 @@ function renderTelegramSummary(report) {
     ? R('changes_on', { budgets: report.plan.budgets.length, bids: report.plan.keywordBidUpdates.length })
     : R('dry_run_plan', { budgets: report.plan.budgets.length, bids: report.plan.keywordBidUpdates.length });
   const slotLines = report.decisions.map((d) =>
-    `${ruCategory(d.category)}: ${d.today_slots} ${R('today_lc')} / ${d.next_7_days_slots} ${R('next7')} -> ${ruMode(d.recommended_mode)}`
+    `${modeIcon(d.recommended_mode)} ${ruCategory(d.category)}: ${d.today_slots} ${R('today_lc')} / ${d.next_7_days_slots} ${R('next7')} -> ${ruMode(d.recommended_mode)}`
   );
+  const todayCpl = cplText(todayPerf);
+  const yesterdayCpl = cplText(yesterdayPerf);
+  const health = report.guard.hard_stop ? R('health_stop') : report.guard.warnings.length ? R('health_warn') : R('health_ok');
+  const didText = report.apply
+    ? R('did_apply', { budgets: report.plan.budgets.length, bids: report.plan.keywordBidUpdates.length })
+    : R('did_dryrun', { budgets: report.plan.budgets.length, bids: report.plan.keywordBidUpdates.length });
+  const meaning = meaningText(report);
   return [
-    `Crocus Ads: ${R('short_report')}`,
+    `${R('title')}`,
+    `${health}`,
     '',
-    `${R('now')}: ${todayPerf.impressions} ${R('impressions')}, ${todayPerf.clicks} ${R('clicks')}, ${round2(todayPerf.cost_eur)} EUR, ${R('conversions_short')} ${round2(todayPerf.conversions)}.`,
-    `${R('yesterday')}: ${yesterdayPerf.clicks} ${R('clicks')}, ${round2(yesterdayPerf.cost_eur)} EUR, ${R('conversions_short')} ${round2(yesterdayPerf.conversions)}, CPL ${cplText(yesterdayPerf)}.`,
-    `7 ${R('days')}: ${round2(last7.cost_eur)} EUR, ${R('conversions_short')} ${round2(last7.conversions)}, CPL ${cplText(last7)}.`,
-    `${R('month')}: ${round2(mtd.cost_eur)} EUR, ${R('conversions_short')} ${round2(mtd.conversions)}, CPL ${cplText(mtd)}.`,
+    `${R('block_now')}`,
+    `${R('today_line', { impressions: todayPerf.impressions, clicks: todayPerf.clicks, cost: round2(todayPerf.cost_eur), conv: round2(todayPerf.conversions), cpl: todayCpl })}`,
+    `${R('yesterday_line', { clicks: yesterdayPerf.clicks, cost: round2(yesterdayPerf.cost_eur), conv: round2(yesterdayPerf.conversions), cpl: yesterdayCpl })}`,
+    `${R('period_line', { label: '7 ' + R('days'), cost: round2(last7.cost_eur), conv: round2(last7.conversions), cpl: cplText(last7) })}`,
+    `${R('period_line', { label: R('month'), cost: round2(mtd.cost_eur), conv: round2(mtd.conversions), cpl: cplText(mtd) })}`,
     '',
-    `${R('slots')}:`,
+    `${R('block_slots')}`,
     ...slotLines,
     '',
-    `${R('decision')}: ${actionText}`,
-    `${R('protection')}: ${report.guard.hard_stop ? R('stop') : R('ok')}${report.guard.warnings.length ? `, ${R('warnings')}` : `, ${R('no_warnings')}`}.`,
-    `${R('billing')}: ${billingDueText(report.billing)}`,
+    `${R('block_meaning')}`,
+    `${meaning}`,
     '',
-    `${R('next')}: ${nextStepText(report)}`,
+    `${R('block_actions')}`,
+    `${didText}`,
+    '',
+    `${R('block_money')}`,
+    `${R('billing')}: ${billingDueText(report.billing)}`,
+    `${R('limit_line', { limit: report.max_daily_budget_eur })}`,
+    '',
+    `${R('block_next')}`,
+    `${nextStepText(report)}`,
   ].join('\n');
 }
 
@@ -554,7 +570,7 @@ async function sendTelegramReport(text) {
   if (!CONFIG.telegram.botToken || !CONFIG.telegram.chatId) return { skipped: 'telegram_not_configured' };
 
   const url = `https://api.telegram.org/bot${CONFIG.telegram.botToken}/sendMessage`;
-  const res = await fetch(url, {
+  const res = await fetchWithRetry(url, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
@@ -568,6 +584,23 @@ async function sendTelegramReport(text) {
   return { ok: true };
 }
 
+async function fetchWithRetry(url, options = {}, attempts = 3) {
+  let lastError;
+  for (let i = 0; i < attempts; i++) {
+    try {
+      return await fetch(url, options);
+    } catch (error) {
+      lastError = error;
+      if (i < attempts - 1) await sleep(750 * (i + 1));
+    }
+  }
+  throw lastError;
+}
+
+function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 function metricRow(label, metrics) {
   const cpl = metrics.conversions > 0 ? `${round2(metrics.cost_eur / metrics.conversions)} EUR` : '-';
   return `| ${label} | ${metrics.impressions} | ${metrics.clicks} | ${round2(metrics.cost_eur)} EUR | ${round2(metrics.conversions)} | ${cpl} |`;
@@ -575,6 +608,16 @@ function metricRow(label, metrics) {
 
 function cplText(metrics) {
   return metrics.conversions > 0 ? `${round2(metrics.cost_eur / metrics.conversions)} EUR` : '-';
+}
+
+function modeIcon(mode) {
+  const map = {
+    push: '\u{1F7E2}',
+    push_mobile_today: '\u{1F7E1}',
+    hold: '\u{26AA}',
+    protect_budget: '\u{1F534}',
+  };
+  return map[mode] || '\u{26AA}';
 }
 
 function shortCampaign(name) {
@@ -633,6 +676,15 @@ function nextStepText(report) {
   return R('hold_budget');
 }
 
+function meaningText(report) {
+  if (report.guard.hard_stop) return R('meaning_stop');
+  const push = report.decisions.filter((d) => d.recommended_mode === 'push' || d.recommended_mode === 'push_mobile_today').map((d) => ruCategory(d.category));
+  const protect = report.decisions.filter((d) => d.recommended_mode === 'protect_budget').map((d) => ruCategory(d.category));
+  if (push.length && protect.length) return R('meaning_push_protect', { push: push.join(', '), protect: protect.join(', ') });
+  if (push.length) return R('meaning_push', { push: push.join(', ') });
+  return R('meaning_hold');
+}
+
 function shouldSendTelegram(report) {
   if (CONFIG.forceTelegram) return true;
   if (!CONFIG.telegram.botToken || !CONFIG.telegram.chatId) return false;
@@ -642,6 +694,27 @@ function shouldSendTelegram(report) {
 
 function R(key, vars = {}) {
   const dict = {
+    title: '\u{1F4CA} Crocus Ads: \u043f\u043e\u043d\u044f\u0442\u043d\u044b\u0439 \u043e\u0442\u0447\u0435\u0442',
+    health_ok: '\u{1F7E2} \u0421\u0442\u0430\u0442\u0443\u0441: \u0432\u0441\u0435 \u0440\u043e\u0432\u043d\u043e, \u0441\u0442\u043e\u043f\u044b \u043d\u0435 \u0441\u0440\u0430\u0431\u043e\u0442\u0430\u043b\u0438.',
+    health_warn: '\u{1F7E1} \u0421\u0442\u0430\u0442\u0443\u0441: \u0435\u0441\u0442\u044c \u043f\u0440\u0435\u0434\u0443\u043f\u0440\u0435\u0436\u0434\u0435\u043d\u0438\u044f, \u0441\u043a\u0440\u0438\u043f\u0442 \u043e\u0441\u0442\u043e\u0440\u043e\u0436\u043d\u0438\u0447\u0430\u0435\u0442.',
+    health_stop: '\u{1F534} \u0421\u0442\u0430\u0442\u0443\u0441: \u0436\u0435\u0441\u0442\u043a\u0438\u0439 \u0441\u0442\u043e\u043f, \u0440\u0435\u043a\u043b\u0430\u043c\u0443 \u043d\u0435 \u0442\u0440\u043e\u0433\u0430\u0435\u043c.',
+    block_now: '\u{1F4CD} \u0427\u0442\u043e \u0441\u0435\u0439\u0447\u0430\u0441',
+    block_slots: '\u{1F4C5} \u0421\u043b\u043e\u0442\u044b \u0438 \u043a\u0443\u0434\u0430 \u043b\u0438\u0442\u044c',
+    block_meaning: '\u{1F9E0} \u0427\u0442\u043e \u044d\u0442\u043e \u0437\u043d\u0430\u0447\u0438\u0442',
+    block_actions: '\u{1F6E0} \u0427\u0442\u043e \u0441\u0434\u0435\u043b\u0430\u043b \u0441\u043a\u0440\u0438\u043f\u0442',
+    block_money: '\u{1F4B6} \u0414\u0435\u043d\u044c\u0433\u0438',
+    block_next: '\u{1F680} \u0414\u0430\u043b\u044c\u0448\u0435',
+    today_line: '\u0421\u0435\u0433\u043e\u0434\u043d\u044f: {impressions} \u043f\u043e\u043a\u0430\u0437\u043e\u0432, {clicks} \u043a\u043b\u0438\u043a\u043e\u0432, {cost} EUR, {conv} \u043a\u043e\u043d\u0432. Ads, CPL {cpl}.',
+    yesterday_line: '\u0412\u0447\u0435\u0440\u0430: {clicks} \u043a\u043b\u0438\u043a\u043e\u0432, {cost} EUR, {conv} \u043a\u043e\u043d\u0432. Ads, CPL {cpl}.',
+    period_line: '{label}: {cost} EUR, {conv} \u043a\u043e\u043d\u0432. Ads, CPL {cpl}.',
+    did_apply: '\u041f\u0440\u0438\u043c\u0435\u043d\u0438\u043b: {budgets} \u043f\u0440\u0430\u0432\u043e\u043a \u0431\u044e\u0434\u0436\u0435\u0442\u0430, {bids} \u043f\u0440\u0430\u0432\u043e\u043a \u0441\u0442\u0430\u0432\u043e\u043a.',
+    did_dryrun: '\u041d\u0438\u0447\u0435\u0433\u043e \u043d\u0435 \u043c\u0435\u043d\u044f\u043b: \u044d\u0442\u043e dry-run. \u041f\u043b\u0430\u043d \u0433\u043e\u0442\u043e\u0432: {budgets} \u0431\u044e\u0434\u0436\u0435\u0442\u0430, {bids} \u0441\u0442\u0430\u0432\u043e\u043a.',
+    plan_line: '\u041f\u043b\u0430\u043d',
+    limit_line: '\u041b\u0438\u043c\u0438\u0442 \u0432 \u0441\u0443\u0442\u043a\u0438: {limit} EUR.',
+    meaning_stop: '\u0415\u0441\u0442\u044c \u0441\u0442\u043e\u043f-\u0443\u0441\u043b\u043e\u0432\u0438\u0435. \u041b\u0443\u0447\u0448\u0435 \u0441\u043d\u0430\u0447\u0430\u043b\u0430 \u0440\u0430\u0437\u043e\u0431\u0440\u0430\u0442\u044c \u043f\u0440\u0438\u0447\u0438\u043d\u0443, \u0447\u0435\u043c \u0434\u0432\u0438\u0433\u0430\u0442\u044c \u0434\u0435\u043d\u044c\u0433\u0438.',
+    meaning_push_protect: '\u0415\u0441\u0442\u044c \u043a\u0443\u0434\u0430 \u0437\u0430\u043f\u0438\u0441\u044b\u0432\u0430\u0442\u044c: {push}. \u0412 {protect} \u0441\u0435\u0439\u0447\u0430\u0441 \u043d\u0435 \u043b\u044c\u0435\u043c, \u0442\u0430\u043c \u043d\u0435\u0442 \u0435\u043c\u043a\u043e\u0441\u0442\u0438.',
+    meaning_push: '\u0415\u0441\u0442\u044c \u0435\u043c\u043a\u043e\u0441\u0442\u044c \u043f\u043e {push}. \u041c\u043e\u0436\u043d\u043e \u0430\u043a\u043a\u0443\u0440\u0430\u0442\u043d\u043e \u0443\u0441\u0438\u043b\u0438\u0432\u0430\u0442\u044c \u0432 \u0440\u0430\u043c\u043a\u0430\u0445 \u043b\u0438\u043c\u0438\u0442\u0430.',
+    meaning_hold: '\u0421\u0435\u0439\u0447\u0430\u0441 \u043d\u0435\u0442 \u044f\u0432\u043d\u043e\u0433\u043e \u0441\u0438\u0433\u043d\u0430\u043b\u0430 \u0434\u043b\u044f \u0443\u0441\u0438\u043b\u0435\u043d\u0438\u044f. \u0414\u0435\u0440\u0436\u0438\u043c \u0431\u044e\u0434\u0436\u0435\u0442.',
     short_report: '\u043a\u043e\u0440\u043e\u0442\u043a\u0438\u0439 \u043e\u0442\u0447\u0435\u0442',
     now: '\u0421\u0435\u0439\u0447\u0430\u0441',
     yesterday: '\u0412\u0447\u0435\u0440\u0430',
@@ -685,7 +758,8 @@ function R(key, vars = {}) {
     within_limit: '\u0432 \u0440\u0430\u043c\u043a\u0430\u0445 \u043b\u0438\u043c\u0438\u0442\u0430',
     hold_budget: '\u0434\u0435\u0440\u0436\u0430\u0442\u044c \u0431\u044e\u0434\u0436\u0435\u0442 \u0438 \u0436\u0434\u0430\u0442\u044c \u043d\u043e\u0432\u044b\u0435 \u0434\u0430\u043d\u043d\u044b\u0435',
   };
-  return dict[key] || key;
+  const template = dict[key] || key;
+  return Object.entries(vars).reduce((text, [name, value]) => text.replaceAll(`{${name}}`, String(value)), template);
 }
 function googleHeaders(accessToken) {
   return {
@@ -806,4 +880,5 @@ function dateOnly(date) {
 function isoStamp(date) {
   return date.toISOString().replace(/[:.]/g, '-');
 }
+
 
