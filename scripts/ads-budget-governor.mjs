@@ -983,7 +983,7 @@ function metricRow(label, metrics) {
 function card(title, lines) {
   const clean = lines.filter(Boolean);
   if (!clean.length) return '';
-  return [`${title}`, ...clean.map((line) => `â€¢ ${line}`)].join('\n');
+  return [`${title}`, ...clean.map((line) => `- ${line}`)].join('\n');
 }
 
 function campaignPerformanceLines(campaigns) {
