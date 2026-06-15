@@ -41,6 +41,8 @@ jobs:
           ADS_GOVERNOR_LOOKAHEAD_DAYS: ${{ vars.ADS_GOVERNOR_LOOKAHEAD_DAYS || '14' }}
           ALTEGIO_PROXY_BASE: ${{ vars.ALTEGIO_PROXY_BASE || 'https://crocus-proxy.crocusbeautystudio.workers.dev/api/proxy' }}
           ALTEGIO_LOCATION_ID: ${{ vars.ALTEGIO_LOCATION_ID || '1357963' }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
         run: node scripts/ads-budget-governor.mjs
 
       - name: Upload report
@@ -48,5 +50,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: ads-governor-report
-          path: reports/*.json
+          path: |
+            reports/*.json
+            reports/*.md
           if-no-files-found: ignore

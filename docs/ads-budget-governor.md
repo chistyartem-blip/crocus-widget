@@ -14,6 +14,7 @@
 - If required Google Ads env vars are missing, it exits before changing anything.
 - Dry-run by default; real mutations only when `ADS_GOVERNOR_APPLY=true`.
 - Every run writes a JSON report to `reports/`.
+- Every run also writes a Markdown report and can send a Telegram summary.
 
 ## Local Dry-Run
 
@@ -29,6 +30,48 @@ ADS_GOVERNOR_APPLY=false node scripts/ads-budget-governor.mjs
 - `GOOGLE_ADS_DEVELOPER_TOKEN`
 - `GOOGLE_ADS_CUSTOMER_ID`
 - `GOOGLE_ADS_LOGIN_CUSTOMER_ID`
+
+Optional Telegram Secrets:
+
+- `TELEGRAM_BOT_TOKEN`
+- `TELEGRAM_CHAT_ID`
+
+## Telegram Bot Commands
+
+The scheduled governor sends Telegram reports when `TELEGRAM_BOT_TOKEN` and `TELEGRAM_CHAT_ID` are configured in GitHub Secrets.
+
+For interactive commands, deploy `telegram-ads-bot-worker.js` as a Cloudflare Worker and set the Telegram webhook to that Worker URL.
+
+Worker secrets:
+
+- `TELEGRAM_BOT_TOKEN`
+- `TELEGRAM_CHAT_ID`
+- `TELEGRAM_WEBHOOK_SECRET`
+- `GITHUB_TOKEN`
+
+Worker vars:
+
+- `GITHUB_OWNER=chistyartem-blip`
+- `GITHUB_REPO=crocus-widget`
+- `GITHUB_WORKFLOW_ID=ads-budget-governor.yml`
+- `GITHUB_REF=main`
+
+Commands:
+
+- `/help`
+- `/status`
+- `/dryrun`
+- `/apply`
+
+`/dryrun` and `/apply` trigger the GitHub Actions workflow. The governor then sends the report back to Telegram after it finishes.
+
+Webhook setup:
+
+```bash
+curl "https://api.telegram.org/bot$TELEGRAM_BOT_TOKEN/setWebhook" \
+  -d "url=https://YOUR_WORKER.YOUR_SUBDOMAIN.workers.dev" \
+  -d "secret_token=$TELEGRAM_WEBHOOK_SECRET"
+```
 
 ## Recommended GitHub Variables
 
@@ -49,3 +92,15 @@ At each run, the script:
 5. Plans budgets under the daily cap.
 6. Plans cautious Search CPC changes with a max `0.15 EUR` per-keyword delta per run.
 7. Applies changes only when `ADS_GOVERNOR_APPLY=true`.
+8. Writes JSON + Markdown reports and sends Telegram if configured.
+
+## Report Contents
+
+The report explains:
+
+- yesterday vs today performance: impressions, clicks, spend, conversions, CPL
+- live slot counts today and next 7 days
+- decision per category: `push`, `push_mobile_today`, `hold`, `protect_budget`
+- budget changes planned/applied
+- keyword bid changes planned/applied
+- guard warnings and hard stops

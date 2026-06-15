@@ -13,6 +13,10 @@ const CONFIG = {
   lookAheadDays: envNumber('ADS_GOVERNOR_LOOKAHEAD_DAYS', 14),
   altegioProxyBase: env('ALTEGIO_PROXY_BASE', 'https://crocus-proxy.crocusbeautystudio.workers.dev/api/proxy'),
   altegioLocationId: env('ALTEGIO_LOCATION_ID', '1357963'),
+  telegram: {
+    botToken: env('TELEGRAM_BOT_TOKEN'),
+    chatId: env('TELEGRAM_CHAT_ID'),
+  },
   google: {
     clientId: env('GOOGLE_ADS_CLIENT_ID'),
     clientSecret: env('GOOGLE_ADS_CLIENT_SECRET'),
@@ -67,6 +71,7 @@ fs.mkdirSync(REPORT_DIR, { recursive: true });
 const now = new Date();
 const runId = isoStamp(now);
 const reportPath = path.join(REPORT_DIR, `ads-governor-${runId}.json`);
+const reportMdPath = path.join(REPORT_DIR, `ads-governor-${runId}.md`);
 
 main().catch((error) => {
   const payload = { generated_at: new Date().toISOString(), ok: false, apply: CONFIG.apply, error: error.message };
@@ -85,6 +90,7 @@ async function main() {
   const decisions = decideCapacity(slots);
   const accessToken = await googleAccessToken();
   const ads = await collectAdsState(accessToken);
+  const performance = await collectPerformance(accessToken);
   const guard = evaluateGuards(ads);
   const plan = buildPlan({ ads, decisions, guard });
   const mutations = await executePlan(accessToken, plan);
@@ -98,15 +104,21 @@ async function main() {
     guard,
     plan,
     mutations,
+    performance,
     ads_snapshot: ads,
     slot_summary: summarizeSlots(slots),
   };
 
   fs.writeFileSync(reportPath, JSON.stringify(report, null, 2));
+  const markdown = renderMarkdownReport(report);
+  fs.writeFileSync(reportMdPath, markdown);
+  const telegram = await sendTelegramReport(markdown);
   console.log(JSON.stringify({
     ok: true,
     apply: CONFIG.apply,
     report: path.relative(ROOT, reportPath),
+    markdown_report: path.relative(ROOT, reportMdPath),
+    telegram,
     decisions,
     planned_budgets: plan.budgets,
     planned_bid_updates: plan.keywordBidUpdates.length,
@@ -207,6 +219,35 @@ async function collectAdsState(accessToken) {
   ]);
 
   return { campaigns, keywords, broadKeywords, conversionGoals };
+}
+
+async function collectPerformance(accessToken) {
+  const campaignIds = Object.values(CAMPAIGNS).map((c) => c.id).join(',');
+  const today = dateOnly(new Date());
+  const yesterday = dateOnly(addDays(new Date(), -1));
+  const rows = await gadsSearch(accessToken, `
+    SELECT segments.date, campaign.id, campaign.name,
+      metrics.impressions, metrics.clicks, metrics.cost_micros, metrics.conversions,
+      metrics.conversions_value
+    FROM campaign
+    WHERE campaign.id IN (${campaignIds})
+      AND segments.date BETWEEN '${yesterday}' AND '${today}'
+    ORDER BY segments.date DESC, campaign.id
+  `);
+
+  const byDate = {};
+  for (const row of rows) {
+    const date = row.segments.date;
+    byDate[date] ||= { date, campaigns: [], totals: emptyMetrics() };
+    const metrics = normalizeMetrics(row.metrics);
+    byDate[date].campaigns.push({
+      campaign_id: String(row.campaign.id),
+      campaign_name: row.campaign.name,
+      ...metrics,
+    });
+    addMetrics(byDate[date].totals, metrics);
+  }
+  return Object.values(byDate).sort((a, b) => b.date.localeCompare(a.date));
 }
 
 function evaluateGuards(ads) {
@@ -406,6 +447,122 @@ async function googleMutate(accessToken, service, operations) {
   return data;
 }
 
+function renderMarkdownReport(report) {
+  const today = dateOnly(new Date());
+  const yesterday = dateOnly(addDays(new Date(), -1));
+  const perfByDate = Object.fromEntries((report.performance || []).map((item) => [item.date, item]));
+  const todayPerf = perfByDate[today] || { totals: emptyMetrics(), campaigns: [] };
+  const yesterdayPerf = perfByDate[yesterday] || { totals: emptyMetrics(), campaigns: [] };
+
+  const lines = [];
+  lines.push(`# Crocus Ads Governor Report`);
+  lines.push('');
+  lines.push(`Generated: ${report.generated_at}`);
+  lines.push(`Mode: ${report.apply ? 'APPLY' : 'DRY RUN'}`);
+  lines.push(`Daily cap: ${report.max_daily_budget_eur} EUR`);
+  lines.push('');
+  lines.push(`## Performance`);
+  lines.push('');
+  lines.push(`| Period | Impr | Clicks | Cost | Conv | CPL |`);
+  lines.push(`|---|---:|---:|---:|---:|---:|`);
+  lines.push(metricRow('Yesterday', yesterdayPerf.totals));
+  lines.push(metricRow('Today so far', todayPerf.totals));
+  lines.push('');
+  lines.push(`## Slot Decisions`);
+  lines.push('');
+  lines.push(`| Category | Today slots | Next 7 days | Mode | Reason |`);
+  lines.push(`|---|---:|---:|---|---|`);
+  for (const decision of report.decisions) {
+    lines.push(`| ${decision.category} | ${decision.today_slots} | ${decision.next_7_days_slots} | ${decision.recommended_mode} | ${decision.reason} |`);
+  }
+  lines.push('');
+  lines.push(`## Budget Plan`);
+  lines.push('');
+  if (report.plan.budgets.length) {
+    lines.push(`| Campaign | Current | Target | Reason |`);
+    lines.push(`|---|---:|---:|---|`);
+    for (const budget of report.plan.budgets) {
+      lines.push(`| ${budget.key} | ${budget.current_eur} EUR | ${budget.target_eur} EUR | ${report.plan.reason} |`);
+    }
+  } else {
+    lines.push(`No budget changes planned.`);
+  }
+  lines.push('');
+  lines.push(`## Bid Plan`);
+  lines.push('');
+  lines.push(`Keyword bid updates planned: ${report.plan.keywordBidUpdates.length}`);
+  const sample = report.plan.keywordBidUpdates.slice(0, 12);
+  if (sample.length) {
+    lines.push('');
+    lines.push(`| Campaign | Keyword | Match | Current | Target |`);
+    lines.push(`|---|---|---|---:|---:|`);
+    for (const bid of sample) {
+      lines.push(`| ${shortCampaign(bid.campaign_name)} | ${bid.keyword} | ${bid.match_type} | ${bid.current_eur} EUR | ${bid.target_eur} EUR |`);
+    }
+  }
+  lines.push('');
+  lines.push(`## Guards`);
+  lines.push('');
+  lines.push(`Hard stop: ${report.guard.hard_stop ? 'YES' : 'NO'}`);
+  if (report.guard.hard_stops.length) {
+    for (const item of report.guard.hard_stops) lines.push(`- HARD: ${item}`);
+  }
+  if (report.guard.warnings.length) {
+    for (const item of report.guard.warnings) lines.push(`- WARN: ${item}`);
+  } else {
+    lines.push(`No guard warnings.`);
+  }
+  lines.push('');
+  lines.push(`## Execution`);
+  lines.push('');
+  lines.push(`Mutations: ${report.apply ? 'enabled' : 'disabled'}`);
+  if (report.mutations?.skipped) lines.push(`Skipped: ${report.mutations.skipped}`);
+  lines.push(`Budget mutations response: ${Array.isArray(report.mutations?.budgets) ? report.mutations.budgets.length : 0}`);
+  lines.push(`Keyword mutations response: ${Array.isArray(report.mutations?.keyword_bids) ? report.mutations.keyword_bids.length : 0}`);
+  return lines.join('\n');
+}
+
+async function sendTelegramReport(markdown) {
+  if (!CONFIG.telegram.botToken || !CONFIG.telegram.chatId) return { skipped: 'telegram_not_configured' };
+
+  const text = markdownToTelegramText(markdown).slice(0, 3900);
+  const url = `https://api.telegram.org/bot${CONFIG.telegram.botToken}/sendMessage`;
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      chat_id: CONFIG.telegram.chatId,
+      text,
+      disable_web_page_preview: true,
+    }),
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) return { ok: false, status: res.status, error: data.description || 'telegram_send_failed' };
+  return { ok: true };
+}
+
+function markdownToTelegramText(markdown) {
+  return markdown
+    .replace(/^# /gm, '')
+    .replace(/^## /gm, '\n')
+    .replace(/\|---[^\n]*\n/g, '')
+    .replace(/[|]/g, ' ')
+    .replace(/\n{3,}/g, '\n\n')
+    .trim();
+}
+
+function metricRow(label, metrics) {
+  const cpl = metrics.conversions > 0 ? `${round2(metrics.cost_eur / metrics.conversions)} EUR` : '-';
+  return `| ${label} | ${metrics.impressions} | ${metrics.clicks} | ${round2(metrics.cost_eur)} EUR | ${round2(metrics.conversions)} | ${cpl} |`;
+}
+
+function shortCampaign(name) {
+  if (name.includes('Manik')) return 'manikuere';
+  if (name.includes('Pedik')) return 'pedikuere';
+  if (name.includes('PMax')) return 'pmax';
+  return name;
+}
+
 function googleHeaders(accessToken) {
   return {
     Authorization: `Bearer ${accessToken}`,
@@ -426,6 +583,28 @@ function summarizeSlots(rows) {
     }
   }
   return Object.values(summary).sort((a, b) => `${a.category}${a.date}`.localeCompare(`${b.category}${b.date}`));
+}
+
+function emptyMetrics() {
+  return { impressions: 0, clicks: 0, cost_eur: 0, conversions: 0, conversions_value: 0 };
+}
+
+function normalizeMetrics(metrics) {
+  return {
+    impressions: Number(metrics?.impressions || 0),
+    clicks: Number(metrics?.clicks || 0),
+    cost_eur: Number(metrics?.costMicros || 0) / 1_000_000,
+    conversions: Number(metrics?.conversions || 0),
+    conversions_value: Number(metrics?.conversionsValue || 0),
+  };
+}
+
+function addMetrics(target, metrics) {
+  target.impressions += metrics.impressions;
+  target.clicks += metrics.clicks;
+  target.cost_eur += metrics.cost_eur;
+  target.conversions += metrics.conversions;
+  target.conversions_value += metrics.conversions_value;
 }
 
 function loadDotEnv(file) {
