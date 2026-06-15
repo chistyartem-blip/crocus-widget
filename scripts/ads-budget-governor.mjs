@@ -58,6 +58,13 @@ const MASTERS = [
   { id: 3020188, name: 'Karina', categories: ['wimpern'] },
 ];
 
+const WIDGET_SLOT_MASTERS = [
+  { id: 3020185, name: 'Diana', serviceId: 13485754, serviceName: 'Nagelkorrektur', focus: 'manikuere' },
+  { id: 3020186, name: 'Nelia', serviceId: 13485753, serviceName: 'Manikuere + Gellack', focus: 'manikuere' },
+  { id: 3020187, name: 'Sofia', serviceId: 13485753, serviceName: 'Manikuere + Gellack', focus: 'manikuere' },
+  { id: 3020188, name: 'Karina', serviceId: 13485771, serviceName: 'Wimpern Neuset', focus: 'wimpern' },
+];
+
 const SEARCH_BID_RULES = {
   manikuere: {
     push: { exact: 0.75, phrase: 0.45 },
@@ -94,7 +101,10 @@ async function main() {
     throw new Error(`Missing required Google Ads env vars: ${missing.join(', ')}`);
   }
 
-  const slots = await collectSlots();
+  const [slots, widgetMasterAvailability] = await Promise.all([
+    collectSlots(),
+    collectWidgetMasterAvailability(),
+  ]);
   const decisions = decideCapacity(slots);
   const accessToken = await googleAccessToken();
   const ads = await collectAdsState(accessToken);
@@ -119,6 +129,7 @@ async function main() {
     ads_snapshot: ads,
     slot_summary: summarizeSlots(slots),
     master_capacity_today: summarizeTodayMasters(slots),
+    widget_master_availability: widgetMasterAvailability,
   };
   report.ai_analysis = await collectAiAnalysis(report);
 
@@ -172,6 +183,69 @@ async function collectSlots() {
   }
 
   return rows;
+}
+
+async function collectWidgetMasterAvailability() {
+  return Promise.all(WIDGET_SLOT_MASTERS.map(async (master) => {
+    const dates = await widgetAvailableDates(master);
+    const searchDates = dates.length
+      ? dates.slice(0, CONFIG.lookAheadDays)
+      : Array.from({ length: CONFIG.lookAheadDays }, (_, i) => dateOnly(addDays(new Date(), i)));
+
+    for (const date of searchDates) {
+      const data = await altegioGet(`book_times/${CONFIG.altegioLocationId}/${master.id}/${date}`, {
+        'service_ids[]': master.serviceId,
+      });
+      const slots = normalizeSlots(data);
+      const hours = uniqueSlotHours(slots);
+      if (hours.length) {
+        return {
+          master_id: master.id,
+          master_name: master.name,
+          service_id: master.serviceId,
+          service_name: master.serviceName,
+          focus: master.focus,
+          source: 'booking_widget',
+          date,
+          today: date === dateOnly(new Date()),
+          windows: hours.length,
+          hours,
+          first_time: slots[0]?.time || hours[0] || '',
+        };
+      }
+    }
+
+    return {
+      master_id: master.id,
+      master_name: master.name,
+      service_id: master.serviceId,
+      service_name: master.serviceName,
+      focus: master.focus,
+      source: 'booking_widget',
+      date: null,
+      today: false,
+      windows: 0,
+      hours: [],
+      first_time: '',
+    };
+  }));
+}
+
+async function widgetAvailableDates(master) {
+  const data = await altegioGet(`book_dates/${CONFIG.altegioLocationId}`, {
+    staff_id: master.id,
+    'service_ids[]': master.serviceId,
+  });
+  const dates = Array.isArray(data?.booking_dates)
+    ? data.booking_dates
+    : Array.isArray(data?.data?.booking_dates)
+      ? data.data.booking_dates
+      : [];
+  return dates.filter(Boolean).sort();
+}
+
+function normalizeSlots(data) {
+  return Array.isArray(data) ? data : Array.isArray(data?.data) ? data.data : [];
 }
 
 function decideCapacity(rows) {
@@ -718,7 +792,7 @@ function renderTelegramSummary(report) {
   const slotLines = report.decisions.map((d) =>
     `${modeIcon(d.recommended_mode)} ${ruCategory(d.category)}: ${d.today_slots} ${R('hour_windows_today')} / ${d.next_7_days_slots} ${R('hour_windows_next7')} -> ${ruMode(d.recommended_mode)} (${ruReason(d.reason)})`
   );
-  const masterLines = masterCapacityLines(report.master_capacity_today || []);
+  const masterLines = widgetMasterLines(report.widget_master_availability || []);
   const todayCpl = cplText(todayPerf);
   const yesterdayCpl = cplText(yesterdayPerf);
   const health = report.guard.hard_stop ? R('health_stop') : report.guard.warnings.length ? R('health_warn') : R('health_ok');
@@ -908,16 +982,19 @@ function moneyPulse(todayPerf, yesterdayPerf, last7, limit) {
   return `limit ${limit} EUR/day; today spent ${round2(todayPerf.cost_eur)} EUR (${todayShare}% of cap); yesterday CPL ${cplText(yesterdayPerf)}; 7-day CPL ${cplText(last7)}.`;
 }
 
-function masterCapacityLines(rows) {
-  return rows
-    .filter((row) => ['manikuere', 'pedikuere'].includes(row.category))
-    .sort((a, b) => b.windows - a.windows || a.master_name.localeCompare(b.master_name))
-    .slice(0, 8)
+function widgetMasterLines(rows) {
+  return [...rows]
+    .sort((a, b) => a.master_name.localeCompare(b.master_name))
     .map((row) => {
-      const status = row.windows === 0 ? R('full') : row.windows <= 2 ? R('few_windows') : R('has_windows');
-      const hours = row.hours.slice(0, 4).join(', ');
-      const tail = row.hours.length > 4 ? ` +${row.hours.length - 4}` : '';
-      return `${capacityIcon(row.windows)} ${row.master_name}, ${ruCategory(row.category)}: ${status}${row.windows ? ` (${hours}${tail})` : ''}`;
+      if (!row.date) return `${capacityIcon(0)} ${row.master_name}: ${R('full')} / ${R('by_request')}`;
+      const dateLabel = row.today ? R('today_lc') : humanDateLabel(row.date);
+      const status = row.today
+        ? row.windows <= 2 ? R('few_windows') : R('has_windows')
+        : R('today_full_next');
+      const hours = row.hours.slice(0, 3).join(', ');
+      const tail = row.hours.length > 3 ? ` +${row.hours.length - 3}` : '';
+      const focus = ruCategory(row.focus);
+      return `${capacityIcon(row.today ? row.windows : 0)} ${row.master_name}: ${focus} - ${status}, ${dateLabel}${hours ? ` ${hours}${tail}` : ''}`;
     });
 }
 
@@ -984,6 +1061,15 @@ function uniqueSlotHours(slots) {
 
 function padHour(hour) {
   return `${String(hour).padStart(2, '0')}:00`;
+}
+
+function humanDateLabel(date) {
+  const today = dateOnly(new Date());
+  const tomorrow = dateOnly(addDays(new Date(), 1));
+  if (date === today) return R('today_lc');
+  if (date === tomorrow) return R('tomorrow_lc');
+  const parsed = new Date(`${date}T00:00:00`);
+  return `${String(parsed.getDate()).padStart(2, '0')}.${String(parsed.getMonth() + 1).padStart(2, '0')}`;
 }
 
 function reportKind(date) {
@@ -1156,6 +1242,9 @@ function R(key, vars = {}) {
     full: '\u0444\u0443\u043b\u043b',
     few_windows: '\u0435\u0441\u0442\u044c \u043f\u0430\u0440\u0430 \u043e\u043a\u043e\u043d',
     has_windows: '\u0435\u0441\u0442\u044c \u043e\u043a\u043d\u0430',
+    today_full_next: '\u0441\u0435\u0433\u043e\u0434\u043d\u044f \u0444\u0443\u043b\u043b, \u0431\u043b\u0438\u0436\u0430\u0439\u0448\u0435\u0435',
+    by_request: '\u043f\u043e \u0437\u0430\u043f\u0440\u043e\u0441\u0443',
+    tomorrow_lc: '\u0437\u0430\u0432\u0442\u0440\u0430',
     discipline_apply: '\u041f\u0440\u0430\u0432\u043a\u0438 \u043e\u0433\u0440\u0430\u043d\u0438\u0447\u0435\u043d\u044b allowlist, \u043b\u0438\u043c\u0438\u0442\u043e\u043c 30 EUR/day \u0438 \u043c\u0430\u043b\u044b\u043c \u0448\u0430\u0433\u043e\u043c: \u0440\u0435\u0437\u043a\u043e \u043e\u0431\u0443\u0447\u0435\u043d\u0438\u0435 \u043d\u0435 \u043b\u043e\u043c\u0430\u0435\u043c.',
     discipline_dry: '\u042d\u0442\u043e \u0438\u043d\u0444\u043e-\u0440\u0435\u0436\u0438\u043c: Google Ads \u043d\u0435 \u0442\u0440\u043e\u043d\u0443\u0442, \u0441\u043d\u0430\u0447\u0430\u043b\u0430 \u0441\u043c\u043e\u0442\u0440\u0438\u043c \u0444\u0430\u043a\u0442\u044b.',
     plan_line: '\u041f\u043b\u0430\u043d',

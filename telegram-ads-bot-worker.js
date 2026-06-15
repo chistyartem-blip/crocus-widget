@@ -33,6 +33,7 @@ export default {
 
     const normalized = text.toLowerCase();
     const reportMode = detectReportMode(normalized);
+    const governorIntent = detectGovernorIntent(normalized);
 
     if (hasAny(normalized, ['/help', '/start', R('help_word'), R('commands_word'), R('start_word')])) {
       await sendTelegram(env, chatId, `${R('bot_connected')}\n${R(role === 'admin' ? 'role_admin' : 'role_partner')}\n\n${commandsText(role)}`);
@@ -65,9 +66,9 @@ export default {
       return json({ ok: true, dispatched: 'apply' });
     }
 
-    if (hasAny(normalized, ['/dryrun', 'dry', 'test', R('check_word'), R('slots_word'), R('report_word'), R('what_now_word')])) {
+    if (hasAny(normalized, ['/dryrun', 'dry', 'test']) || governorIntent) {
       const run = await dispatchGovernor(env, false, reportMode || 'small');
-      await sendTelegram(env, chatId, `${R(reportMode === 'deep' ? 'deep_started' : 'small_started')}${run?.html_url ? `\n\n${R('run_link')}\n${run.html_url}` : ''}`);
+      await sendTelegram(env, chatId, `${startTextForIntent(governorIntent, reportMode)}${run?.html_url ? `\n\n${R('run_link')}\n${run.html_url}` : ''}`);
       return json({ ok: true, dispatched: 'dryrun' });
     }
 
@@ -87,11 +88,30 @@ function hasAny(text, patterns) {
 }
 
 function detectReportMode(text) {
-  if (hasAny(text, ['больш', 'глубок', 'подроб', 'deep', 'big'])) return 'deep';
-  if (hasAny(text, ['малень', 'корот', 'кратк', 'small', 'short'])) return 'small';
+  if (hasAny(text, ['\u0431\u043e\u043b\u044c\u0448', '\u0433\u043b\u0443\u0431\u043e\u043a', '\u043f\u043e\u0434\u0440\u043e\u0431', 'deep', 'big'])) return 'deep';
+  if (hasAny(text, ['\u043c\u0430\u043b\u0435\u043d\u044c', '\u043a\u043e\u0440\u043e\u0442', '\u043a\u0440\u0430\u0442\u043a', 'small', 'short'])) return 'small';
   return '';
 }
 
+function detectGovernorIntent(text) {
+  if (hasAny(text, [
+    R('check_word'), R('slots_word'), R('report_word'), R('what_now_word'),
+    '\u043c\u0430\u0441\u0442\u0435\u0440', '\u043e\u043a\u043d', '\u0444\u0443\u043b', '\u0441\u0432\u043e\u0431\u043e\u0434',
+    '\u043a\u0443\u0434\u0430 \u043b', '\u043b\u0438\u0442\u044c', '\u043f\u0443\u0448', '\u0443\u0441\u0438\u043b',
+    '\u043f\u043e\u043a\u0430\u0437', '\u043a\u043b\u0438\u043a', '\u043a\u043e\u043d\u0432\u0435\u0440\u0441', '\u0437\u0430\u043f\u0438\u0441',
+    '\u0440\u0430\u0441\u0445\u043e\u0434', '\u0431\u044e\u0434\u0436\u0435\u0442', '\u0441\u0442\u0430\u0432\u043a', 'cpl',
+    '\u0440\u0435\u043a\u043b\u0430\u043c\u0430 \u043b\u0435\u0436', '\u043d\u0435 \u0440\u0430\u0431\u043e\u0442', '\u043f\u043e\u043a\u0430\u0437\u044b\u0432\u0430\u0435\u043c',
+    '\u043c\u0430\u043d\u0438\u043a', '\u043f\u0435\u0434\u0438\u043a',
+  ])) return 'check';
+  return '';
+}
+
+function startTextForIntent(intent, reportMode) {
+  if (reportMode === 'deep') return R('deep_started');
+  if (reportMode === 'small') return R('small_started');
+  if (intent === 'check') return R('smart_check_started');
+  return R('small_started');
+}
 function commandsText(role = 'partner') {
   const lines = [
     `${R('cmd_help')}`,
@@ -207,10 +227,10 @@ async function askOpenAI(env, userText) {
     'Iron backend rules: never enable broad keywords, never revive old/paused junk, never expand blindly to far cities, never optimize for fake soft actions, never bypass guardrails.',
     'Slot-aware rule: Altegio slots decide what can be pushed. If there are no slots, protect budget. If same-day slots are few, use mobile urgency carefully. If capacity is strong, push within cap.',
     'Small-city strategy: mobile and Maps matter; generic near-me and broad traffic can be bad; local high-intent terms and service pages matter.',
-    'Never invent live metrics. For current spend, clicks, conversions, slots, billing, or decisions, tell the user to write "check", "status", or "slots" in Russian; the workflow must pull real Google Ads and Altegio data.',
+    'Never invent live metrics. For current spend, clicks, conversions, slots, billing, or decisions, say that live numbers require a fresh guarded workflow run. Do not ask the user to memorize commands.',
     'When asked what to do, give a short decision, reason, risk, and next action. No long reports unless requested.',
-    'If the user asks for a small report, tell them to write "маленький отчет". If they ask for a deep report, tell them to write "большой отчет".',
-    'If the user asks to apply changes, tell them to write "apply" or the Russian equivalent. The guarded workflow handles live changes.',
+    'If the user asks for a report or asks what is happening now, explain that the bot should start the guarded workflow and then return a factual report.',
+    'If the user asks to apply changes, remind that only admin chats can start guarded apply mode and the workflow still enforces limits.',
     'Do not reveal secrets, tokens, IDs, credentials, or hidden implementation details.',
     'If the data is unavailable, say exactly what is unavailable and what check is needed. Do not fill gaps with assumptions.',
   ].join('\n');
@@ -252,6 +272,7 @@ function R(key) {
     dryrun_started: '\u041f\u0440\u043e\u0432\u0435\u0440\u043a\u0430 \u0441\u0442\u0430\u0440\u0442\u043e\u0432\u0430\u043b\u0430. Google Ads \u043d\u0435 \u0442\u0440\u043e\u0433\u0430\u044e. \u041e\u0442\u0447\u0435\u0442 \u043f\u0440\u0438\u0434\u0435\u0442 \u043f\u043e\u0441\u043b\u0435 GitHub Actions.',
     small_started: '\u0414\u0435\u043b\u0430\u044e \u043a\u043e\u0440\u043e\u0442\u043a\u0438\u0439 \u043e\u0442\u0447\u0435\u0442: \u0434\u0435\u043d\u044c\u0433\u0438, \u043c\u0430\u0441\u0442\u0435\u0440\u0430, \u043a\u0443\u0434\u0430 \u043b\u044c\u0435\u043c \u0438 \u043f\u043e\u0447\u0435\u043c\u0443. Google Ads \u043d\u0435 \u0442\u0440\u043e\u0433\u0430\u044e.',
     deep_started: '\u0414\u0435\u043b\u0430\u044e \u0433\u043b\u0443\u0431\u043e\u043a\u0438\u0439 \u0440\u0430\u0437\u0431\u043e\u0440: \u0441\u043b\u043e\u0442\u044b, \u043c\u0430\u0441\u0442\u0435\u0440\u0430, \u0441\u0442\u0430\u0432\u043a\u0438, \u043a\u0430\u043c\u043f\u0430\u043d\u0438\u0438, \u0447\u0442\u043e \u0434\u0435\u043b\u0430\u0442\u044c \u0438 \u0447\u0435\u0433\u043e \u043d\u0435 \u0442\u0440\u043e\u0433\u0430\u0442\u044c.',
+    smart_check_started: '\u041f\u043e\u043d\u044f\u043b. \u0417\u0430\u043f\u0443\u0441\u043a\u0430\u044e \u0436\u0438\u0432\u0443\u044e \u043f\u0440\u043e\u0432\u0435\u0440\u043a\u0443: Google Ads + \u0441\u043b\u043e\u0442\u044b \u0438\u0437 \u0432\u0438\u0434\u0436\u0435\u0442\u0430. \u0420\u0435\u043a\u043b\u0430\u043c\u0443 \u043d\u0435 \u0442\u0440\u043e\u0433\u0430\u044e, \u0441\u043d\u0430\u0447\u0430\u043b\u0430 \u0442\u043e\u043b\u044c\u043a\u043e \u0444\u0430\u043a\u0442\u044b.',
     unknown: '\u041d\u0435 \u043f\u043e\u043d\u044f\u043b \u0437\u0430\u043f\u0440\u043e\u0441.',
     apply_denied: '\u042d\u0442\u043e \u0447\u0430\u0442 \u0431\u0435\u0437 \u043f\u0440\u0430\u0432\u0430 \u043c\u0435\u043d\u044f\u0442\u044c \u0440\u0435\u043a\u043b\u0430\u043c\u0443. \u041c\u043e\u0436\u043d\u043e \u0442\u043e\u043b\u044c\u043a\u043e \u043f\u0440\u043e\u0432\u0435\u0440\u0438\u0442\u044c \u0438 \u043f\u043e\u0441\u043c\u043e\u0442\u0440\u0435\u0442\u044c \u043e\u0442\u0447\u0435\u0442.',
     cmd_help: '\u041f\u043e\u043c\u043e\u0449\u044c / help - \u043f\u043e\u043a\u0430\u0437\u0430\u0442\u044c \u043a\u043e\u043c\u0430\u043d\u0434\u044b',
