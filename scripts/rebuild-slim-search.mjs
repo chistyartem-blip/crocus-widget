@@ -77,9 +77,9 @@ async function main() {
   }, null, 2));
 }
 
-function buildPlan({ keywords, campaignNegatives, ads }) {
+function buildPlan({ keywords, campaignNegatives: existingCampaignNegatives, ads }) {
   const keywordIndex = keywordKeyIndex(keywords);
-  const negativeIndex = campaignNegativeIndex(campaignNegatives);
+  const negativeIndex = campaignNegativeIndex(existingCampaignNegatives);
   const activeAds = new Set(ads.map((row) => String(row.adGroup.id)));
 
   const keywordCreates = [];
