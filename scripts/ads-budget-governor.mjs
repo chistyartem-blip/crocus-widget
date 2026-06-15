@@ -11,6 +11,8 @@ const CONFIG = {
   apply: envBool('ADS_GOVERNOR_APPLY', false),
   maxDailyBudgetEur: envNumber('ADS_GOVERNOR_MAX_DAILY_BUDGET_EUR', 30),
   lookAheadDays: envNumber('ADS_GOVERNOR_LOOKAHEAD_DAYS', 14),
+  reportEveryHours: envNumber('ADS_GOVERNOR_REPORT_EVERY_HOURS', 3),
+  forceTelegram: envBool('ADS_GOVERNOR_FORCE_TELEGRAM', false),
   altegioProxyBase: env('ALTEGIO_PROXY_BASE', 'https://crocus-proxy.crocusbeautystudio.workers.dev/api/proxy'),
   altegioLocationId: env('ALTEGIO_LOCATION_ID', '1357963'),
   telegram: {
@@ -91,6 +93,7 @@ async function main() {
   const accessToken = await googleAccessToken();
   const ads = await collectAdsState(accessToken);
   const performance = await collectPerformance(accessToken);
+  const billing = await collectBilling(accessToken);
   const guard = evaluateGuards(ads);
   const plan = buildPlan({ ads, decisions, guard });
   const mutations = await executePlan(accessToken, plan);
@@ -105,6 +108,7 @@ async function main() {
     plan,
     mutations,
     performance,
+    billing,
     ads_snapshot: ads,
     slot_summary: summarizeSlots(slots),
   };
@@ -112,7 +116,9 @@ async function main() {
   fs.writeFileSync(reportPath, JSON.stringify(report, null, 2));
   const markdown = renderMarkdownReport(report);
   fs.writeFileSync(reportMdPath, markdown);
-  const telegram = await sendTelegramReport(markdown);
+  const telegram = shouldSendTelegram(report)
+    ? await sendTelegramReport(renderTelegramSummary(report))
+    : { skipped: `not_report_hour_every_${CONFIG.reportEveryHours}h` };
   console.log(JSON.stringify({
     ok: true,
     apply: CONFIG.apply,
@@ -225,6 +231,8 @@ async function collectPerformance(accessToken) {
   const campaignIds = Object.values(CAMPAIGNS).map((c) => c.id).join(',');
   const today = dateOnly(new Date());
   const yesterday = dateOnly(addDays(new Date(), -1));
+  const last7Start = dateOnly(addDays(new Date(), -6));
+  const monthStart = today.slice(0, 8) + '01';
   const rows = await gadsSearch(accessToken, `
     SELECT segments.date, campaign.id, campaign.name,
       metrics.impressions, metrics.clicks, metrics.cost_micros, metrics.conversions,
@@ -247,7 +255,65 @@ async function collectPerformance(accessToken) {
     });
     addMetrics(byDate[date].totals, metrics);
   }
-  return Object.values(byDate).sort((a, b) => b.date.localeCompare(a.date));
+  const [last7, monthToDate] = await Promise.all([
+    collectPerformanceRange(accessToken, campaignIds, last7Start, today, 'last_7_days'),
+    collectPerformanceRange(accessToken, campaignIds, monthStart, today, 'month_to_date'),
+  ]);
+  return {
+    daily: Object.values(byDate).sort((a, b) => b.date.localeCompare(a.date)),
+    last_7_days: last7,
+    month_to_date: monthToDate,
+  };
+}
+
+async function collectPerformanceRange(accessToken, campaignIds, start, end, label) {
+  const rows = await gadsSearch(accessToken, `
+    SELECT campaign.id, campaign.name,
+      metrics.impressions, metrics.clicks, metrics.cost_micros, metrics.conversions,
+      metrics.conversions_value
+    FROM campaign
+    WHERE campaign.id IN (${campaignIds})
+      AND segments.date BETWEEN '${start}' AND '${end}'
+  `);
+  const totals = emptyMetrics();
+  const campaigns = [];
+  for (const row of rows) {
+    const metrics = normalizeMetrics(row.metrics);
+    campaigns.push({ campaign_id: String(row.campaign.id), campaign_name: row.campaign.name, ...metrics });
+    addMetrics(totals, metrics);
+  }
+  return { label, start, end, totals, campaigns };
+}
+
+async function collectBilling(accessToken) {
+  const result = { source: 'Google Ads API', billing_setups: [], account_budgets: [], note: '' };
+  try {
+    result.billing_setups = await gadsSearch(accessToken, `
+      SELECT billing_setup.id, billing_setup.status,
+        billing_setup.payments_account_info.payments_account_id,
+        billing_setup.payments_account_info.payments_account_name,
+        billing_setup.payments_account_info.payments_profile_id,
+        billing_setup.payments_account_info.payments_profile_name
+      FROM billing_setup
+    `);
+  } catch (error) {
+    result.billing_setups_error = error.message;
+  }
+  try {
+    result.account_budgets = await gadsSearch(accessToken, `
+      SELECT account_budget.status,
+        account_budget.approved_spending_limit_micros,
+        account_budget.adjusted_spending_limit_micros,
+        account_budget.amount_served_micros,
+        account_budget.approved_start_date_time,
+        account_budget.approved_end_date_time
+      FROM account_budget
+    `);
+  } catch (error) {
+    result.account_budgets_error = error.message;
+  }
+  result.note = 'Exact amount due and payment due date may require Google Ads UI or invoice access.';
+  return result;
 }
 
 function evaluateGuards(ads) {
@@ -448,91 +514,52 @@ async function googleMutate(accessToken, service, operations) {
 }
 
 function renderMarkdownReport(report) {
-  const today = dateOnly(new Date());
-  const yesterday = dateOnly(addDays(new Date(), -1));
-  const perfByDate = Object.fromEntries((report.performance || []).map((item) => [item.date, item]));
-  const todayPerf = perfByDate[today] || { totals: emptyMetrics(), campaigns: [] };
-  const yesterdayPerf = perfByDate[yesterday] || { totals: emptyMetrics(), campaigns: [] };
-
-  const lines = [];
-  lines.push(`# Отчет Crocus Ads Governor`);
-  lines.push('');
-  lines.push(`Время: ${report.generated_at}`);
-  lines.push(`Режим: ${report.apply ? 'ПРИМЕНЕНИЕ' : 'DRY RUN, без изменений в рекламе'}`);
-  lines.push(`Лимит в сутки: ${report.max_daily_budget_eur} EUR`);
-  lines.push('');
-  lines.push(`## Результаты`);
-  lines.push('');
-  lines.push(`| Период | Показы | Клики | Расход | Конверсии | CPL |`);
-  lines.push(`|---|---:|---:|---:|---:|---:|`);
-  lines.push(metricRow('Вчера', yesterdayPerf.totals));
-  lines.push(metricRow('Сегодня сейчас', todayPerf.totals));
-  lines.push('');
-  lines.push(`## Решения по слотам`);
-  lines.push('');
-  lines.push(`| Категория | Слоты сегодня | Слоты 7 дней | Режим | Почему |`);
-  lines.push(`|---|---:|---:|---|---|`);
-  for (const decision of report.decisions) {
-    lines.push(`| ${ruCategory(decision.category)} | ${decision.today_slots} | ${decision.next_7_days_slots} | ${ruMode(decision.recommended_mode)} | ${ruReason(decision.reason)} |`);
-  }
-  lines.push('');
-  lines.push(`## План бюджета`);
-  lines.push('');
-  if (report.plan.budgets.length) {
-    lines.push(`| Кампания | Сейчас | Цель | Почему |`);
-    lines.push(`|---|---:|---:|---|`);
-    for (const budget of report.plan.budgets) {
-      lines.push(`| ${ruCategory(budget.key)} | ${budget.current_eur} EUR | ${budget.target_eur} EUR | ${ruPlanReason(report.plan.reason)} |`);
-    }
-  } else {
-    lines.push(`Изменения бюджета не запланированы.`);
-  }
-  lines.push('');
-  lines.push(`## План ставок`);
-  lines.push('');
-  lines.push(`Планируемых изменений ставок: ${report.plan.keywordBidUpdates.length}`);
-  const sample = report.plan.keywordBidUpdates.slice(0, 12);
-  if (sample.length) {
-    lines.push('');
-    lines.push(`| Кампания | Ключ | Тип | Сейчас | Цель |`);
-    lines.push(`|---|---|---|---:|---:|`);
-    for (const bid of sample) {
-      lines.push(`| ${ruCategory(shortCampaign(bid.campaign_name))} | ${bid.keyword} | ${bid.match_type} | ${bid.current_eur} EUR | ${bid.target_eur} EUR |`);
-    }
-  }
-  lines.push('');
-  lines.push(`## Защита`);
-  lines.push('');
-  lines.push(`Жесткий стоп: ${report.guard.hard_stop ? 'ДА' : 'НЕТ'}`);
-  if (report.guard.hard_stops.length) {
-    for (const item of report.guard.hard_stops) lines.push(`- СТОП: ${item}`);
-  }
-  if (report.guard.warnings.length) {
-    for (const item of report.guard.warnings) lines.push(`- ВНИМАНИЕ: ${item}`);
-  } else {
-    lines.push(`Предупреждений нет.`);
-  }
-  lines.push('');
-  lines.push(`## Выполнение`);
-  lines.push('');
-  lines.push(`Изменения в Google Ads: ${report.apply ? 'включены' : 'выключены'}`);
-  if (report.mutations?.skipped) lines.push(`Пропущено: ${ruSkipped(report.mutations.skipped)}`);
-  lines.push(`Ответов по бюджету: ${Array.isArray(report.mutations?.budgets) ? report.mutations.budgets.length : 0}`);
-  lines.push(`Ответов по ставкам: ${Array.isArray(report.mutations?.keyword_bids) ? report.mutations.keyword_bids.length : 0}`);
-  return lines.join('\n');
+  return renderTelegramSummary(report);
 }
 
-async function sendTelegramReport(markdown) {
+function renderTelegramSummary(report) {
+  const today = dateOnly(new Date());
+  const yesterday = dateOnly(addDays(new Date(), -1));
+  const perfByDate = Object.fromEntries((report.performance?.daily || []).map((item) => [item.date, item]));
+  const todayPerf = perfByDate[today]?.totals || emptyMetrics();
+  const yesterdayPerf = perfByDate[yesterday]?.totals || emptyMetrics();
+  const last7 = report.performance?.last_7_days?.totals || emptyMetrics();
+  const mtd = report.performance?.month_to_date?.totals || emptyMetrics();
+  const actionText = report.apply
+    ? R('changes_on', { budgets: report.plan.budgets.length, bids: report.plan.keywordBidUpdates.length })
+    : R('dry_run_plan', { budgets: report.plan.budgets.length, bids: report.plan.keywordBidUpdates.length });
+  const slotLines = report.decisions.map((d) =>
+    `${ruCategory(d.category)}: ${d.today_slots} ${R('today_lc')} / ${d.next_7_days_slots} ${R('next7')} -> ${ruMode(d.recommended_mode)}`
+  );
+  return [
+    `Crocus Ads: ${R('short_report')}`,
+    '',
+    `${R('now')}: ${todayPerf.impressions} ${R('impressions')}, ${todayPerf.clicks} ${R('clicks')}, ${round2(todayPerf.cost_eur)} EUR, ${R('conversions_short')} ${round2(todayPerf.conversions)}.`,
+    `${R('yesterday')}: ${yesterdayPerf.clicks} ${R('clicks')}, ${round2(yesterdayPerf.cost_eur)} EUR, ${R('conversions_short')} ${round2(yesterdayPerf.conversions)}, CPL ${cplText(yesterdayPerf)}.`,
+    `7 ${R('days')}: ${round2(last7.cost_eur)} EUR, ${R('conversions_short')} ${round2(last7.conversions)}, CPL ${cplText(last7)}.`,
+    `${R('month')}: ${round2(mtd.cost_eur)} EUR, ${R('conversions_short')} ${round2(mtd.conversions)}, CPL ${cplText(mtd)}.`,
+    '',
+    `${R('slots')}:`,
+    ...slotLines,
+    '',
+    `${R('decision')}: ${actionText}`,
+    `${R('protection')}: ${report.guard.hard_stop ? R('stop') : R('ok')}${report.guard.warnings.length ? `, ${R('warnings')}` : `, ${R('no_warnings')}`}.`,
+    `${R('billing')}: ${billingDueText(report.billing)}`,
+    '',
+    `${R('next')}: ${nextStepText(report)}`,
+  ].join('\n');
+}
+
+async function sendTelegramReport(text) {
   if (!CONFIG.telegram.botToken || !CONFIG.telegram.chatId) return { skipped: 'telegram_not_configured' };
 
-  const text = markdownToTelegramText(markdown).slice(0, 3900);
   const url = `https://api.telegram.org/bot${CONFIG.telegram.botToken}/sendMessage`;
   const res = await fetch(url, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       chat_id: CONFIG.telegram.chatId,
-      text,
+      text: text.slice(0, 3900),
       disable_web_page_preview: true,
     }),
   });
@@ -541,19 +568,13 @@ async function sendTelegramReport(markdown) {
   return { ok: true };
 }
 
-function markdownToTelegramText(markdown) {
-  return markdown
-    .replace(/^# /gm, '')
-    .replace(/^## /gm, '\n')
-    .replace(/\|---[^\n]*\n/g, '')
-    .replace(/[|]/g, ' ')
-    .replace(/\n{3,}/g, '\n\n')
-    .trim();
-}
-
 function metricRow(label, metrics) {
   const cpl = metrics.conversions > 0 ? `${round2(metrics.cost_eur / metrics.conversions)} EUR` : '-';
   return `| ${label} | ${metrics.impressions} | ${metrics.clicks} | ${round2(metrics.cost_eur)} EUR | ${round2(metrics.conversions)} | ${cpl} |`;
+}
+
+function cplText(metrics) {
+  return metrics.conversions > 0 ? `${round2(metrics.cost_eur / metrics.conversions)} EUR` : '-';
 }
 
 function shortCampaign(name) {
@@ -564,52 +585,108 @@ function shortCampaign(name) {
 }
 
 function ruCategory(value) {
-  const map = {
-    pmax: 'PMax',
-    manikuere: 'Маникюр',
-    pedikuere: 'Педикюр',
-    wimpern: 'Ресницы',
-  };
+  const map = { pmax: 'PMax', manikuere: R('manicure'), pedikuere: R('pedicure'), wimpern: R('lashes') };
   return map[value] || value;
 }
 
 function ruMode(value) {
-  const map = {
-    push: 'пушим',
-    push_mobile_today: 'пушим мобилку сегодня',
-    hold: 'держим',
-    protect_budget: 'бережем бюджет',
-  };
+  const map = { push: R('push'), push_mobile_today: R('push_mobile_today'), hold: R('hold'), protect_budget: R('protect_budget') };
   return map[value] || value;
 }
 
 function ruReason(value) {
   const map = {
-    'enough bookable capacity': 'есть достаточно слотов для записи',
-    'few same-day slots: urgency can work': 'слотов сегодня мало, срочность может сработать',
-    'low capacity today and next 7 days': 'мало или нет слотов сегодня и на 7 дней',
-    'normal capacity': 'обычная загрузка',
+    'enough bookable capacity': R('reason_enough_slots'),
+    'few same-day slots: urgency can work': R('reason_urgency'),
+    'low capacity today and next 7 days': R('reason_low_slots'),
+    'normal capacity': R('reason_normal'),
   };
   return map[value] || value;
 }
 
 function ruPlanReason(value) {
   const map = {
-    'capacity-based budget and bid adjustment': 'по слотам и состоянию рекламы',
-    'broad keywords present: budget only': 'найдены broad-ключи, ставки не повышаем',
-    'hard stop': 'сработал жесткий стоп',
+    'capacity-based budget and bid adjustment': R('plan_by_slots'),
+    'broad keywords present: budget only': R('plan_broad'),
+    'hard stop': R('plan_stop'),
   };
   return map[value] || value;
 }
 
 function ruSkipped(value) {
-  const map = {
-    dry_run: 'dry-run, изменения не применялись',
-    hard_stop: 'сработал жесткий стоп',
-  };
+  const map = { dry_run: R('dry_run_full'), hard_stop: R('plan_stop') };
   return map[value] || value;
 }
 
+function billingDueText(billing) {
+  if (!billing) return R('no_data');
+  if (billing.account_budgets_error || billing.billing_setups_error) return R('billing_api_error');
+  return R('billing_ui_needed');
+}
+
+function nextStepText(report) {
+  if (report.guard.hard_stop) return R('next_stop');
+  const protect = report.decisions.filter((d) => d.recommended_mode === 'protect_budget').map((d) => ruCategory(d.category));
+  const push = report.decisions.filter((d) => d.recommended_mode === 'push' || d.recommended_mode === 'push_mobile_today').map((d) => ruCategory(d.category));
+  if (push.length && protect.length) return `${R('boost')} ${push.join(', ')}, ${R('no_budget_to')} ${protect.join(', ')}.`;
+  if (push.length) return `${R('careful_boost')} ${push.join(', ')} ${R('within_limit')}.`;
+  return R('hold_budget');
+}
+
+function shouldSendTelegram(report) {
+  if (CONFIG.forceTelegram) return true;
+  if (!CONFIG.telegram.botToken || !CONFIG.telegram.chatId) return false;
+  const hour = new Date(report.generated_at).getUTCHours();
+  return hour % CONFIG.reportEveryHours === 0;
+}
+
+function R(key, vars = {}) {
+  const dict = {
+    short_report: '\u043a\u043e\u0440\u043e\u0442\u043a\u0438\u0439 \u043e\u0442\u0447\u0435\u0442',
+    now: '\u0421\u0435\u0439\u0447\u0430\u0441',
+    yesterday: '\u0412\u0447\u0435\u0440\u0430',
+    days: '\u0434\u043d\u0435\u0439',
+    month: '\u041c\u0435\u0441\u044f\u0446',
+    impressions: '\u043f\u043e\u043a\u0430\u0437\u043e\u0432',
+    clicks: '\u043a\u043b\u0438\u043a\u043e\u0432',
+    conversions_short: '\u043a\u043e\u043d\u0432. Ads',
+    slots: '\u0421\u043b\u043e\u0442\u044b',
+    today_lc: '\u0441\u0435\u0433\u043e\u0434\u043d\u044f',
+    next7: '\u043d\u0430 7 \u0434\u043d\u0435\u0439',
+    decision: '\u0420\u0435\u0448\u0435\u043d\u0438\u0435',
+    protection: '\u0417\u0430\u0449\u0438\u0442\u0430',
+    billing: '\u041e\u043f\u043b\u0430\u0442\u0430',
+    next: '\u0414\u0430\u043b\u044c\u0448\u0435',
+    changes_on: `\u0418\u0437\u043c\u0435\u043d\u0435\u043d\u0438\u044f \u0432\u043a\u043b\u044e\u0447\u0435\u043d\u044b: ${vars.budgets} \u0431\u044e\u0434\u0436\u0435\u0442\u043e\u0432, ${vars.bids} \u0441\u0442\u0430\u0432\u043e\u043a.`,
+    dry_run_plan: `\u041d\u0438\u0447\u0435\u0433\u043e \u043d\u0435 \u043c\u0435\u043d\u044f\u043b: dry-run. \u041f\u043b\u0430\u043d: ${vars.budgets} \u0431\u044e\u0434\u0436\u0435\u0442\u043e\u0432, ${vars.bids} \u0441\u0442\u0430\u0432\u043e\u043a.`,
+    ok: '\u043e\u043a',
+    stop: '\u0421\u0422\u041e\u041f',
+    warnings: '\u0435\u0441\u0442\u044c \u043f\u0440\u0435\u0434\u0443\u043f\u0440\u0435\u0436\u0434\u0435\u043d\u0438\u044f',
+    no_warnings: '\u043f\u0440\u0435\u0434\u0443\u043f\u0440\u0435\u0436\u0434\u0435\u043d\u0438\u0439 \u043d\u0435\u0442',
+    manicure: '\u041c\u0430\u043d\u0438\u043a\u044e\u0440',
+    pedicure: '\u041f\u0435\u0434\u0438\u043a\u044e\u0440',
+    lashes: '\u0420\u0435\u0441\u043d\u0438\u0446\u044b',
+    push: '\u043f\u0443\u0448\u0438\u043c',
+    push_mobile_today: '\u043f\u0443\u0448\u0438\u043c \u043c\u043e\u0431\u0438\u043b\u043a\u0443 \u0441\u0435\u0433\u043e\u0434\u043d\u044f',
+    hold: '\u0434\u0435\u0440\u0436\u0438\u043c',
+    protect_budget: '\u0431\u0435\u0440\u0435\u0436\u0435\u043c \u0431\u044e\u0434\u0436\u0435\u0442',
+    reason_enough_slots: '\u0435\u0441\u0442\u044c \u0434\u043e\u0441\u0442\u0430\u0442\u043e\u0447\u043d\u043e \u0441\u043b\u043e\u0442\u043e\u0432',
+    reason_urgency: '\u0441\u043b\u043e\u0442\u043e\u0432 \u0441\u0435\u0433\u043e\u0434\u043d\u044f \u043c\u0430\u043b\u043e, \u0441\u0440\u043e\u0447\u043d\u043e\u0441\u0442\u044c \u043c\u043e\u0436\u0435\u0442 \u0441\u0440\u0430\u0431\u043e\u0442\u0430\u0442\u044c',
+    reason_low_slots: '\u043c\u0430\u043b\u043e \u0438\u043b\u0438 \u043d\u0435\u0442 \u0441\u043b\u043e\u0442\u043e\u0432',
+    reason_normal: '\u043e\u0431\u044b\u0447\u043d\u0430\u044f \u0437\u0430\u0433\u0440\u0443\u0437\u043a\u0430',
+    dry_run_full: 'dry-run, \u0438\u0437\u043c\u0435\u043d\u0435\u043d\u0438\u044f \u043d\u0435 \u043f\u0440\u0438\u043c\u0435\u043d\u044f\u043b\u0438\u0441\u044c',
+    no_data: '\u043d\u0435\u0442 \u0434\u0430\u043d\u043d\u044b\u0445',
+    billing_api_error: '\u043d\u0435 \u0443\u0434\u0430\u043b\u043e\u0441\u044c \u043f\u043e\u043b\u0443\u0447\u0438\u0442\u044c \u0447\u0435\u0440\u0435\u0437 API',
+    billing_ui_needed: '\u0442\u043e\u0447\u043d\u0430\u044f \u0441\u0443\u043c\u043c\u0430 \u043a \u043e\u043f\u043b\u0430\u0442\u0435 \u0438 \u0441\u0440\u043e\u043a \u0432 API \u043d\u0435 \u0434\u043e\u0441\u0442\u0443\u043f\u043d\u044b',
+    next_stop: '\u043d\u0435 \u0442\u0440\u043e\u0433\u0430\u0442\u044c \u0440\u0435\u043a\u043b\u0430\u043c\u0443, \u0441\u043d\u0430\u0447\u0430\u043b\u0430 \u0440\u0430\u0437\u043e\u0431\u0440\u0430\u0442\u044c \u0441\u0442\u043e\u043f',
+    boost: '\u0443\u0441\u0438\u043b\u0438\u0432\u0430\u0442\u044c',
+    no_budget_to: '\u0431\u044e\u0434\u0436\u0435\u0442 \u043d\u0435 \u043b\u0438\u0442\u044c \u0432',
+    careful_boost: '\u0430\u043a\u043a\u0443\u0440\u0430\u0442\u043d\u043e \u0443\u0441\u0438\u043b\u0438\u0432\u0430\u0442\u044c',
+    within_limit: '\u0432 \u0440\u0430\u043c\u043a\u0430\u0445 \u043b\u0438\u043c\u0438\u0442\u0430',
+    hold_budget: '\u0434\u0435\u0440\u0436\u0430\u0442\u044c \u0431\u044e\u0434\u0436\u0435\u0442 \u0438 \u0436\u0434\u0430\u0442\u044c \u043d\u043e\u0432\u044b\u0435 \u0434\u0430\u043d\u043d\u044b\u0435',
+  };
+  return dict[key] || key;
+}
 function googleHeaders(accessToken) {
   return {
     Authorization: `Bearer ${accessToken}`,
@@ -729,3 +806,4 @@ function dateOnly(date) {
 function isoStamp(date) {
   return date.toISOString().replace(/[:.]/g, '-');
 }
+

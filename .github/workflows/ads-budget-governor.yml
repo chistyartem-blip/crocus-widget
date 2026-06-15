@@ -2,9 +2,8 @@ name: Ads Budget Governor
 
 on:
   schedule:
-    # 08:00 Europe/Berlin during summer time. In winter this is 07:00 local;
-    # run manually or add a second cron if exact winter timing matters.
-    - cron: "0 6 * * *"
+    # Hourly slot/campaign check. Telegram report is rate-limited inside the script.
+    - cron: "0 * * * *"
   workflow_dispatch:
     inputs:
       apply:
@@ -37,8 +36,10 @@ jobs:
           GOOGLE_ADS_CUSTOMER_ID: ${{ secrets.GOOGLE_ADS_CUSTOMER_ID }}
           GOOGLE_ADS_LOGIN_CUSTOMER_ID: ${{ secrets.GOOGLE_ADS_LOGIN_CUSTOMER_ID }}
           ADS_GOVERNOR_APPLY: ${{ github.event_name == 'workflow_dispatch' && inputs.apply && 'true' || github.event_name != 'workflow_dispatch' && vars.ADS_GOVERNOR_APPLY || 'false' }}
+          ADS_GOVERNOR_FORCE_TELEGRAM: ${{ github.event_name == 'workflow_dispatch' && 'true' || 'false' }}
           ADS_GOVERNOR_MAX_DAILY_BUDGET_EUR: ${{ vars.ADS_GOVERNOR_MAX_DAILY_BUDGET_EUR || '30' }}
           ADS_GOVERNOR_LOOKAHEAD_DAYS: ${{ vars.ADS_GOVERNOR_LOOKAHEAD_DAYS || '14' }}
+          ADS_GOVERNOR_REPORT_EVERY_HOURS: ${{ vars.ADS_GOVERNOR_REPORT_EVERY_HOURS || '3' }}
           ALTEGIO_PROXY_BASE: ${{ vars.ALTEGIO_PROXY_BASE || 'https://crocus-proxy.crocusbeautystudio.workers.dev/api/proxy' }}
           ALTEGIO_LOCATION_ID: ${{ vars.ALTEGIO_LOCATION_ID || '1357963' }}
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
