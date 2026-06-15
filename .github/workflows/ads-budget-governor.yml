@@ -1,0 +1,52 @@
+name: Ads Budget Governor
+
+on:
+  schedule:
+    # 08:00 Europe/Berlin during summer time. In winter this is 07:00 local;
+    # run manually or add a second cron if exact winter timing matters.
+    - cron: "0 6 * * *"
+  workflow_dispatch:
+    inputs:
+      apply:
+        description: "Apply changes to Google Ads"
+        type: boolean
+        required: true
+        default: false
+
+jobs:
+  governor:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    concurrency:
+      group: ads-budget-governor
+      cancel-in-progress: false
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Run governor
+        env:
+          GOOGLE_ADS_CLIENT_ID: ${{ secrets.GOOGLE_ADS_CLIENT_ID }}
+          GOOGLE_ADS_CLIENT_SECRET: ${{ secrets.GOOGLE_ADS_CLIENT_SECRET }}
+          GOOGLE_ADS_REFRESH_TOKEN: ${{ secrets.GOOGLE_ADS_REFRESH_TOKEN }}
+          GOOGLE_ADS_DEVELOPER_TOKEN: ${{ secrets.GOOGLE_ADS_DEVELOPER_TOKEN }}
+          GOOGLE_ADS_CUSTOMER_ID: ${{ secrets.GOOGLE_ADS_CUSTOMER_ID }}
+          GOOGLE_ADS_LOGIN_CUSTOMER_ID: ${{ secrets.GOOGLE_ADS_LOGIN_CUSTOMER_ID }}
+          ADS_GOVERNOR_APPLY: ${{ github.event_name == 'workflow_dispatch' && inputs.apply && 'true' || github.event_name != 'workflow_dispatch' && vars.ADS_GOVERNOR_APPLY || 'false' }}
+          ADS_GOVERNOR_MAX_DAILY_BUDGET_EUR: ${{ vars.ADS_GOVERNOR_MAX_DAILY_BUDGET_EUR || '30' }}
+          ADS_GOVERNOR_LOOKAHEAD_DAYS: ${{ vars.ADS_GOVERNOR_LOOKAHEAD_DAYS || '14' }}
+          ALTEGIO_PROXY_BASE: ${{ vars.ALTEGIO_PROXY_BASE || 'https://crocus-proxy.crocusbeautystudio.workers.dev/api/proxy' }}
+          ALTEGIO_LOCATION_ID: ${{ vars.ALTEGIO_LOCATION_ID || '1357963' }}
+        run: node scripts/ads-budget-governor.mjs
+
+      - name: Upload report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ads-governor-report
+          path: reports/*.json
+          if-no-files-found: ignore

@@ -12,6 +12,64 @@ var CONFIG = {
   lang: 'de',
 };
 
+function trackingAttribution() {
+  var keys = ['gclid', 'gbraid', 'wbraid', 'utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content'];
+  var out = {};
+  try {
+    var params = new URLSearchParams(window.location.search || '');
+    keys.forEach(function(key) {
+      var value = params.get(key);
+      if (value) {
+        out[key] = value;
+        localStorage.setItem('crocus_attr_' + key, value);
+      } else {
+        value = localStorage.getItem('crocus_attr_' + key);
+        if (value) out[key] = value;
+      }
+    });
+    if (Object.keys(out).length) localStorage.setItem('crocus_attr_last_touch', JSON.stringify(out));
+  } catch (ex) {}
+  return out;
+}
+
+var CRO_ATTR = trackingAttribution();
+
+function servicePriceForTracking(svc) {
+  if (!svc) return 0;
+  if (svc.staff && svc.staff.length && cw.master) {
+    for (var i = 0; i < svc.staff.length; i++) {
+      if (Number(svc.staff[i].id) === Number(cw.master.id)) return Number(svc.staff[i].price_min || svc.price_min || 0) || 0;
+    }
+  }
+  return Number(svc.price_min || svc.price_max || 0) || 0;
+}
+
+function bookingValueForTracking() {
+  if (!cw.service) return 0;
+  if (cw.service.id === KOMBI_SERVICE_ID && cw.comboRoute) return Number(routeTotalPrice(cw.comboRoute) || 0) || 0;
+  return servicePriceForTracking(cw.service) + cw.addons.reduce(function(sum, addon) {
+    return sum + servicePriceForTracking(addon);
+  }, 0);
+}
+
+function extractAltegioRecordId(res) {
+  var data = res && res.data;
+  var record = Array.isArray(data) ? data[0] : data;
+  return record && (record.record_id || record.id) ? String(record.record_id || record.id) : '';
+}
+
+function makeBookingEventId(res) {
+  var recordId = extractAltegioRecordId(res);
+  if (recordId) return 'crocus_booking_' + recordId;
+  return [
+    'crocus_booking',
+    cw.service ? cw.service.id : 'service',
+    cw.master ? cw.master.id : 'master',
+    cw.date || 'date',
+    (cw.time || 'time').replace(/\D/g, '')
+  ].join('_');
+}
+
 // ── Masters — описания и уровни ────────────────────────────────
 var MASTERS_META = {
   3020185: {
@@ -2745,31 +2803,45 @@ function submitBooking(e) {
             })
         : Promise.resolve('')
       ).then(function(emailHash) {
-        window.dataLayer.push({
+        var bookingEventId = makeBookingEventId(res);
+        var bookingValue = bookingValueForTracking();
+        var bookingPayload = {
           event: 'booking_success',
+          event_id: bookingEventId,
+          booking_id: bookingEventId,
+          altegio_record_id: extractAltegioRecordId(res),
           service_name: cw.service ? cw.service.title : '',
+          service_id: cw.service ? cw.service.id : '',
           service_category: cw.category ? cw.category.key : '',
           category: cw.category ? cw.category.label : '',
           master_name: cw.master ? cw.master.name : '',
+          master_id: cw.master ? cw.master.id : '',
           addon_name: cw.addons.length ? cw.addons.map(addonDisplayName).join(', ') : '',
           booking_date: cw.date || '',
           booking_time: cw.time || '',
+          value: bookingValue,
+          currency: 'EUR',
           source: 'widget',
           page_location: window.location.href,
+          landing_page: window.location.pathname,
           // Enhanced Conversions
           user_data: {
             email_address: _ecEmail || undefined,
             phone_number: _ecPhone || undefined,
             sha256_email_address: emailHash || undefined,
           },
+        };
+        Object.keys(CRO_ATTR || {}).forEach(function(key) {
+          bookingPayload[key] = CRO_ATTR[key];
         });
+        window.dataLayer.push(bookingPayload);
         // Google Ads conversion — Запись на встречу
         if (typeof gtag === 'function') {
           gtag('event', 'conversion', {
             send_to: 'AW-18106748478/gz_1CILgxKgcEL6c_LlD',
-            value: cw.service ? (cw.service.price_min || 0) : 0,
+            value: bookingValue,
             currency: 'EUR',
-            transaction_id: '',
+            transaction_id: bookingEventId,
           });
         }
         // Meta Pixel — Schedule event (реальное бронирование)
@@ -2778,13 +2850,13 @@ function submitBooking(e) {
             content_name: cw.service ? cw.service.title : '',
             content_category: cw.category ? cw.category.label : '',
             currency: 'EUR',
-            value: cw.service ? (cw.service.price_min || 0) : 0,
+            value: bookingValue,
           });
           // Дополнительно Lead для оптимизации Leads-кампании
           fbq('track', 'Lead', {
             content_name: cw.service ? cw.service.title : '',
             currency: 'EUR',
-            value: cw.service ? (cw.service.price_min || 0) : 0,
+            value: bookingValue,
           });
         }
       });
