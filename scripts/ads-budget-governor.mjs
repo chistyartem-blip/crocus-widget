@@ -630,6 +630,7 @@ function desiredKeywordBid(row, byCategory, performanceRisk) {
 async function executePlan(accessToken, plan) {
   const mutations = { budgets: [], keyword_bids: [] };
   if (!CONFIG.apply) return { skipped: 'dry_run', ...mutations };
+  if (!CONFIG.forceTelegram) return { skipped: 'apply_requires_manual_dispatch', ...mutations };
   if (plan.reason === 'hard stop') return { skipped: 'hard_stop', ...mutations };
 
   if (plan.budgets.length) {
@@ -1372,4 +1373,3 @@ function dateOnly(date) {
 function isoStamp(date) {
   return date.toISOString().replace(/[:.]/g, '-');
 }
-
