@@ -455,70 +455,70 @@ function renderMarkdownReport(report) {
   const yesterdayPerf = perfByDate[yesterday] || { totals: emptyMetrics(), campaigns: [] };
 
   const lines = [];
-  lines.push(`# Crocus Ads Governor Report`);
+  lines.push(`# Отчет Crocus Ads Governor`);
   lines.push('');
-  lines.push(`Generated: ${report.generated_at}`);
-  lines.push(`Mode: ${report.apply ? 'APPLY' : 'DRY RUN'}`);
-  lines.push(`Daily cap: ${report.max_daily_budget_eur} EUR`);
+  lines.push(`Время: ${report.generated_at}`);
+  lines.push(`Режим: ${report.apply ? 'ПРИМЕНЕНИЕ' : 'DRY RUN, без изменений в рекламе'}`);
+  lines.push(`Лимит в сутки: ${report.max_daily_budget_eur} EUR`);
   lines.push('');
-  lines.push(`## Performance`);
+  lines.push(`## Результаты`);
   lines.push('');
-  lines.push(`| Period | Impr | Clicks | Cost | Conv | CPL |`);
+  lines.push(`| Период | Показы | Клики | Расход | Конверсии | CPL |`);
   lines.push(`|---|---:|---:|---:|---:|---:|`);
-  lines.push(metricRow('Yesterday', yesterdayPerf.totals));
-  lines.push(metricRow('Today so far', todayPerf.totals));
+  lines.push(metricRow('Вчера', yesterdayPerf.totals));
+  lines.push(metricRow('Сегодня сейчас', todayPerf.totals));
   lines.push('');
-  lines.push(`## Slot Decisions`);
+  lines.push(`## Решения по слотам`);
   lines.push('');
-  lines.push(`| Category | Today slots | Next 7 days | Mode | Reason |`);
+  lines.push(`| Категория | Слоты сегодня | Слоты 7 дней | Режим | Почему |`);
   lines.push(`|---|---:|---:|---|---|`);
   for (const decision of report.decisions) {
-    lines.push(`| ${decision.category} | ${decision.today_slots} | ${decision.next_7_days_slots} | ${decision.recommended_mode} | ${decision.reason} |`);
+    lines.push(`| ${ruCategory(decision.category)} | ${decision.today_slots} | ${decision.next_7_days_slots} | ${ruMode(decision.recommended_mode)} | ${ruReason(decision.reason)} |`);
   }
   lines.push('');
-  lines.push(`## Budget Plan`);
+  lines.push(`## План бюджета`);
   lines.push('');
   if (report.plan.budgets.length) {
-    lines.push(`| Campaign | Current | Target | Reason |`);
+    lines.push(`| Кампания | Сейчас | Цель | Почему |`);
     lines.push(`|---|---:|---:|---|`);
     for (const budget of report.plan.budgets) {
-      lines.push(`| ${budget.key} | ${budget.current_eur} EUR | ${budget.target_eur} EUR | ${report.plan.reason} |`);
+      lines.push(`| ${ruCategory(budget.key)} | ${budget.current_eur} EUR | ${budget.target_eur} EUR | ${ruPlanReason(report.plan.reason)} |`);
     }
   } else {
-    lines.push(`No budget changes planned.`);
+    lines.push(`Изменения бюджета не запланированы.`);
   }
   lines.push('');
-  lines.push(`## Bid Plan`);
+  lines.push(`## План ставок`);
   lines.push('');
-  lines.push(`Keyword bid updates planned: ${report.plan.keywordBidUpdates.length}`);
+  lines.push(`Планируемых изменений ставок: ${report.plan.keywordBidUpdates.length}`);
   const sample = report.plan.keywordBidUpdates.slice(0, 12);
   if (sample.length) {
     lines.push('');
-    lines.push(`| Campaign | Keyword | Match | Current | Target |`);
+    lines.push(`| Кампания | Ключ | Тип | Сейчас | Цель |`);
     lines.push(`|---|---|---|---:|---:|`);
     for (const bid of sample) {
-      lines.push(`| ${shortCampaign(bid.campaign_name)} | ${bid.keyword} | ${bid.match_type} | ${bid.current_eur} EUR | ${bid.target_eur} EUR |`);
+      lines.push(`| ${ruCategory(shortCampaign(bid.campaign_name))} | ${bid.keyword} | ${bid.match_type} | ${bid.current_eur} EUR | ${bid.target_eur} EUR |`);
     }
   }
   lines.push('');
-  lines.push(`## Guards`);
+  lines.push(`## Защита`);
   lines.push('');
-  lines.push(`Hard stop: ${report.guard.hard_stop ? 'YES' : 'NO'}`);
+  lines.push(`Жесткий стоп: ${report.guard.hard_stop ? 'ДА' : 'НЕТ'}`);
   if (report.guard.hard_stops.length) {
-    for (const item of report.guard.hard_stops) lines.push(`- HARD: ${item}`);
+    for (const item of report.guard.hard_stops) lines.push(`- СТОП: ${item}`);
   }
   if (report.guard.warnings.length) {
-    for (const item of report.guard.warnings) lines.push(`- WARN: ${item}`);
+    for (const item of report.guard.warnings) lines.push(`- ВНИМАНИЕ: ${item}`);
   } else {
-    lines.push(`No guard warnings.`);
+    lines.push(`Предупреждений нет.`);
   }
   lines.push('');
-  lines.push(`## Execution`);
+  lines.push(`## Выполнение`);
   lines.push('');
-  lines.push(`Mutations: ${report.apply ? 'enabled' : 'disabled'}`);
-  if (report.mutations?.skipped) lines.push(`Skipped: ${report.mutations.skipped}`);
-  lines.push(`Budget mutations response: ${Array.isArray(report.mutations?.budgets) ? report.mutations.budgets.length : 0}`);
-  lines.push(`Keyword mutations response: ${Array.isArray(report.mutations?.keyword_bids) ? report.mutations.keyword_bids.length : 0}`);
+  lines.push(`Изменения в Google Ads: ${report.apply ? 'включены' : 'выключены'}`);
+  if (report.mutations?.skipped) lines.push(`Пропущено: ${ruSkipped(report.mutations.skipped)}`);
+  lines.push(`Ответов по бюджету: ${Array.isArray(report.mutations?.budgets) ? report.mutations.budgets.length : 0}`);
+  lines.push(`Ответов по ставкам: ${Array.isArray(report.mutations?.keyword_bids) ? report.mutations.keyword_bids.length : 0}`);
   return lines.join('\n');
 }
 
@@ -561,6 +561,53 @@ function shortCampaign(name) {
   if (name.includes('Pedik')) return 'pedikuere';
   if (name.includes('PMax')) return 'pmax';
   return name;
+}
+
+function ruCategory(value) {
+  const map = {
+    pmax: 'PMax',
+    manikuere: 'Маникюр',
+    pedikuere: 'Педикюр',
+    wimpern: 'Ресницы',
+  };
+  return map[value] || value;
+}
+
+function ruMode(value) {
+  const map = {
+    push: 'пушим',
+    push_mobile_today: 'пушим мобилку сегодня',
+    hold: 'держим',
+    protect_budget: 'бережем бюджет',
+  };
+  return map[value] || value;
+}
+
+function ruReason(value) {
+  const map = {
+    'enough bookable capacity': 'есть достаточно слотов для записи',
+    'few same-day slots: urgency can work': 'слотов сегодня мало, срочность может сработать',
+    'low capacity today and next 7 days': 'мало или нет слотов сегодня и на 7 дней',
+    'normal capacity': 'обычная загрузка',
+  };
+  return map[value] || value;
+}
+
+function ruPlanReason(value) {
+  const map = {
+    'capacity-based budget and bid adjustment': 'по слотам и состоянию рекламы',
+    'broad keywords present: budget only': 'найдены broad-ключи, ставки не повышаем',
+    'hard stop': 'сработал жесткий стоп',
+  };
+  return map[value] || value;
+}
+
+function ruSkipped(value) {
+  const map = {
+    dry_run: 'dry-run, изменения не применялись',
+    hard_stop: 'сработал жесткий стоп',
+  };
+  return map[value] || value;
 }
 
 function googleHeaders(accessToken) {

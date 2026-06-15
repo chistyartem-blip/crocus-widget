@@ -19,10 +19,10 @@
  */
 
 const COMMANDS = [
-  '/help - show commands',
-  '/dryrun - run governor without Google Ads changes',
-  '/apply - run governor and apply safe changes',
-  '/status - link to GitHub Actions runs',
+  '/help - команды',
+  '/dryrun - проверить и посчитать план без изменений в Google Ads',
+  '/apply - применить безопасные изменения',
+  '/status - ссылка на запуски GitHub Actions',
 ];
 
 export default {
@@ -52,29 +52,29 @@ export default {
     }
 
     if (text.startsWith('/help') || text.startsWith('/start')) {
-      await sendTelegram(env, chatId, `Crocus Ads Bot\n\n${COMMANDS.join('\n')}`);
+      await sendTelegram(env, chatId, `Crocus Ads Bot подключен.\n\n${COMMANDS.join('\n')}`);
       return json({ ok: true });
     }
 
     if (text.startsWith('/status')) {
       const url = `https://github.com/${env.GITHUB_OWNER}/${env.GITHUB_REPO}/actions/workflows/${env.GITHUB_WORKFLOW_ID}`;
-      await sendTelegram(env, chatId, `GitHub Actions:\n${url}`);
+      await sendTelegram(env, chatId, `Запуски Ads Governor:\n${url}`);
       return json({ ok: true });
     }
 
     if (text.startsWith('/dryrun')) {
       await dispatchGovernor(env, false);
-      await sendTelegram(env, chatId, 'Dry-run started. Report will arrive after GitHub Actions finishes.');
+      await sendTelegram(env, chatId, 'Dry-run запущен. Ничего в Google Ads не меняю. Отчет придет после завершения GitHub Actions.');
       return json({ ok: true, dispatched: 'dryrun' });
     }
 
     if (text.startsWith('/apply')) {
       await dispatchGovernor(env, true);
-      await sendTelegram(env, chatId, 'Apply run started. Governor guards are active. Report will arrive after it finishes.');
+      await sendTelegram(env, chatId, 'Apply-запуск стартовал. Защита включена: лимит бюджета, allowlist кампаний, стопы по broad и ошибкам. Отчет придет после завершения.');
       return json({ ok: true, dispatched: 'apply' });
     }
 
-    await sendTelegram(env, chatId, `Unknown command.\n\n${COMMANDS.join('\n')}`);
+    await sendTelegram(env, chatId, `Не понял команду.\n\n${COMMANDS.join('\n')}`);
     return json({ ok: true, skipped: 'unknown command' });
   },
 };
