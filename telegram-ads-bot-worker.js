@@ -18,10 +18,15 @@ export default {
 
     const message = update.message || update.edited_message;
     const chatId = String(message?.chat?.id || '');
+    const actor = {
+      userId: String(message?.from?.id || ''),
+      username: normalizeUsername(message?.from?.username || ''),
+    };
     const text = String(message?.text || '').trim();
     if (!chatId || !text) return json({ ok: true, skipped: 'no message text' });
 
-    if (String(env.TELEGRAM_CHAT_ID) !== chatId) {
+    const role = chatRole(env, chatId, actor);
+    if (role === 'blocked') {
       console.warn(`unauthorized telegram chat blocked: ${chatId}`);
       return json({ ok: false, error: 'unauthorized chat' }, 403);
     }
@@ -29,7 +34,12 @@ export default {
     const normalized = text.toLowerCase();
 
     if (hasAny(normalized, ['/help', '/start', R('help_word'), R('commands_word'), R('start_word')])) {
-      await sendTelegram(env, chatId, `${R('bot_connected')}\n\n${commandsText()}`);
+      await sendTelegram(env, chatId, `${R('bot_connected')}\n${R(role === 'admin' ? 'role_admin' : 'role_partner')}\n\n${commandsText(role)}`);
+      return json({ ok: true });
+    }
+
+    if (hasAny(normalized, ['/invite', R('invite_word')])) {
+      await sendTelegram(env, chatId, inviteText(env, role));
       return json({ ok: true });
     }
 
@@ -40,6 +50,10 @@ export default {
     }
 
     if (hasAny(normalized, ['/apply', 'apply', R('apply_word'), R('change_word'), R('use_word')])) {
+      if (role !== 'admin') {
+        await sendTelegram(env, chatId, R('apply_denied'));
+        return json({ ok: false, error: 'readonly chat cannot apply' }, 403);
+      }
       const run = await dispatchGovernor(env, true);
       await sendTelegram(env, chatId, `${R('apply_started')}${run?.html_url ? `\n\n${R('run_link')}\n${run.html_url}` : ''}`);
       return json({ ok: true, dispatched: 'apply' });
@@ -66,15 +80,54 @@ function hasAny(text, patterns) {
   return patterns.some((pattern) => text.includes(pattern));
 }
 
-function commandsText() {
-  return [
+function commandsText(role = 'partner') {
+  const lines = [
     `${R('cmd_help')}`,
     `${R('cmd_dryrun')}`,
-    `${R('cmd_apply')}`,
     `${R('cmd_status')}`,
+    `${R('cmd_invite')}`,
     '',
     `${R('natural_examples')}`,
-  ].join('\n');
+  ];
+  if (role === 'admin') lines.splice(2, 0, `${R('cmd_apply')}`);
+  return lines.join('\n');
+}
+
+function chatRole(env, chatId, actor = {}) {
+  const admins = idSet(env.TELEGRAM_ADMIN_CHAT_IDS || env.TELEGRAM_CHAT_ID);
+  const allowed = idSet(env.TELEGRAM_ALLOWED_CHAT_IDS || env.TELEGRAM_CHAT_ID);
+  const adminUsers = idSet(env.TELEGRAM_ADMIN_USER_IDS);
+  const allowedUsers = idSet(env.TELEGRAM_ALLOWED_USER_IDS);
+  const adminUsernames = nameSet(env.TELEGRAM_ADMIN_USERNAMES);
+  const allowedUsernames = nameSet(env.TELEGRAM_ALLOWED_USERNAMES);
+  for (const admin of admins) allowed.add(admin);
+  if (admins.has(chatId)) return 'admin';
+  if (actor.userId && adminUsers.has(actor.userId)) return 'admin';
+  if (actor.username && adminUsernames.has(actor.username)) return 'admin';
+  if (allowed.has(chatId)) return 'partner';
+  if (actor.userId && allowedUsers.has(actor.userId)) return 'partner';
+  if (actor.username && allowedUsernames.has(actor.username)) return 'partner';
+  return 'blocked';
+}
+
+function idSet(value) {
+  return new Set(String(value || '').split(',').map((item) => item.trim()).filter(Boolean));
+}
+
+function nameSet(value) {
+  return new Set(String(value || '').split(',').map(normalizeUsername).filter(Boolean));
+}
+
+function normalizeUsername(value) {
+  return String(value || '').trim().replace(/^@/, '').toLowerCase();
+}
+
+function inviteText(env, role) {
+  const groupLink = env.TELEGRAM_ADMIN_INVITE_URL || '\u0441\u0441\u044b\u043b\u043a\u0430 \u043d\u0430 \u0437\u0430\u043a\u0440\u044b\u0442\u0443\u044e \u0433\u0440\u0443\u043f\u043f\u0443 \u0435\u0449\u0435 \u043d\u0435 \u0437\u0430\u0434\u0430\u043d\u0430';
+  const adminNote = role === 'admin'
+    ? '\n\n\u041f\u0440\u0430\u0432\u0438\u043b\u044c\u043d\u0430\u044f \u0441\u0445\u0435\u043c\u0430: \u043f\u0430\u0440\u0442\u043d\u0435\u0440\u044b \u0437\u0430\u0445\u043e\u0434\u044f\u0442 \u0432 \u0437\u0430\u043a\u0440\u044b\u0442\u0443\u044e \u0433\u0440\u0443\u043f\u043f\u0443, \u0433\u0434\u0435 \u0443\u0436\u0435 \u0434\u043e\u0431\u0430\u0432\u043b\u0435\u043d \u0431\u043e\u0442. \u0412\u043d\u0443\u0442\u0440\u0438 \u044d\u0442\u043e\u0439 \u0433\u0440\u0443\u043f\u043f\u044b \u0432\u0441\u0435 \u0438\u043c\u0435\u044e\u0442 \u0430\u0434\u043c\u0438\u043d\u0441\u043a\u0438\u0435 \u043f\u0440\u0430\u0432\u0430. \u0412 \u043b\u0438\u0447\u043a\u0435 \u0438 \u0447\u0443\u0436\u0438\u0445 \u0447\u0430\u0442\u0430\u0445 \u0431\u043e\u0442 \u043c\u043e\u043b\u0447\u0438\u0442.'
+    : '';
+  return `${R('invite_text')}\n${groupLink}${adminNote}`;
 }
 
 async function dispatchGovernor(env, apply) {
@@ -141,9 +194,9 @@ async function askOpenAI(env, userText) {
     'Iron backend rules: never enable broad keywords, never revive old/paused junk, never expand blindly to far cities, never optimize for fake soft actions, never bypass guardrails.',
     'Slot-aware rule: Altegio slots decide what can be pushed. If there are no slots, protect budget. If same-day slots are few, use mobile urgency carefully. If capacity is strong, push within cap.',
     'Small-city strategy: mobile and Maps matter; generic near-me and broad traffic can be bad; local high-intent terms and service pages matter.',
-    'Never invent live metrics. For current spend, clicks, conversions, slots, billing, or decisions, tell the user to write "проверь", "что сейчас", or "проверь слоты"; the workflow must pull real Google Ads and Altegio data.',
+    'Never invent live metrics. For current spend, clicks, conversions, slots, billing, or decisions, tell the user to write "check", "status", or "slots" in Russian; the workflow must pull real Google Ads and Altegio data.',
     'When asked what to do, give a short decision, reason, risk, and next action. No long reports unless requested.',
-    'If the user asks to apply changes, tell them to write "примени". The guarded workflow handles live changes.',
+    'If the user asks to apply changes, tell them to write "apply" or the Russian equivalent. The guarded workflow handles live changes.',
     'Do not reveal secrets, tokens, IDs, credentials, or hidden implementation details.',
     'If the data is unavailable, say exactly what is unavailable and what check is needed. Do not fill gaps with assumptions.',
   ].join('\n');
@@ -177,15 +230,20 @@ function json(body, status = 200) {
 function R(key) {
   const dict = {
     bot_connected: '\u0411\u043e\u0442 \u043f\u043e\u0434\u043a\u043b\u044e\u0447\u0435\u043d. \u041c\u043e\u0436\u043d\u043e \u043f\u0438\u0441\u0430\u0442\u044c \u043e\u0431\u044b\u0447\u043d\u044b\u043c\u0438 \u0444\u0440\u0430\u0437\u0430\u043c\u0438.',
+    role_admin: '\u0420\u0435\u0436\u0438\u043c: \u0430\u0434\u043c\u0438\u043d. \u041c\u043e\u0436\u043d\u043e \u043f\u0440\u043e\u0432\u0435\u0440\u044f\u0442\u044c \u0438 \u043f\u0440\u0438\u043c\u0435\u043d\u044f\u0442\u044c \u0437\u0430\u0449\u0438\u0449\u0435\u043d\u043d\u044b\u0435 \u043f\u0440\u0430\u0432\u043a\u0438.',
+    role_partner: '\u0420\u0435\u0436\u0438\u043c: \u043f\u0430\u0440\u0442\u043d\u0435\u0440. \u041c\u043e\u0436\u043d\u043e \u0441\u043c\u043e\u0442\u0440\u0435\u0442\u044c \u043e\u0442\u0447\u0435\u0442\u044b \u0438 \u0441\u043f\u0440\u0430\u0448\u0438\u0432\u0430\u0442\u044c, \u043d\u043e \u043d\u0435\u043b\u044c\u0437\u044f \u043c\u0435\u043d\u044f\u0442\u044c \u0440\u0435\u043a\u043b\u0430\u043c\u0443.',
     runs: '\u0417\u0430\u043f\u0443\u0441\u043a\u0438 Ads Governor:',
     run_link: '\u0421\u0441\u044b\u043b\u043a\u0430 \u043d\u0430 \u0436\u0438\u0432\u043e\u0439 \u0437\u0430\u043f\u0443\u0441\u043a:',
     apply_started: '\u0417\u0430\u043f\u0443\u0441\u043a \u0441 \u043f\u0440\u0438\u043c\u0435\u043d\u0435\u043d\u0438\u0435\u043c \u0441\u0442\u0430\u0440\u0442\u043e\u0432\u0430\u043b. \u0417\u0430\u0449\u0438\u0442\u0430 \u0432\u043a\u043b\u044e\u0447\u0435\u043d\u0430: \u043b\u0438\u043c\u0438\u0442, allowlist, \u0441\u0442\u043e\u043f\u044b. \u041e\u0442\u0447\u0435\u0442 \u043f\u0440\u0438\u0434\u0435\u0442 \u043f\u043e\u0441\u043b\u0435 \u043f\u0440\u043e\u0433\u043e\u043d\u0430.',
     dryrun_started: '\u041f\u0440\u043e\u0432\u0435\u0440\u043a\u0430 \u0441\u0442\u0430\u0440\u0442\u043e\u0432\u0430\u043b\u0430. Google Ads \u043d\u0435 \u0442\u0440\u043e\u0433\u0430\u044e. \u041e\u0442\u0447\u0435\u0442 \u043f\u0440\u0438\u0434\u0435\u0442 \u043f\u043e\u0441\u043b\u0435 GitHub Actions.',
     unknown: '\u041d\u0435 \u043f\u043e\u043d\u044f\u043b \u0437\u0430\u043f\u0440\u043e\u0441.',
+    apply_denied: '\u042d\u0442\u043e \u0447\u0430\u0442 \u0431\u0435\u0437 \u043f\u0440\u0430\u0432\u0430 \u043c\u0435\u043d\u044f\u0442\u044c \u0440\u0435\u043a\u043b\u0430\u043c\u0443. \u041c\u043e\u0436\u043d\u043e \u0442\u043e\u043b\u044c\u043a\u043e \u043f\u0440\u043e\u0432\u0435\u0440\u0438\u0442\u044c \u0438 \u043f\u043e\u0441\u043c\u043e\u0442\u0440\u0435\u0442\u044c \u043e\u0442\u0447\u0435\u0442.',
     cmd_help: '\u041f\u043e\u043c\u043e\u0449\u044c / help - \u043f\u043e\u043a\u0430\u0437\u0430\u0442\u044c \u043a\u043e\u043c\u0430\u043d\u0434\u044b',
     cmd_dryrun: '\u041f\u0440\u043e\u0432\u0435\u0440\u044c / \u0427\u0442\u043e \u0441\u0435\u0439\u0447\u0430\u0441 / \u0427\u0442\u043e \u0441\u043e \u0441\u043b\u043e\u0442\u0430\u043c\u0438 - \u043e\u0442\u0447\u0435\u0442 \u0431\u0435\u0437 \u0438\u0437\u043c\u0435\u043d\u0435\u043d\u0438\u0439',
     cmd_apply: '\u041f\u0440\u0438\u043c\u0435\u043d\u0438 / apply - \u0432\u043d\u0435\u0441\u0442\u0438 \u0431\u0435\u0437\u043e\u043f\u0430\u0441\u043d\u044b\u0435 \u043f\u0440\u0430\u0432\u043a\u0438',
     cmd_status: '\u0421\u0442\u0430\u0442\u0443\u0441 - \u0441\u0441\u044b\u043b\u043a\u0430 \u043d\u0430 GitHub Actions',
+    cmd_invite: '\u041f\u0440\u0438\u0433\u043b\u0430\u0441\u0438\u0442\u044c / invite - \u0441\u0441\u044b\u043b\u043a\u0430 \u0438 \u043f\u0440\u0430\u0432\u0438\u043b\u0430 \u0434\u043e\u0441\u0442\u0443\u043f\u0430',
+    invite_text: '\u0421\u0441\u044b\u043b\u043a\u0430 \u043d\u0430 \u0431\u043e\u0442\u0430. \u0414\u043e\u0441\u0442\u0443\u043f \u0437\u0430\u043a\u0440\u044b\u0442\u044b\u0439: \u0431\u0435\u0437 allowlist \u0431\u043e\u0442 \u043d\u0435 \u043e\u0442\u0432\u0435\u0442\u0438\u0442 \u0438 \u043d\u0435 \u0437\u0430\u043f\u0443\u0441\u0442\u0438\u0442 \u043f\u0440\u043e\u0432\u0435\u0440\u043a\u0443.',
     natural_examples: '\u041f\u0440\u0438\u043c\u0435\u0440\u044b: "\u0447\u0442\u043e \u0441\u0435\u0439\u0447\u0430\u0441", "\u043f\u0440\u043e\u0432\u0435\u0440\u044c \u0441\u043b\u043e\u0442\u044b", "\u043c\u043e\u0436\u043d\u043e \u043b\u0438 \u043f\u0443\u0448\u0438\u0442\u044c", "\u043a\u0430\u043a\u0430\u044f \u0442\u0430\u043a\u0442\u0438\u043a\u0430", "\u043f\u0440\u0438\u043c\u0435\u043d\u0438". \u0416\u0438\u0432\u044b\u0435 \u0446\u0438\u0444\u0440\u044b \u0442\u043e\u043b\u044c\u043a\u043e \u0447\u0435\u0440\u0435\u0437 \u043f\u0440\u043e\u0432\u0435\u0440\u043a\u0443.',
     help_word: '\u043f\u043e\u043c\u043e\u0449',
     commands_word: '\u043a\u043e\u043c\u0430\u043d\u0434',
@@ -199,6 +257,7 @@ function R(key) {
     slots_word: '\u0441\u043b\u043e\u0442',
     report_word: '\u043e\u0442\u0447\u0435\u0442',
     what_now_word: '\u0447\u0442\u043e \u0441\u0435\u0439\u0447\u0430\u0441',
+    invite_word: '\u043f\u0440\u0438\u0433\u043b\u0430\u0441',
   };
   return dict[key] || key;
 }
