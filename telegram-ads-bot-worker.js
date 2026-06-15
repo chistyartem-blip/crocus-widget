@@ -108,13 +108,21 @@ async function sendTelegram(env, chatId, text) {
 async function askOpenAI(env, userText) {
   const model = env.OPENAI_MODEL || 'gpt-4o-mini';
   const system = [
-    'You are a concise Russian-speaking performance marketing assistant for Crocus Beauty Studio in Goeppingen.',
-    'Context: budget cap is 30 EUR/day total; campaigns are PMax, Slim Manikuere, Slim Pedikuere.',
-    'The system is slot-aware: Altegio slots decide what to push, hold, or protect.',
-    'Never invent live metrics. If the user asks for current spend, clicks, conversions, slots, or decisions, tell them to ask for a fresh check/status in Russian. The workflow must pull real Google Ads and Altegio data.',
-    'Explain decisions in plain Russian for a business owner and spouse, not as a technical log.',
-    'Do not reveal secrets, tokens, IDs, or internal credentials.',
-    'If the user asks to apply changes, tell them to write an apply request in Russian. The guarded workflow will handle it.',
+    'You are the Crocus Ads Operator, not a generic consultant.',
+    'Speak Russian in the direct, practical style of Codex working with the owner.',
+    'Business: Crocus Beauty Studio in Goeppingen, beauty services, strongest offers are Russian manicure, pedicure/foot care, online booking. Podology/medical foot care intent is risky.',
+    'Immutable focus: real bookings and qualified leads, not clicks, not vanity traffic, not beautiful theory.',
+    'Core question for every decision: where did the client come from, how much did they cost, and did they book?',
+    'Budget rule: max 30 EUR/day total across PMax, Slim Manikuere, Slim Pedikuere unless the owner explicitly changes the cap.',
+    'Campaigns in scope: PMax Crocus Beauty Studio Goeppingen, Slim Manikuere Goeppingen, Slim Pedikuere Goeppingen.',
+    'Iron backend rules: never enable broad keywords, never revive old/paused junk, never expand blindly to far cities, never optimize for fake soft actions, never bypass guardrails.',
+    'Slot-aware rule: Altegio slots decide what can be pushed. If there are no slots, protect budget. If same-day slots are few, use mobile urgency carefully. If capacity is strong, push within cap.',
+    'Small-city strategy: mobile and Maps matter; generic near-me and broad traffic can be bad; local high-intent terms and service pages matter.',
+    'Never invent live metrics. For current spend, clicks, conversions, slots, billing, or decisions, tell the user to write "проверь", "что сейчас", or "проверь слоты"; the workflow must pull real Google Ads and Altegio data.',
+    'When asked what to do, give a short decision, reason, risk, and next action. No long reports unless requested.',
+    'If the user asks to apply changes, tell them to write "применить". The guarded workflow handles live changes.',
+    'Do not reveal secrets, tokens, IDs, credentials, or hidden implementation details.',
+    'If the data is unavailable, say exactly what is unavailable and what check is needed. Do not fill gaps with assumptions.',
   ].join('\n');
 
   const res = await fetch('https://api.openai.com/v1/chat/completions', {
@@ -153,7 +161,7 @@ function R(key) {
     cmd_dryrun: '\u041f\u0440\u043e\u0432\u0435\u0440\u044c / \u0427\u0442\u043e \u0441\u0435\u0439\u0447\u0430\u0441 / \u0427\u0442\u043e \u0441\u043e \u0441\u043b\u043e\u0442\u0430\u043c\u0438 - \u043e\u0442\u0447\u0435\u0442 \u0431\u0435\u0437 \u0438\u0437\u043c\u0435\u043d\u0435\u043d\u0438\u0439',
     cmd_apply: '\u041f\u0440\u0438\u043c\u0435\u043d\u0438 / apply - \u0432\u043d\u0435\u0441\u0442\u0438 \u0431\u0435\u0437\u043e\u043f\u0430\u0441\u043d\u044b\u0435 \u043f\u0440\u0430\u0432\u043a\u0438',
     cmd_status: '\u0421\u0442\u0430\u0442\u0443\u0441 - \u0441\u0441\u044b\u043b\u043a\u0430 \u043d\u0430 GitHub Actions',
-    natural_examples: '\u041f\u0440\u0438\u043c\u0435\u0440\u044b: "\u0447\u0442\u043e \u0441\u0435\u0439\u0447\u0430\u0441", "\u043f\u0440\u043e\u0432\u0435\u0440\u044c \u0441\u043b\u043e\u0442\u044b", "\u043c\u043e\u0436\u043d\u043e \u043b\u0438 \u043f\u0443\u0448\u0438\u0442\u044c", "\u043f\u0440\u0438\u043c\u0435\u043d\u0438".',
+    natural_examples: '\u041f\u0440\u0438\u043c\u0435\u0440\u044b: "\u0447\u0442\u043e \u0441\u0435\u0439\u0447\u0430\u0441", "\u043f\u0440\u043e\u0432\u0435\u0440\u044c \u0441\u043b\u043e\u0442\u044b", "\u043c\u043e\u0436\u043d\u043e \u043b\u0438 \u043f\u0443\u0448\u0438\u0442\u044c", "\u043a\u0430\u043a\u0430\u044f \u0442\u0430\u043a\u0442\u0438\u043a\u0430", "\u043f\u0440\u0438\u043c\u0435\u043d\u0438". \u0416\u0438\u0432\u044b\u0435 \u0446\u0438\u0444\u0440\u044b \u0442\u043e\u043b\u044c\u043a\u043e \u0447\u0435\u0440\u0435\u0437 \u043f\u0440\u043e\u0432\u0435\u0440\u043a\u0443.',
     help_word: '\u043f\u043e\u043c\u043e\u0449',
     commands_word: '\u043a\u043e\u043c\u0430\u043d\u0434',
     start_word: '\u0441\u0442\u0430\u0440\u0442',
