@@ -257,9 +257,9 @@ function decideCapacity(rows) {
     const next7Slots = countSlotWindows(rows, (r) => r.category === category && r.date >= today && r.date <= day7);
     let mode = 'hold';
     let reason = 'normal capacity';
-    if (todaySlots === 0 && next7Slots < 10) {
-      mode = 'protect_budget';
-      reason = 'low capacity today and next 7 days';
+    if (todaySlots === 0) {
+      mode = next7Slots < 10 ? 'protect_budget' : 'hold';
+      reason = next7Slots < 10 ? 'low capacity today and next 7 days' : 'future capacity but no same-day slots';
     } else if (todaySlots > 0 && todaySlots <= 6) {
       mode = 'push_mobile_today';
       reason = 'few same-day slots: urgency can work';
@@ -646,6 +646,10 @@ function allocateBudgets(byCategory, guard, performanceRisk) {
   let budgets = { pmax: 8, manikuere: 8, pedikuere: 6 };
 
   if (manMode === 'push_mobile_today' && pedMode === 'push_mobile_today') budgets = { pmax: 6, manikuere: 14, pedikuere: 5 };
+  else if (manMode === 'push_mobile_today' && pedMode === 'hold') budgets = { pmax: 6, manikuere: 14, pedikuere: 5 };
+  else if (manMode === 'push' && pedMode === 'hold') budgets = { pmax: 6, manikuere: 14, pedikuere: 5 };
+  else if (pedMode === 'push_mobile_today' && manMode === 'hold') budgets = { pmax: 7, manikuere: 7, pedikuere: 8 };
+  else if (pedMode === 'push' && manMode === 'hold') budgets = { pmax: 7, manikuere: 7, pedikuere: 8 };
   else if (manMode === 'push' && pedMode === 'push_mobile_today') budgets = { pmax: 6, manikuere: 14, pedikuere: 6 };
   else if (manMode === 'push' && pedMode === 'push') budgets = { pmax: 6, manikuere: 14, pedikuere: 8 };
   else if (manMode.startsWith('protect') && pedMode.startsWith('push')) budgets = { pmax: 8, manikuere: 2, pedikuere: 14 };
@@ -994,7 +998,8 @@ function widgetMasterLines(rows) {
       const hours = row.hours.slice(0, 3).join(', ');
       const tail = row.hours.length > 3 ? ` +${row.hours.length - 3}` : '';
       const focus = ruCategory(row.focus);
-      return `${capacityIcon(row.today ? row.windows : 0)} ${row.master_name}: ${focus} - ${status}, ${dateLabel}${hours ? ` ${hours}${tail}` : ''}`;
+      const separator = row.today ? ', ' : ' ';
+      return `${capacityIcon(row.today ? row.windows : 0)} ${row.master_name}: ${focus} - ${status}${separator}${dateLabel}${hours ? ` ${hours}${tail}` : ''}`;
     });
 }
 
@@ -1144,6 +1149,7 @@ function ruReason(value) {
     'enough bookable capacity': R('reason_enough_slots'),
     'few same-day slots: urgency can work': R('reason_urgency'),
     'low capacity today and next 7 days': R('reason_low_slots'),
+    'future capacity but no same-day slots': R('reason_future_only'),
     'normal capacity': R('reason_normal'),
   };
   return map[value] || value;
@@ -1286,6 +1292,7 @@ function R(key, vars = {}) {
     reason_enough_slots: '\u0435\u0441\u0442\u044c \u0434\u043e\u0441\u0442\u0430\u0442\u043e\u0447\u043d\u043e \u0441\u043b\u043e\u0442\u043e\u0432',
     reason_urgency: '\u0441\u043b\u043e\u0442\u043e\u0432 \u0441\u0435\u0433\u043e\u0434\u043d\u044f \u043c\u0430\u043b\u043e, \u0441\u0440\u043e\u0447\u043d\u043e\u0441\u0442\u044c \u043c\u043e\u0436\u0435\u0442 \u0441\u0440\u0430\u0431\u043e\u0442\u0430\u0442\u044c',
     reason_low_slots: '\u043c\u0430\u043b\u043e \u0438\u043b\u0438 \u043d\u0435\u0442 \u0441\u043b\u043e\u0442\u043e\u0432',
+    reason_future_only: '\u043d\u0430 \u0431\u043b\u0438\u0436\u0430\u0439\u0448\u0438\u0435 \u0434\u043d\u0438 \u043e\u043a\u043d\u0430 \u0435\u0441\u0442\u044c, \u043d\u043e \u0441\u0435\u0433\u043e\u0434\u043d\u044f \u043d\u0435 \u043f\u0443\u0448\u0438\u043c',
     reason_normal: '\u043e\u0431\u044b\u0447\u043d\u0430\u044f \u0437\u0430\u0433\u0440\u0443\u0437\u043a\u0430',
     plan_by_slots: '\u0440\u0435\u0448\u0435\u043d\u0438\u0435 \u043f\u043e \u0441\u043b\u043e\u0442\u0430\u043c, \u0435\u043c\u043a\u043e\u0441\u0442\u0438 \u0438 \u0442\u0435\u043a\u0443\u0449\u0438\u043c \u0434\u0430\u043d\u043d\u044b\u043c Google Ads',
     plan_broad: '\u043d\u0430\u0439\u0434\u0435\u043d broad-\u0440\u0438\u0441\u043a, \u043f\u043e\u044d\u0442\u043e\u043c\u0443 \u0441\u0442\u0430\u0432\u043a\u0438 \u043d\u0435 \u0443\u0432\u0435\u043b\u0438\u0447\u0438\u0432\u0430\u0435\u043c',
