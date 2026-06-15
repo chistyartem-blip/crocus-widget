@@ -55,6 +55,16 @@ export default {
         await sendTelegram(env, chatId, R('apply_denied'));
         return json({ ok: false, error: 'readonly chat cannot change budget' }, 403);
       }
+      if (isExplicitApplyConfirmation(normalized)) {
+        const run = await dispatchGovernor(env, {
+          apply: true,
+          reportMode: 'small',
+          budgetOverride: { [budgetChange.key]: budgetChange.eur },
+          manualBudgetOnly: true,
+        });
+        await sendTelegram(env, chatId, `${R('budget_apply_started')}\n${budgetChangeLine(budgetChange)}${run?.html_url ? `\n\n${R('run_link')}\n${run.html_url}` : ''}`);
+        return json({ ok: true, dispatched: 'budget_apply_from_text' });
+      }
       await sendTelegram(env, chatId, budgetChangePreview(budgetChange), budgetConfirmKeyboard(budgetChange));
       return json({ ok: true, pending: 'budget_change' });
     }
@@ -75,7 +85,7 @@ export default {
       return json({ ok: true });
     }
 
-    if (hasAny(normalized, ['/apply', 'apply', R('apply_word'), R('change_word'), R('use_word')])) {
+    if (isGeneralApplyRequest(normalized)) {
       if (role !== 'admin') {
         await sendTelegram(env, chatId, R('apply_denied'));
         return json({ ok: false, error: 'readonly chat cannot apply' }, 403);
@@ -117,6 +127,8 @@ function detectGovernorIntent(text) {
     R('check_word'), R('slots_word'), R('report_word'), R('what_now_word'),
     '\u043c\u0430\u0441\u0442\u0435\u0440', '\u043e\u043a\u043d', '\u0444\u0443\u043b', '\u0441\u0432\u043e\u0431\u043e\u0434',
     '\u043a\u0443\u0434\u0430 \u043b', '\u043b\u0438\u0442\u044c', '\u043f\u0443\u0448', '\u0443\u0441\u0438\u043b',
+    '\u043a\u0443\u0434\u0430 \u0434\u0435\u043d\u044c\u0433\u0438', '\u0447\u0442\u043e \u0442\u0432\u043e\u0440\u0438\u0442\u0441\u044f', '\u0447\u0442\u043e \u0434\u0435\u043b\u0430\u0435\u043c',
+    '\u0447\u0442\u043e \u043f\u043e \u0440\u0435\u043a\u043b\u0430\u043c', '\u043c\u043e\u0436\u043d\u043e \u043b\u0438 \u043b', '\u0441\u0442\u043e\u0438\u0442 \u043b\u0438 \u043b',
     '\u043f\u043e\u043a\u0430\u0437', '\u043a\u043b\u0438\u043a', '\u043a\u043e\u043d\u0432\u0435\u0440\u0441', '\u0437\u0430\u043f\u0438\u0441',
     '\u0440\u0430\u0441\u0445\u043e\u0434', '\u0431\u044e\u0434\u0436\u0435\u0442', '\u0441\u0442\u0430\u0432\u043a', 'cpl',
     '\u0440\u0435\u043a\u043b\u0430\u043c\u0430 \u043b\u0435\u0436', '\u043d\u0435 \u0440\u0430\u0431\u043e\u0442', '\u043f\u043e\u043a\u0430\u0437\u044b\u0432\u0430\u0435\u043c',
@@ -194,8 +206,18 @@ function isPlainReportRequest(text) {
   return ['отчет', 'отчёт', 'report'].includes(text.trim());
 }
 
+function isGeneralApplyRequest(text) {
+  return hasAny(text, ['/apply', 'apply']) ||
+    hasAny(text, ['примени рекомендации', 'внеси рекомендации', 'применяй рекомендации', 'запускай правки']);
+}
+
 function parseBudgetChange(text) {
-  if (!hasAny(text, ['бюджет', 'budget', 'скинь', 'сниз', 'уменьш', 'постав', 'установ', 'помен', 'измени', 'сделай'])) return null;
+  if (!hasAny(text, [
+    'бюджет', 'budget', 'лимит',
+    'скинь', 'скинуть', 'сниз', 'уменьш', 'урежь', 'режь',
+    'постав', 'установ', 'помен', 'измени', 'сделай', 'оставь',
+    'дай ему', 'дай ей', 'применяй', 'подтверждаю',
+  ])) return null;
   const key = detectCampaignKey(text);
   if (!key) return null;
 
@@ -204,6 +226,19 @@ function parseBudgetChange(text) {
 
   const change = { key, eur: round1(target) };
   return isValidBudgetChange(change) ? change : null;
+}
+
+function isExplicitApplyConfirmation(text) {
+  return hasAny(text, [
+    'подтверждаю',
+    'подтверждаю правку',
+    'можно применять',
+    'применяй',
+    'запускай правку',
+    'да применяй',
+    'ок применяй',
+    'да запускай',
+  ]);
 }
 
 function detectCampaignKey(text) {
@@ -278,14 +313,11 @@ function reportChoiceKeyboard() {
 
 function commandsText(role = 'partner') {
   const lines = [
-    `${R('cmd_help')}`,
-    `${R('cmd_dryrun')}`,
-    `${R('cmd_status')}`,
-    `${R('cmd_invite')}`,
-    '',
     `${R('natural_examples')}`,
+    '',
+    `${R('access_hint')}`,
   ];
-  if (role === 'admin') lines.splice(2, 0, `${R('cmd_apply')}`);
+  if (role === 'admin') lines.push(`${R('admin_examples')}`);
   return lines.join('\n');
 }
 
@@ -474,7 +506,9 @@ function R(key) {
     role: '\u0420\u043e\u043b\u044c',
     cmd_invite: '\u041f\u0440\u0438\u0433\u043b\u0430\u0441\u0438\u0442\u044c / invite - \u0441\u0441\u044b\u043b\u043a\u0430 \u0438 \u043f\u0440\u0430\u0432\u0438\u043b\u0430 \u0434\u043e\u0441\u0442\u0443\u043f\u0430',
     invite_text: '\u0421\u0441\u044b\u043b\u043a\u0430 \u043d\u0430 \u0431\u043e\u0442\u0430. \u0414\u043e\u0441\u0442\u0443\u043f \u0437\u0430\u043a\u0440\u044b\u0442\u044b\u0439: \u0431\u0435\u0437 allowlist \u0431\u043e\u0442 \u043d\u0435 \u043e\u0442\u0432\u0435\u0442\u0438\u0442 \u0438 \u043d\u0435 \u0437\u0430\u043f\u0443\u0441\u0442\u0438\u0442 \u043f\u0440\u043e\u0432\u0435\u0440\u043a\u0443.',
-    natural_examples: '\u041f\u0440\u0438\u043c\u0435\u0440\u044b: "\u0447\u0442\u043e \u0441\u0435\u0439\u0447\u0430\u0441", "\u043f\u0440\u043e\u0432\u0435\u0440\u044c \u0441\u043b\u043e\u0442\u044b", "\u043c\u043e\u0436\u043d\u043e \u043b\u0438 \u043f\u0443\u0448\u0438\u0442\u044c", "\u043a\u0430\u043a\u0430\u044f \u0442\u0430\u043a\u0442\u0438\u043a\u0430", "\u043f\u0440\u0438\u043c\u0435\u043d\u0438". \u0416\u0438\u0432\u044b\u0435 \u0446\u0438\u0444\u0440\u044b \u0442\u043e\u043b\u044c\u043a\u043e \u0447\u0435\u0440\u0435\u0437 \u043f\u0440\u043e\u0432\u0435\u0440\u043a\u0443.',
+    natural_examples: 'Пиши обычными словами: "что сейчас с рекламой", "куда льем сегодня", "есть ли слоты у Софии", "дай коротко", "разверни подробно", "снизь маникюр до 5 евро".',
+    access_hint: 'Деньги меняю только после явного подтверждения: кнопкой или фразой "подтверждаю, применяй маникюр 5 евро".',
+    admin_examples: 'Для админа: "примени рекомендации" запускает guarded apply, а "снизь педикюр до 6" готовит точечную правку бюджета.',
     help_word: '\u043f\u043e\u043c\u043e\u0449',
     commands_word: '\u043a\u043e\u043c\u0430\u043d\u0434',
     start_word: '\u0441\u0442\u0430\u0440\u0442',
