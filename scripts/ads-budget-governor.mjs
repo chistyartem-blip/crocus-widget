@@ -571,7 +571,8 @@ function allocateBudgets(byCategory, guard, performanceRisk) {
 
   let budgets = { pmax: 8, manikuere: 8, pedikuere: 6 };
 
-  if (manMode === 'push' && pedMode === 'push_mobile_today') budgets = { pmax: 6, manikuere: 14, pedikuere: 6 };
+  if (manMode === 'push_mobile_today' && pedMode === 'push_mobile_today') budgets = { pmax: 6, manikuere: 14, pedikuere: 5 };
+  else if (manMode === 'push' && pedMode === 'push_mobile_today') budgets = { pmax: 6, manikuere: 14, pedikuere: 6 };
   else if (manMode === 'push' && pedMode === 'push') budgets = { pmax: 6, manikuere: 14, pedikuere: 8 };
   else if (manMode.startsWith('protect') && pedMode.startsWith('push')) budgets = { pmax: 8, manikuere: 2, pedikuere: 14 };
   else if (pedMode.startsWith('protect') && manMode.startsWith('push')) budgets = { pmax: 8, manikuere: 14, pedikuere: 2 };
@@ -842,7 +843,7 @@ function evaluatePerformanceRisk(performance) {
   const campaigns = performance?.last_7_days?.campaigns || [];
   for (const row of campaigns) {
     const key = campaignKey(row.campaign_name);
-  if (key === 'pmax') return 'PMax / Maps / brand';
+    if (!key || key === 'pmax') continue;
     const cpl = row.conversions > 0 ? row.cost_eur / row.conversions : null;
     let level = 'ok';
     let reason = 'performance is acceptable';
@@ -1371,5 +1372,4 @@ function dateOnly(date) {
 function isoStamp(date) {
   return date.toISOString().replace(/[:.]/g, '-');
 }
-
 
