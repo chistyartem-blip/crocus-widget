@@ -73,6 +73,17 @@ curl "https://api.telegram.org/bot$TELEGRAM_BOT_TOKEN/setWebhook" \
   -d "secret_token=$TELEGRAM_WEBHOOK_SECRET"
 ```
 
+Or use the safe helper script:
+
+```bash
+TELEGRAM_BOT_TOKEN=... \
+TELEGRAM_WORKER_URL=https://YOUR_WORKER.YOUR_SUBDOMAIN.workers.dev \
+TELEGRAM_WEBHOOK_SECRET=... \
+node scripts/setup-telegram-webhook.mjs
+```
+
+The helper prints the bot username and webhook status, but never prints the token.
+
 ## Recommended GitHub Variables
 
 - `ADS_GOVERNOR_APPLY=true`
