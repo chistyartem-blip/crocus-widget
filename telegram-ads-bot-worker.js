@@ -130,6 +130,7 @@ async function askOpenAI(env, userText) {
     headers: {
       Authorization: `Bearer ${env.OPENAI_API_KEY}`,
       'Content-Type': 'application/json',
+      ...(env.OPENAI_PROJECT_ID ? { 'OpenAI-Project': env.OPENAI_PROJECT_ID } : {}),
     },
     body: JSON.stringify({
       model,

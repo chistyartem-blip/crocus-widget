@@ -49,6 +49,7 @@ Worker secrets:
 - `TELEGRAM_WEBHOOK_SECRET`
 - `GITHUB_TOKEN`
 - `OPENAI_API_KEY` optional, for free-form chat
+- `OPENAI_PROJECT_ID` optional, when using a specific OpenAI project
 
 Worker vars:
 
