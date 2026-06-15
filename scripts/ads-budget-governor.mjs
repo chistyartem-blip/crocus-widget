@@ -951,39 +951,39 @@ function humanPlanLines(report) {
   for (const budget of report.plan.budgets.slice(0, 4)) {
     const diff = round2(budget.target_eur - budget.current_eur);
     if (diff > 0) {
-      lines.push(`${humanCampaign(budget.campaign_name)}: add ${diff} EUR/day because slots and performance allow it.`);
+      lines.push(`${humanCampaign(budget.campaign_name)}: +${diff} EUR/day, потому что есть емкость и показатели позволяют.`);
     } else if (diff < 0) {
-      lines.push(`${humanCampaign(budget.campaign_name)}: cut ${Math.abs(diff)} EUR/day to stop feeding weak traffic.`);
+      lines.push(`${humanCampaign(budget.campaign_name)}: -${Math.abs(diff)} EUR/day, чтобы не кормить слабый трафик.`);
     } else {
-      lines.push(`${humanCampaign(budget.campaign_name)}: keep as is.`);
+      lines.push(`${humanCampaign(budget.campaign_name)}: оставить как есть.`);
     }
   }
   const risks = Object.entries(report.plan.performance_risk || {})
     .filter(([, risk]) => risk.level === 'poor')
     .map(([key]) => ruCategory(key));
   if (risks.length) {
-    lines.push(`${risks.join(', ')}: slots exist, but ads performance is weak, so only controlled test, no aggressive push.`);
+    lines.push(`${risks.join(', ')}: окна есть, но рекламные показатели слабые, поэтому только контрольный тест без агрессивного пуша.`);
   }
   if (!lines.length) lines.push(R('no_live_changes_needed'));
   return lines;
 }
 
 function summaryHero(report, { todayPerf, yesterdayPerf, last7 }) {
-  const status = report.guard.hard_stop ? 'RED STOP: do not touch ads' : report.guard.warnings.length ? 'YELLOW: caution, warnings exist' : 'GREEN: can work';
-  const action = report.apply ? 'changes are being applied' : 'dry-run, money not touched';
+  const status = report.guard.hard_stop ? 'Красный стоп: рекламу не трогаем' : report.guard.warnings.length ? 'Желтый режим: есть предупреждения' : 'Зеленый режим: можно работать';
+  const action = report.apply ? 'правки применяются' : 'dry-run, деньги не тронуты';
   const main = nextStepText(report);
   return [
     status,
-    `Today: ${round2(todayPerf.cost_eur)} EUR, ${todayPerf.clicks} clicks, ${round2(todayPerf.conversions)} conv.`,
-    `Yesterday: ${round2(yesterdayPerf.cost_eur)} EUR, ${round2(yesterdayPerf.conversions)} conv, CPL ${cplText(yesterdayPerf)}.`,
-    `7 days: ${round2(last7.cost_eur)} EUR, ${round2(last7.conversions)} conv, CPL ${cplText(last7)}.`,
-    `Decision: ${main}. Now: ${action}.`,
+    `Сегодня: ${round2(todayPerf.cost_eur)} EUR, ${todayPerf.clicks} кликов, ${round2(todayPerf.conversions)} конв., CPL ${cplText(todayPerf)}.`,
+    `Вчера: ${round2(yesterdayPerf.cost_eur)} EUR, ${round2(yesterdayPerf.conversions)} конв., CPL ${cplText(yesterdayPerf)}.`,
+    `7 дней: ${round2(last7.cost_eur)} EUR, ${round2(last7.conversions)} конв., CPL ${cplText(last7)}.`,
+    `Решение: ${main}. Сейчас: ${action}.`,
   ].join('\n');
 }
 
 function moneyPulse(todayPerf, yesterdayPerf, last7, limit) {
   const todayShare = limit > 0 ? round2((todayPerf.cost_eur / limit) * 100) : 0;
-  return `limit ${limit} EUR/day; today spent ${round2(todayPerf.cost_eur)} EUR (${todayShare}% of cap); yesterday CPL ${cplText(yesterdayPerf)}; 7-day CPL ${cplText(last7)}.`;
+  return `лимит ${limit} EUR/day; сегодня потрачено ${round2(todayPerf.cost_eur)} EUR (${todayShare}% лимита); вчера CPL ${cplText(yesterdayPerf)}; за 7 дней CPL ${cplText(last7)}.`;
 }
 
 function widgetMasterLines(rows) {
