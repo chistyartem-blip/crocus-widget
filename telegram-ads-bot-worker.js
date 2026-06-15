@@ -40,14 +40,14 @@ export default {
     }
 
     if (hasAny(normalized, ['/apply', 'apply', R('apply_word'), R('change_word'), R('use_word')])) {
-      await dispatchGovernor(env, true);
-      await sendTelegram(env, chatId, R('apply_started'));
+      const run = await dispatchGovernor(env, true);
+      await sendTelegram(env, chatId, `${R('apply_started')}${run?.html_url ? `\n\n${R('run_link')}\n${run.html_url}` : ''}`);
       return json({ ok: true, dispatched: 'apply' });
     }
 
     if (hasAny(normalized, ['/dryrun', 'dry', 'test', R('check_word'), R('slots_word'), R('report_word'), R('what_now_word')])) {
-      await dispatchGovernor(env, false);
-      await sendTelegram(env, chatId, R('dryrun_started'));
+      const run = await dispatchGovernor(env, false);
+      await sendTelegram(env, chatId, `${R('dryrun_started')}${run?.html_url ? `\n\n${R('run_link')}\n${run.html_url}` : ''}`);
       return json({ ok: true, dispatched: 'dryrun' });
     }
 
@@ -94,6 +94,29 @@ async function dispatchGovernor(env, apply) {
     body: JSON.stringify({ ref, inputs: { apply: apply ? 'true' : 'false' } }),
   });
   if (!res.ok) throw new Error(`GitHub dispatch failed: ${res.status} ${await res.text()}`);
+  await sleep(2500);
+  return latestWorkflowRun(env);
+}
+
+async function latestWorkflowRun(env) {
+  const owner = env.GITHUB_OWNER || 'chistyartem-blip';
+  const repo = env.GITHUB_REPO || 'crocus-widget';
+  const workflow = env.GITHUB_WORKFLOW_ID || 'ads-budget-governor.yml';
+  const res = await fetch(`https://api.github.com/repos/${owner}/${repo}/actions/workflows/${workflow}/runs?per_page=1`, {
+    headers: {
+      Authorization: `Bearer ${env.GITHUB_TOKEN}`,
+      Accept: 'application/vnd.github+json',
+      'User-Agent': 'crocus-telegram-ads-bot',
+      'X-GitHub-Api-Version': '2022-11-28',
+    },
+  });
+  if (!res.ok) return null;
+  const data = await res.json().catch(() => ({}));
+  return data.workflow_runs?.[0] || null;
+}
+
+function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 async function sendTelegram(env, chatId, text) {
@@ -120,7 +143,7 @@ async function askOpenAI(env, userText) {
     'Small-city strategy: mobile and Maps matter; generic near-me and broad traffic can be bad; local high-intent terms and service pages matter.',
     'Never invent live metrics. For current spend, clicks, conversions, slots, billing, or decisions, tell the user to write "проверь", "что сейчас", or "проверь слоты"; the workflow must pull real Google Ads and Altegio data.',
     'When asked what to do, give a short decision, reason, risk, and next action. No long reports unless requested.',
-    'If the user asks to apply changes, tell them to write "применить". The guarded workflow handles live changes.',
+    'If the user asks to apply changes, tell them to write "примени". The guarded workflow handles live changes.',
     'Do not reveal secrets, tokens, IDs, credentials, or hidden implementation details.',
     'If the data is unavailable, say exactly what is unavailable and what check is needed. Do not fill gaps with assumptions.',
   ].join('\n');
@@ -155,6 +178,7 @@ function R(key) {
   const dict = {
     bot_connected: '\u0411\u043e\u0442 \u043f\u043e\u0434\u043a\u043b\u044e\u0447\u0435\u043d. \u041c\u043e\u0436\u043d\u043e \u043f\u0438\u0441\u0430\u0442\u044c \u043e\u0431\u044b\u0447\u043d\u044b\u043c\u0438 \u0444\u0440\u0430\u0437\u0430\u043c\u0438.',
     runs: '\u0417\u0430\u043f\u0443\u0441\u043a\u0438 Ads Governor:',
+    run_link: '\u0421\u0441\u044b\u043b\u043a\u0430 \u043d\u0430 \u0436\u0438\u0432\u043e\u0439 \u0437\u0430\u043f\u0443\u0441\u043a:',
     apply_started: '\u0417\u0430\u043f\u0443\u0441\u043a \u0441 \u043f\u0440\u0438\u043c\u0435\u043d\u0435\u043d\u0438\u0435\u043c \u0441\u0442\u0430\u0440\u0442\u043e\u0432\u0430\u043b. \u0417\u0430\u0449\u0438\u0442\u0430 \u0432\u043a\u043b\u044e\u0447\u0435\u043d\u0430: \u043b\u0438\u043c\u0438\u0442, allowlist, \u0441\u0442\u043e\u043f\u044b. \u041e\u0442\u0447\u0435\u0442 \u043f\u0440\u0438\u0434\u0435\u0442 \u043f\u043e\u0441\u043b\u0435 \u043f\u0440\u043e\u0433\u043e\u043d\u0430.',
     dryrun_started: '\u041f\u0440\u043e\u0432\u0435\u0440\u043a\u0430 \u0441\u0442\u0430\u0440\u0442\u043e\u0432\u0430\u043b\u0430. Google Ads \u043d\u0435 \u0442\u0440\u043e\u0433\u0430\u044e. \u041e\u0442\u0447\u0435\u0442 \u043f\u0440\u0438\u0434\u0435\u0442 \u043f\u043e\u0441\u043b\u0435 GitHub Actions.',
     unknown: '\u041d\u0435 \u043f\u043e\u043d\u044f\u043b \u0437\u0430\u043f\u0440\u043e\u0441.',
