@@ -84,6 +84,18 @@ node scripts/setup-telegram-webhook.mjs
 
 The helper prints the bot username and webhook status, but never prints the token.
 
+Get your Telegram chat id after sending `/start` to the bot:
+
+```bash
+TELEGRAM_BOT_TOKEN=... node scripts/setup-telegram-webhook.mjs chat-id
+```
+
+Send a test message:
+
+```bash
+TELEGRAM_BOT_TOKEN=... TELEGRAM_CHAT_ID=... node scripts/setup-telegram-webhook.mjs test-message
+```
+
 ## Recommended GitHub Variables
 
 - `ADS_GOVERNOR_APPLY=true`
