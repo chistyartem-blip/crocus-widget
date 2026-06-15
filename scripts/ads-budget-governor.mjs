@@ -117,6 +117,7 @@ async function main() {
     billing,
     ads_snapshot: ads,
     slot_summary: summarizeSlots(slots),
+    master_capacity_today: summarizeTodayMasters(slots),
   };
   report.ai_analysis = await collectAiAnalysis(report);
 
@@ -177,8 +178,8 @@ function decideCapacity(rows) {
   const day7 = dateOnly(addDays(new Date(), 6));
 
   return ['manikuere', 'pedikuere', 'wimpern'].map((category) => {
-    const todaySlots = sum(rows.filter((r) => r.category === category && r.date === today), 'slots_count');
-    const next7Slots = sum(rows.filter((r) => r.category === category && r.date >= today && r.date <= day7), 'slots_count');
+    const todaySlots = countSlotWindows(rows, (r) => r.category === category && r.date === today);
+    const next7Slots = countSlotWindows(rows, (r) => r.category === category && r.date >= today && r.date <= day7);
     let mode = 'hold';
     let reason = 'normal capacity';
     if (todaySlots === 0 && next7Slots < 10) {
@@ -714,6 +715,7 @@ function renderTelegramSummary(report) {
   const slotLines = report.decisions.map((d) =>
     `${modeIcon(d.recommended_mode)} ${ruCategory(d.category)}: ${d.today_slots} ${R('hour_windows_today')} / ${d.next_7_days_slots} ${R('hour_windows_next7')} -> ${ruMode(d.recommended_mode)} (${ruReason(d.reason)})`
   );
+  const masterLines = masterCapacityLines(report.master_capacity_today || []);
   const todayCpl = cplText(todayPerf);
   const yesterdayCpl = cplText(yesterdayPerf);
   const health = report.guard.hard_stop ? R('health_stop') : report.guard.warnings.length ? R('health_warn') : R('health_ok');
@@ -734,9 +736,9 @@ function renderTelegramSummary(report) {
     `${detailed ? R('title_deep') : R('title_ops')}`,
     summaryHero(report, { todayPerf, yesterdayPerf, last7 }),
     '',
-    card(R('block_money'), [
-      moneyPulse(todayPerf, yesterdayPerf, last7, report.max_daily_budget_eur),
-    ]),
+    card(R('block_money'), [moneyPulse(todayPerf, yesterdayPerf, last7, report.max_daily_budget_eur)]),
+    '',
+    masterLines.length ? card(R('block_masters'), masterLines) : '',
     '',
     card(R('block_slots'), slotLines),
     '',
@@ -903,6 +905,19 @@ function moneyPulse(todayPerf, yesterdayPerf, last7, limit) {
   return `лимит ${limit} EUR/день; сегодня потрачено ${round2(todayPerf.cost_eur)} EUR (${todayShare}% лимита); вчера CPL ${cplText(yesterdayPerf)}; 7 дней CPL ${cplText(last7)}.`;
 }
 
+function masterCapacityLines(rows) {
+  return rows
+    .filter((row) => ['manikuere', 'pedikuere'].includes(row.category))
+    .sort((a, b) => b.windows - a.windows || a.master_name.localeCompare(b.master_name))
+    .slice(0, 8)
+    .map((row) => {
+      const status = row.windows === 0 ? R('full') : row.windows <= 2 ? R('few_windows') : R('has_windows');
+      const hours = row.hours.slice(0, 4).join(', ');
+      const tail = row.hours.length > 4 ? ` +${row.hours.length - 4}` : '';
+      return `${capacityIcon(row.windows)} ${row.master_name}, ${ruCategory(row.category)}: ${status}${row.windows ? ` (${hours}${tail})` : ''}`;
+    });
+}
+
 function riskyTermLines(terms) {
   return terms.slice(0, 5).map((t) =>
     `${R('risk')}: "${t.term}" (${ruIntent(t.intent.reason)}), ${round2(t.cost_eur)} EUR, ${t.clicks} кликов, ${round2(t.conversions)} конв.`
@@ -929,6 +944,12 @@ function hourInsightLines(hourly) {
 function decisionDisciplineText(report) {
   if (report.apply) return R('discipline_apply');
   return R('discipline_dry');
+}
+
+function capacityIcon(windows) {
+  if (windows === 0) return '\u{1F534}';
+  if (windows <= 2) return '\u{1F7E1}';
+  return '\u{1F7E2}';
 }
 
 function cplText(metrics) {
@@ -1103,6 +1124,7 @@ function R(key, vars = {}) {
     health_warn: '\u{1F7E1} \u0421\u0442\u0430\u0442\u0443\u0441: \u0435\u0441\u0442\u044c \u043f\u0440\u0435\u0434\u0443\u043f\u0440\u0435\u0436\u0434\u0435\u043d\u0438\u044f, \u0441\u043a\u0440\u0438\u043f\u0442 \u043e\u0441\u0442\u043e\u0440\u043e\u0436\u043d\u0438\u0447\u0430\u0435\u0442.',
     health_stop: '\u{1F534} \u0421\u0442\u0430\u0442\u0443\u0441: \u0436\u0435\u0441\u0442\u043a\u0438\u0439 \u0441\u0442\u043e\u043f, \u0440\u0435\u043a\u043b\u0430\u043c\u0443 \u043d\u0435 \u0442\u0440\u043e\u0433\u0430\u0435\u043c.',
     block_now: '\u{1F4CD} \u0427\u0442\u043e \u0441\u0435\u0439\u0447\u0430\u0441',
+    block_masters: '\u{1F465} \u041c\u0430\u0441\u0442\u0435\u0440\u0430 \u0441\u0435\u0433\u043e\u0434\u043d\u044f',
     block_slots: '\u{1F4C5} \u0421\u043b\u043e\u0442\u044b \u0438 \u043a\u0443\u0434\u0430 \u043b\u0438\u0442\u044c',
     block_meaning: '\u{1F9E0} \u0427\u0442\u043e \u044d\u0442\u043e \u0437\u043d\u0430\u0447\u0438\u0442',
     block_decision: '\u{1F9ED} \u0420\u0435\u0448\u0435\u043d\u0438\u0435',
@@ -1126,6 +1148,9 @@ function R(key, vars = {}) {
     best_hours: '\u043b\u0443\u0447\u0448\u0438\u0435 \u0447\u0430\u0441\u044b',
     waste_hours: '\u043e\u043f\u0430\u0441\u043d\u044b\u0435 \u0447\u0430\u0441\u044b',
     no_live_changes_needed: '\u0416\u0438\u0432\u044b\u0435 \u043f\u0440\u0430\u0432\u043a\u0438 \u0441\u0435\u0439\u0447\u0430\u0441 \u043d\u0435 \u043d\u0443\u0436\u043d\u044b: \u043d\u0435\u0442 \u0441\u0438\u043b\u044c\u043d\u043e\u0433\u043e \u0441\u0438\u0433\u043d\u0430\u043b\u0430 \u0438\u043b\u0438 \u0441\u0442\u043e\u043f\u044b \u0434\u0435\u0440\u0436\u0430\u0442 \u0440\u0443\u043b\u044c.',
+    full: '\u0444\u0443\u043b\u043b',
+    few_windows: '\u0435\u0441\u0442\u044c \u043f\u0430\u0440\u0430 \u043e\u043a\u043e\u043d',
+    has_windows: '\u0435\u0441\u0442\u044c \u043e\u043a\u043d\u0430',
     discipline_apply: '\u041f\u0440\u0430\u0432\u043a\u0438 \u043e\u0433\u0440\u0430\u043d\u0438\u0447\u0435\u043d\u044b allowlist, \u043b\u0438\u043c\u0438\u0442\u043e\u043c 30 EUR/day \u0438 \u043c\u0430\u043b\u044b\u043c \u0448\u0430\u0433\u043e\u043c: \u0440\u0435\u0437\u043a\u043e \u043e\u0431\u0443\u0447\u0435\u043d\u0438\u0435 \u043d\u0435 \u043b\u043e\u043c\u0430\u0435\u043c.',
     discipline_dry: '\u042d\u0442\u043e \u0438\u043d\u0444\u043e-\u0440\u0435\u0436\u0438\u043c: Google Ads \u043d\u0435 \u0442\u0440\u043e\u043d\u0443\u0442, \u0441\u043d\u0430\u0447\u0430\u043b\u0430 \u0441\u043c\u043e\u0442\u0440\u0438\u043c \u0444\u0430\u043a\u0442\u044b.',
     plan_line: '\u041f\u043b\u0430\u043d',
@@ -1198,13 +1223,52 @@ function summarizeSlots(rows) {
   const summary = {};
   for (const row of rows) {
     const key = `${row.category}:${row.date}`;
-    summary[key] ||= { category: row.category, date: row.date, slots_count: 0, masters_with_slots: [] };
-    summary[key].slots_count += row.slots_count;
-    if (row.slots_count > 0 && !summary[key].masters_with_slots.includes(row.master_name)) {
+    summary[key] ||= { category: row.category, date: row.date, slots_count: 0, masters_with_slots: [], slot_keys: new Set() };
+    for (const hour of row.slot_hours || []) {
+      summary[key].slot_keys.add(`${row.master_id}:${hour}`);
+    }
+    summary[key].slots_count = summary[key].slot_keys.size;
+    if ((row.slot_hours || []).length > 0 && !summary[key].masters_with_slots.includes(row.master_name)) {
       summary[key].masters_with_slots.push(row.master_name);
     }
   }
-  return Object.values(summary).sort((a, b) => `${a.category}${a.date}`.localeCompare(`${b.category}${b.date}`));
+  return Object.values(summary)
+    .map(({ slot_keys, ...item }) => item)
+    .sort((a, b) => `${a.category}${a.date}`.localeCompare(`${b.category}${b.date}`));
+}
+
+function summarizeTodayMasters(rows) {
+  const today = dateOnly(new Date());
+  const summary = {};
+  for (const row of rows.filter((item) => item.date === today)) {
+    const key = `${row.master_id}:${row.category}`;
+    summary[key] ||= {
+      master_id: row.master_id,
+      master_name: row.master_name,
+      category: row.category,
+      hours_set: new Set(),
+    };
+    for (const hour of row.slot_hours || []) summary[key].hours_set.add(hour);
+  }
+  return Object.values(summary)
+    .map((item) => ({
+      master_id: item.master_id,
+      master_name: item.master_name,
+      category: item.category,
+      windows: item.hours_set.size,
+      hours: [...item.hours_set].sort(),
+    }))
+    .sort((a, b) => a.master_name.localeCompare(b.master_name) || a.category.localeCompare(b.category));
+}
+
+function countSlotWindows(rows, predicate) {
+  const keys = new Set();
+  for (const row of rows.filter(predicate)) {
+    for (const hour of row.slot_hours || []) {
+      keys.add(`${row.date}:${row.master_id}:${row.category}:${hour}`);
+    }
+  }
+  return keys.size;
 }
 
 function emptyMetrics() {
