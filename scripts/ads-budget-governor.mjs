@@ -14,6 +14,8 @@ const CONFIG = {
   reportEveryHours: envNumber('ADS_GOVERNOR_REPORT_EVERY_HOURS', 3),
   forceTelegram: envBool('ADS_GOVERNOR_FORCE_TELEGRAM', false),
   reportMode: env('ADS_GOVERNOR_REPORT_MODE', ''),
+  budgetOverrides: envJson('ADS_GOVERNOR_BUDGET_OVERRIDE_JSON', {}),
+  manualBudgetOnly: envBool('ADS_GOVERNOR_MANUAL_BUDGET_ONLY', false),
   altegioProxyBase: env('ALTEGIO_PROXY_BASE', 'https://crocus-proxy.crocusbeautystudio.workers.dev/api/proxy'),
   altegioLocationId: env('ALTEGIO_LOCATION_ID', '1357963'),
   telegram: {
@@ -655,6 +657,8 @@ function buildPlan({ ads, decisions, guard, performance }) {
   const byCategory = Object.fromEntries(decisions.map((d) => [d.category, d]));
   const performanceRisk = evaluatePerformanceRisk(performance);
   const desiredBudgets = allocateBudgets(byCategory, guard, performanceRisk);
+  const manualBudgetOverrides = sanitizeBudgetOverrides(CONFIG.budgetOverrides);
+  applyBudgetOverrides(desiredBudgets, manualBudgetOverrides);
   const currentCampaigns = Object.fromEntries(ads.campaigns.map((row) => [String(row.campaign.id), row]));
   const budgets = Object.entries(desiredBudgets).map(([key, eur]) => {
     const campaign = CAMPAIGNS[key];
@@ -673,16 +677,52 @@ function buildPlan({ ads, decisions, guard, performance }) {
   }).filter((b) => b.budget_resource_name && Math.abs(b.current_eur - b.target_eur) >= 0.01);
 
   const broadUnsafe = ads.broadKeywords.length > 0;
-  const keywordBidUpdates = broadUnsafe ? [] : ads.keywords
+  const keywordBidUpdates = (broadUnsafe || CONFIG.manualBudgetOnly) ? [] : ads.keywords
     .map((row) => desiredKeywordBid(row, byCategory, performanceRisk))
     .filter(Boolean);
 
   return {
-    reason: broadUnsafe ? 'broad keywords present: budget only' : 'capacity-based budget and bid adjustment',
+    reason: CONFIG.manualBudgetOnly
+      ? 'manual budget override only'
+      : broadUnsafe ? 'broad keywords present: budget only' : 'capacity-based budget and bid adjustment',
     budgets,
     keywordBidUpdates,
     performance_risk: performanceRisk,
+    manual_budget_overrides: manualBudgetOverrides,
   };
+}
+
+function sanitizeBudgetOverrides(raw) {
+  const clean = {};
+  for (const [key, value] of Object.entries(raw || {})) {
+    if (!(key in CAMPAIGNS)) continue;
+    const eur = Number(value);
+    if (!Number.isFinite(eur)) continue;
+    clean[key] = round2(clamp(eur, CAMPAIGNS[key].minBudget, CAMPAIGNS[key].maxBudget));
+  }
+  return clean;
+}
+
+function applyBudgetOverrides(budgets, overrides) {
+  for (const [key, eur] of Object.entries(overrides || {})) {
+    if (key in budgets) budgets[key] = eur;
+  }
+
+  let total = Object.values(budgets).reduce((sumValue, value) => sumValue + Number(value || 0), 0);
+  if (total <= CONFIG.maxDailyBudgetEur) return budgets;
+
+  const locked = new Set(Object.keys(overrides || {}));
+  const adjustableKeys = Object.keys(budgets).filter((key) => !locked.has(key));
+  for (const key of adjustableKeys) {
+    if (total <= CONFIG.maxDailyBudgetEur) break;
+    const minBudget = CAMPAIGNS[key].minBudget;
+    const reduction = Math.min(budgets[key] - minBudget, total - CONFIG.maxDailyBudgetEur);
+    if (reduction > 0) {
+      budgets[key] = round2(budgets[key] - reduction);
+      total = round2(total - reduction);
+    }
+  }
+  return budgets;
 }
 
 function allocateBudgets(byCategory, guard, performanceRisk) {
@@ -1533,6 +1573,16 @@ function envBool(key, fallback) {
 function envNumber(key, fallback) {
   const value = Number(process.env[key]);
   return Number.isFinite(value) ? value : fallback;
+}
+
+function envJson(key, fallback) {
+  const value = process.env[key];
+  if (!value) return fallback;
+  try {
+    return JSON.parse(value);
+  } catch (_) {
+    return fallback;
+  }
 }
 
 function sum(rows, field) {

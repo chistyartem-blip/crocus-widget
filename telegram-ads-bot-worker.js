@@ -16,6 +16,10 @@ export default {
     try { update = await request.json(); }
     catch (_) { return json({ ok: false, error: 'bad json' }, 400); }
 
+    if (update.callback_query) {
+      return handleCallback(update.callback_query, env);
+    }
+
     const message = update.message || update.edited_message;
     const chatId = String(message?.chat?.id || '');
     const actor = {
@@ -34,10 +38,25 @@ export default {
     const normalized = text.toLowerCase();
     const reportMode = detectReportMode(normalized);
     const governorIntent = detectGovernorIntent(normalized);
+    const budgetChange = parseBudgetChange(normalized);
 
     if (hasAny(normalized, ['/help', '/start', R('help_word'), R('commands_word'), R('start_word')])) {
       await sendTelegram(env, chatId, `${R('bot_connected')}\n${R(role === 'admin' ? 'role_admin' : 'role_partner')}\n\n${commandsText(role)}`);
       return json({ ok: true });
+    }
+
+    if (isPlainReportRequest(normalized)) {
+      await sendTelegram(env, chatId, R('choose_report_type'), reportChoiceKeyboard());
+      return json({ ok: true, asked: 'report_type' });
+    }
+
+    if (budgetChange) {
+      if (role !== 'admin') {
+        await sendTelegram(env, chatId, R('apply_denied'));
+        return json({ ok: false, error: 'readonly chat cannot change budget' }, 403);
+      }
+      await sendTelegram(env, chatId, budgetChangePreview(budgetChange), budgetConfirmKeyboard(budgetChange));
+      return json({ ok: true, pending: 'budget_change' });
     }
 
     if (hasAny(normalized, ['/invite', R('invite_word')])) {
@@ -61,13 +80,13 @@ export default {
         await sendTelegram(env, chatId, R('apply_denied'));
         return json({ ok: false, error: 'readonly chat cannot apply' }, 403);
       }
-      const run = await dispatchGovernor(env, true, reportMode || 'deep');
+      const run = await dispatchGovernor(env, { apply: true, reportMode: reportMode || 'deep' });
       await sendTelegram(env, chatId, `${R('apply_started')}${run?.html_url ? `\n\n${R('run_link')}\n${run.html_url}` : ''}`);
       return json({ ok: true, dispatched: 'apply' });
     }
 
     if (hasAny(normalized, ['/dryrun', 'dry', 'test']) || governorIntent) {
-      const run = await dispatchGovernor(env, false, reportMode || 'small');
+      const run = await dispatchGovernor(env, { apply: false, reportMode: reportMode || 'small' });
       await sendTelegram(env, chatId, `${startTextForIntent(governorIntent, reportMode)}${run?.html_url ? `\n\n${R('run_link')}\n${run.html_url}` : ''}`);
       return json({ ok: true, dispatched: 'dryrun' });
     }
@@ -112,6 +131,151 @@ function startTextForIntent(intent, reportMode) {
   if (intent === 'check') return R('smart_check_started');
   return R('small_started');
 }
+
+async function handleCallback(callbackQuery, env) {
+  const data = String(callbackQuery.data || '');
+  const message = callbackQuery.message || {};
+  const chatId = String(message.chat?.id || '');
+  const actor = {
+    userId: String(callbackQuery.from?.id || ''),
+    username: normalizeUsername(callbackQuery.from?.username || ''),
+  };
+  if (!chatId) return json({ ok: true, skipped: 'no callback chat' });
+
+  const role = chatRole(env, chatId, actor);
+  if (role === 'blocked') {
+    await answerCallback(env, callbackQuery.id, R('access_denied_short'));
+    return json({ ok: false, error: 'unauthorized callback' }, 403);
+  }
+
+  if (data.startsWith('report:')) {
+    const mode = data.slice('report:'.length) === 'deep' ? 'deep' : 'small';
+    const run = await dispatchGovernor(env, { apply: false, reportMode: mode });
+    await answerCallback(env, callbackQuery.id, mode === 'deep' ? R('deep_report_started_short') : R('small_report_started_short'));
+    await sendTelegram(env, chatId, `${mode === 'deep' ? R('deep_started') : R('small_started')}${run?.html_url ? `\n\n${R('run_link')}\n${run.html_url}` : ''}`);
+    return json({ ok: true, dispatched: `report_${mode}` });
+  }
+
+  if (data.startsWith('budget:')) {
+    if (role !== 'admin') {
+      await answerCallback(env, callbackQuery.id, R('access_denied_short'));
+      await sendTelegram(env, chatId, R('apply_denied'));
+      return json({ ok: false, error: 'readonly callback cannot change budget' }, 403);
+    }
+    const [, key, rawEur] = data.split(':');
+    const eur = Number(rawEur);
+    const change = { key, eur };
+    if (!isValidBudgetChange(change)) {
+      await answerCallback(env, callbackQuery.id, R('bad_budget_change_short'));
+      return json({ ok: false, error: 'bad budget callback' }, 400);
+    }
+    const run = await dispatchGovernor(env, {
+      apply: true,
+      reportMode: 'small',
+      budgetOverride: { [key]: eur },
+      manualBudgetOnly: true,
+    });
+    await answerCallback(env, callbackQuery.id, R('budget_apply_started_short'));
+    await sendTelegram(env, chatId, `${R('budget_apply_started')}\n${budgetChangeLine(change)}${run?.html_url ? `\n\n${R('run_link')}\n${run.html_url}` : ''}`);
+    return json({ ok: true, dispatched: 'budget_apply' });
+  }
+
+  if (data === 'cancel') {
+    await answerCallback(env, callbackQuery.id, R('cancelled_short'));
+    await sendTelegram(env, chatId, R('cancelled'));
+    return json({ ok: true, cancelled: true });
+  }
+
+  await answerCallback(env, callbackQuery.id, R('unknown_callback_short'));
+  return json({ ok: true, skipped: 'unknown callback' });
+}
+
+function isPlainReportRequest(text) {
+  return ['отчет', 'отчёт', 'report'].includes(text.trim());
+}
+
+function parseBudgetChange(text) {
+  if (!hasAny(text, ['бюджет', 'budget', 'скинь', 'сниз', 'уменьш', 'постав', 'установ', 'помен', 'измени', 'сделай'])) return null;
+  const key = detectCampaignKey(text);
+  if (!key) return null;
+
+  const target = targetBudgetFromText(text);
+  if (!Number.isFinite(target)) return null;
+
+  const change = { key, eur: round1(target) };
+  return isValidBudgetChange(change) ? change : null;
+}
+
+function detectCampaignKey(text) {
+  if (hasAny(text, ['маник', 'manik', 'mani', 'nagel'])) return 'manikuere';
+  if (hasAny(text, ['педик', 'pedik', 'pedi', 'fuß', 'fuss'])) return 'pedikuere';
+  if (hasAny(text, ['pmax', 'пмакс', 'п макс', 'максим'])) return 'pmax';
+  return '';
+}
+
+function targetBudgetFromText(text) {
+  const normalized = text.replace(',', '.');
+  const afterTo = normalized.match(/(?:до|на|в|to)\s*(\d+(?:\.\d+)?)/i);
+  if (afterTo) return Number(afterTo[1]);
+  const numbers = [...normalized.matchAll(/(\d+(?:\.\d+)?)/g)].map((match) => Number(match[1]));
+  return numbers.length ? numbers[numbers.length - 1] : NaN;
+}
+
+function isValidBudgetChange(change) {
+  const limits = {
+    pmax: [6, 12],
+    manikuere: [2, 14],
+    pedikuere: [2, 12],
+  };
+  const range = limits[change.key];
+  return Boolean(range) && Number.isFinite(change.eur) && change.eur >= range[0] && change.eur <= range[1];
+}
+
+function budgetChangePreview(change) {
+  return [
+    R('budget_preview_title'),
+    '',
+    budgetChangeLine(change),
+    '',
+    R('budget_preview_safety_1'),
+    R('budget_preview_safety_2'),
+    R('budget_preview_safety_3'),
+    '',
+    R('budget_preview_confirm'),
+  ].join('\n');
+}
+
+function budgetChangeLine(change) {
+  return `${R('campaign')}: ${campaignLabel(change.key)}\n${R('new_budget')}: ${change.eur} EUR/day`;
+}
+
+function campaignLabel(key) {
+  const labels = {
+    pmax: 'PMax Crocus Beauty Studio',
+    manikuere: 'Slim Manikuere',
+    pedikuere: 'Slim Pedikuere',
+  };
+  return labels[key] || key;
+}
+
+function budgetConfirmKeyboard(change) {
+  return {
+    inline_keyboard: [
+      [{ text: R('button_confirm_budget'), callback_data: `budget:${change.key}:${change.eur}` }],
+      [{ text: R('button_cancel'), callback_data: 'cancel' }],
+    ],
+  };
+}
+
+function reportChoiceKeyboard() {
+  return {
+    inline_keyboard: [
+      [{ text: R('button_small_report'), callback_data: 'report:small' }],
+      [{ text: R('button_deep_report'), callback_data: 'report:deep' }],
+    ],
+  };
+}
+
 function commandsText(role = 'partner') {
   const lines = [
     `${R('cmd_help')}`,
@@ -162,11 +326,23 @@ function inviteText(env, role) {
   return `${R('invite_text')}\n${groupLink}${adminNote}`;
 }
 
-async function dispatchGovernor(env, apply, reportMode = 'deep') {
+async function dispatchGovernor(env, options = {}) {
+  const {
+    apply = false,
+    reportMode = 'deep',
+    budgetOverride = null,
+    manualBudgetOnly = false,
+  } = options;
   const owner = env.GITHUB_OWNER || 'chistyartem-blip';
   const repo = env.GITHUB_REPO || 'crocus-widget';
   const workflow = env.GITHUB_WORKFLOW_ID || 'ads-budget-governor.yml';
   const ref = env.GITHUB_REF || 'main';
+  const inputs = {
+    apply: apply ? 'true' : 'false',
+    report_mode: reportMode,
+    budget_override_json: budgetOverride ? JSON.stringify(budgetOverride) : '',
+    manual_budget_only: manualBudgetOnly ? 'true' : 'false',
+  };
   const res = await fetch(`https://api.github.com/repos/${owner}/${repo}/actions/workflows/${workflow}/dispatches`, {
     method: 'POST',
     headers: {
@@ -176,7 +352,7 @@ async function dispatchGovernor(env, apply, reportMode = 'deep') {
       'User-Agent': 'crocus-telegram-ads-bot',
       'X-GitHub-Api-Version': '2022-11-28',
     },
-    body: JSON.stringify({ ref, inputs: { apply: apply ? 'true' : 'false', report_mode: reportMode } }),
+    body: JSON.stringify({ ref, inputs }),
   });
   if (!res.ok) throw new Error(`GitHub dispatch failed: ${res.status} ${await res.text()}`);
   await sleep(2500);
@@ -204,13 +380,24 @@ function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-async function sendTelegram(env, chatId, text) {
+async function sendTelegram(env, chatId, text, replyMarkup = null) {
+  const payload = { chat_id: chatId, text, disable_web_page_preview: true };
+  if (replyMarkup) payload.reply_markup = replyMarkup;
   const res = await fetch(`https://api.telegram.org/bot${env.TELEGRAM_BOT_TOKEN}/sendMessage`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ chat_id: chatId, text, disable_web_page_preview: true }),
+    body: JSON.stringify(payload),
   });
   if (!res.ok) throw new Error(`Telegram send failed: ${res.status}`);
+}
+
+async function answerCallback(env, callbackQueryId, text) {
+  if (!callbackQueryId) return;
+  await fetch(`https://api.telegram.org/bot${env.TELEGRAM_BOT_TOKEN}/answerCallbackQuery`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ callback_query_id: callbackQueryId, text: text.slice(0, 180), show_alert: false }),
+  });
 }
 
 async function askOpenAI(env, userText) {
@@ -261,6 +448,10 @@ function json(body, status = 200) {
   return new Response(JSON.stringify(body), { status, headers: { 'Content-Type': 'application/json' } });
 }
 
+function round1(value) {
+  return Math.round(Number(value) * 10) / 10;
+}
+
 function R(key) {
   const dict = {
     bot_connected: '\u0411\u043e\u0442 \u043f\u043e\u0434\u043a\u043b\u044e\u0447\u0435\u043d. \u041c\u043e\u0436\u043d\u043e \u043f\u0438\u0441\u0430\u0442\u044c \u043e\u0431\u044b\u0447\u043d\u044b\u043c\u0438 \u0444\u0440\u0430\u0437\u0430\u043c\u0438.',
@@ -298,6 +489,27 @@ function R(key) {
     what_now_word: '\u0447\u0442\u043e \u0441\u0435\u0439\u0447\u0430\u0441',
     invite_word: '\u043f\u0440\u0438\u0433\u043b\u0430\u0441',
     id_word: '\u0430\u0439\u0434\u0438',
+    choose_report_type: 'Какой отчет сделать?',
+    button_small_report: 'Короткий отчет',
+    button_deep_report: 'Большой отчет',
+    button_confirm_budget: 'Подтвердить правку',
+    button_cancel: 'Отмена',
+    budget_preview_title: 'План правки бюджета',
+    budget_preview_safety_1: 'Ставки и ключи сейчас не трогаю.',
+    budget_preview_safety_2: 'Общий дневной лимит остается под защитой.',
+    budget_preview_safety_3: 'Применение доступно только админ-чату.',
+    budget_preview_confirm: 'Если все верно, нажми подтверждение.',
+    campaign: 'Кампания',
+    new_budget: 'Новый бюджет',
+    budget_apply_started: 'Принял подтверждение. Запускаю точечную правку бюджета.',
+    budget_apply_started_short: 'Запускаю правку',
+    small_report_started_short: 'Короткий отчет запущен',
+    deep_report_started_short: 'Большой отчет запущен',
+    access_denied_short: 'Нет доступа',
+    bad_budget_change_short: 'Некорректный бюджет',
+    cancelled: 'Ок, отменил. Рекламу не трогаю.',
+    cancelled_short: 'Отменено',
+    unknown_callback_short: 'Не понял кнопку',
   };
   return dict[key] || key;
 }
