@@ -19,6 +19,11 @@ const CONFIG = {
     botToken: env('TELEGRAM_BOT_TOKEN'),
     chatId: env('TELEGRAM_CHAT_ID'),
   },
+  openai: {
+    apiKey: env('OPENAI_API_KEY'),
+    projectId: env('OPENAI_PROJECT_ID'),
+    model: env('OPENAI_MODEL', 'gpt-4o-mini'),
+  },
   google: {
     clientId: env('GOOGLE_ADS_CLIENT_ID'),
     clientSecret: env('GOOGLE_ADS_CLIENT_SECRET'),
@@ -100,6 +105,7 @@ async function main() {
 
   const report = {
     generated_at: new Date().toISOString(),
+    report_kind: reportKind(now),
     timezone_note: 'GitHub cron is UTC. 06:00 UTC is 08:00 in Europe/Berlin during summer time.',
     apply: CONFIG.apply,
     max_daily_budget_eur: CONFIG.maxDailyBudgetEur,
@@ -112,6 +118,7 @@ async function main() {
     ads_snapshot: ads,
     slot_summary: summarizeSlots(slots),
   };
+  report.ai_analysis = await collectAiAnalysis(report);
 
   fs.writeFileSync(reportPath, JSON.stringify(report, null, 2));
   const markdown = renderMarkdownReport(report);
@@ -232,6 +239,7 @@ async function collectPerformance(accessToken) {
   const today = dateOnly(new Date());
   const yesterday = dateOnly(addDays(new Date(), -1));
   const last7Start = dateOnly(addDays(new Date(), -6));
+  const last30Start = dateOnly(addDays(new Date(), -29));
   const monthStart = today.slice(0, 8) + '01';
   const rows = await gadsSearch(accessToken, `
     SELECT segments.date, campaign.id, campaign.name,
@@ -255,14 +263,20 @@ async function collectPerformance(accessToken) {
     });
     addMetrics(byDate[date].totals, metrics);
   }
-  const [last7, monthToDate] = await Promise.all([
+  const [last7, last30, monthToDate, searchTerms, hourly] = await Promise.all([
     collectPerformanceRange(accessToken, campaignIds, last7Start, today, 'last_7_days'),
+    collectPerformanceRange(accessToken, campaignIds, last30Start, today, 'last_30_days'),
     collectPerformanceRange(accessToken, campaignIds, monthStart, today, 'month_to_date'),
+    collectSearchTermInsights(accessToken, last7Start, today),
+    collectHourlyPerformance(accessToken, campaignIds, last30Start, today),
   ]);
   return {
     daily: Object.values(byDate).sort((a, b) => b.date.localeCompare(a.date)),
     last_7_days: last7,
+    last_30_days: last30,
     month_to_date: monthToDate,
+    search_terms: searchTerms,
+    hourly,
   };
 }
 
@@ -283,6 +297,71 @@ async function collectPerformanceRange(accessToken, campaignIds, start, end, lab
     addMetrics(totals, metrics);
   }
   return { label, start, end, totals, campaigns };
+}
+
+async function collectSearchTermInsights(accessToken, start, end) {
+  const rows = await gadsSearch(accessToken, `
+    SELECT campaign.id, campaign.name, ad_group.name, search_term_view.search_term,
+      metrics.impressions, metrics.clicks, metrics.cost_micros, metrics.conversions
+    FROM search_term_view
+    WHERE campaign.id IN (${CAMPAIGNS.pedikuere.id},${CAMPAIGNS.manikuere.id})
+      AND segments.date BETWEEN '${start}' AND '${end}'
+      AND metrics.clicks > 0
+    ORDER BY metrics.cost_micros DESC
+    LIMIT 40
+  `);
+
+  const terms = rows.map((row) => {
+    const metrics = normalizeMetrics(row.metrics);
+    const intent = classifySearchTerm(row.searchTermView?.searchTerm || '');
+    return {
+      campaign_id: String(row.campaign.id),
+      campaign_name: row.campaign.name,
+      ad_group_name: row.adGroup?.name || '',
+      term: row.searchTermView?.searchTerm || '',
+      intent,
+      ...metrics,
+      cpc_eur: avgCost(metrics),
+      cpl_eur: metrics.conversions > 0 ? round2(metrics.cost_eur / metrics.conversions) : null,
+    };
+  });
+
+  return {
+    start,
+    end,
+    top_spend: terms.slice(0, 10),
+    risky: terms.filter((t) => t.intent.risk !== 'ok').slice(0, 10),
+    winners: terms.filter((t) => t.conversions > 0).sort((a, b) => b.conversions - a.conversions || b.clicks - a.clicks).slice(0, 10),
+  };
+}
+
+async function collectHourlyPerformance(accessToken, campaignIds, start, end) {
+  const rows = await gadsSearch(accessToken, `
+    SELECT segments.hour, metrics.impressions, metrics.clicks, metrics.cost_micros, metrics.conversions
+    FROM campaign
+    WHERE campaign.id IN (${campaignIds})
+      AND segments.date BETWEEN '${start}' AND '${end}'
+    ORDER BY segments.hour
+  `);
+  const byHour = {};
+  for (const row of rows) {
+    const hour = Number(row.segments.hour);
+    byHour[hour] ||= { hour, ...emptyMetrics() };
+    addMetrics(byHour[hour], normalizeMetrics(row.metrics));
+  }
+  const hours = Object.values(byHour).map((item) => ({
+    ...item,
+    cpc_eur: avgCost(item),
+    cpl_eur: item.conversions > 0 ? round2(item.cost_eur / item.conversions) : null,
+    ctr: ctr(item),
+    conversion_rate: conversionRate(item),
+  }));
+  return {
+    start,
+    end,
+    best: hours.filter((h) => h.conversions > 0).sort((a, b) => (a.cpl_eur ?? 9999) - (b.cpl_eur ?? 9999)).slice(0, 5),
+    waste: hours.filter((h) => h.clicks >= 3 && h.conversions === 0).sort((a, b) => b.cost_eur - a.cost_eur).slice(0, 5),
+  };
 }
 
 async function collectBilling(accessToken) {
@@ -314,6 +393,100 @@ async function collectBilling(accessToken) {
   }
   result.note = 'Exact amount due and payment due date may require Google Ads UI or invoice access.';
   return result;
+}
+
+async function collectAiAnalysis(report) {
+  if (!CONFIG.openai.apiKey) {
+    return { skipped: 'OPENAI_API_KEY is not configured in GitHub Actions secrets' };
+  }
+  if (!['daily', 'manual'].includes(report.report_kind)) {
+    return { skipped: 'AI analysis is reserved for daily and manual reports to protect free-tier budget' };
+  }
+
+  const compact = {
+    generated_at: report.generated_at,
+    report_kind: report.report_kind,
+    apply: report.apply,
+    budget_cap_eur: report.max_daily_budget_eur,
+    capacity_decisions: report.decisions,
+    guard: report.guard,
+    plan: {
+      reason: report.plan.reason,
+      budgets: report.plan.budgets.map((b) => ({
+        campaign: shortCampaign(b.campaign_name),
+        current_eur: b.current_eur,
+        target_eur: b.target_eur,
+      })),
+      bid_updates_count: report.plan.keywordBidUpdates.length,
+      bid_update_examples: report.plan.keywordBidUpdates.slice(0, 8).map((b) => ({
+        campaign: shortCampaign(b.campaign_name),
+        keyword: b.keyword,
+        match_type: b.match_type,
+        current_eur: b.current_eur,
+        target_eur: b.target_eur,
+      })),
+    },
+    performance: {
+      today: report.performance.daily?.[0] || null,
+      last_7_days: report.performance.last_7_days?.totals || null,
+      last_30_days: report.performance.last_30_days?.totals || null,
+      campaigns_7d: (report.performance.last_7_days?.campaigns || []).map((c) => ({
+        campaign: shortCampaign(c.campaign_name),
+        impressions: c.impressions,
+        clicks: c.clicks,
+        cost_eur: round2(c.cost_eur),
+        conversions: round2(c.conversions),
+        cpc_eur: avgCost(c),
+        cpl_eur: c.conversions > 0 ? round2(c.cost_eur / c.conversions) : null,
+      })),
+      risky_search_terms: report.performance.search_terms?.risky?.slice(0, 8) || [],
+      winning_search_terms: report.performance.search_terms?.winners?.slice(0, 8) || [],
+      best_hours_30d: report.performance.hourly?.best || [],
+      waste_hours_30d: report.performance.hourly?.waste || [],
+    },
+  };
+
+  const system = [
+    'You are a senior performance marketing operator for Crocus Beauty Studio in Goeppingen.',
+    'Write in Russian. Be brutally practical and concise.',
+    'Goal: spend less, get more real bookings. Budget cap is strict.',
+    'Use only the provided data. Never invent conversions, spend, audiences, billing, or slot availability.',
+    'Explain actions in owner-friendly language: what happened, why, what will be done, what will not be done, risk.',
+    'Do not recommend broad keywords, blind city expansion, fake soft conversions, or frequent destructive campaign resets.',
+    'Respect slot-aware logic: no slots means protect budget; enough slots means cautious push.',
+    'Return plain text only, max 900 characters.',
+  ].join('\n');
+
+  const user = [
+    'Analyze this Google Ads + Altegio snapshot for Crocus.',
+    'Give: 1) main situation, 2) what to do/avoid, 3) why, 4) next check.',
+    JSON.stringify(compact),
+  ].join('\n\n');
+
+  try {
+    const res = await fetchWithRetry('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${CONFIG.openai.apiKey}`,
+        'Content-Type': 'application/json',
+        ...(CONFIG.openai.projectId ? { 'OpenAI-Project': CONFIG.openai.projectId } : {}),
+      },
+      body: JSON.stringify({
+        model: CONFIG.openai.model,
+        temperature: 0.25,
+        max_tokens: 450,
+        messages: [
+          { role: 'system', content: system },
+          { role: 'user', content: user },
+        ],
+      }),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) return { ok: false, error: data.error?.message || `OpenAI ${res.status}` };
+    return { ok: true, model: CONFIG.openai.model, text: String(data.choices?.[0]?.message?.content || '').slice(0, 1200) };
+  } catch (error) {
+    return { ok: false, error: error.message };
+  }
 }
 
 function evaluateGuards(ads) {
@@ -524,12 +697,10 @@ function renderTelegramSummary(report) {
   const todayPerf = perfByDate[today]?.totals || emptyMetrics();
   const yesterdayPerf = perfByDate[yesterday]?.totals || emptyMetrics();
   const last7 = report.performance?.last_7_days?.totals || emptyMetrics();
+  const last30 = report.performance?.last_30_days?.totals || emptyMetrics();
   const mtd = report.performance?.month_to_date?.totals || emptyMetrics();
-  const actionText = report.apply
-    ? R('changes_on', { budgets: report.plan.budgets.length, bids: report.plan.keywordBidUpdates.length })
-    : R('dry_run_plan', { budgets: report.plan.budgets.length, bids: report.plan.keywordBidUpdates.length });
   const slotLines = report.decisions.map((d) =>
-    `${modeIcon(d.recommended_mode)} ${ruCategory(d.category)}: ${d.today_slots} ${R('today_lc')} / ${d.next_7_days_slots} ${R('next7')} -> ${ruMode(d.recommended_mode)}`
+    `${modeIcon(d.recommended_mode)} ${ruCategory(d.category)}: ${d.today_slots} ${R('today_lc')} / ${d.next_7_days_slots} ${R('next7')} -> ${ruMode(d.recommended_mode)} (${ruReason(d.reason)})`
   );
   const todayCpl = cplText(todayPerf);
   const yesterdayCpl = cplText(yesterdayPerf);
@@ -538,32 +709,53 @@ function renderTelegramSummary(report) {
     ? R('did_apply', { budgets: report.plan.budgets.length, bids: report.plan.keywordBidUpdates.length })
     : R('did_dryrun', { budgets: report.plan.budgets.length, bids: report.plan.keywordBidUpdates.length });
   const meaning = meaningText(report);
+  const detailed = report.report_kind === 'daily' || report.report_kind === 'manual';
+  const search = report.performance?.search_terms || {};
+  const hourly = report.performance?.hourly || {};
+  const campaignLines = campaignPerformanceLines(report.performance?.last_7_days?.campaigns || []);
+  const planLines = actionPlanLines(report);
+  const riskyLines = riskyTermLines(search.risky || []);
+  const winnerLines = winnerTermLines(search.winners || []);
+  const hourLines = hourInsightLines(hourly);
+
   return [
-    `${R('title')}`,
+    `${detailed ? R('title_deep') : R('title_ops')}`,
     `${health}`,
     '',
-    `${R('block_now')}`,
-    `${R('today_line', { impressions: todayPerf.impressions, clicks: todayPerf.clicks, cost: round2(todayPerf.cost_eur), conv: round2(todayPerf.conversions), cpl: todayCpl })}`,
-    `${R('yesterday_line', { clicks: yesterdayPerf.clicks, cost: round2(yesterdayPerf.cost_eur), conv: round2(yesterdayPerf.conversions), cpl: yesterdayCpl })}`,
-    `${R('period_line', { label: '7 ' + R('days'), cost: round2(last7.cost_eur), conv: round2(last7.conversions), cpl: cplText(last7) })}`,
-    `${R('period_line', { label: R('month'), cost: round2(mtd.cost_eur), conv: round2(mtd.conversions), cpl: cplText(mtd) })}`,
+    card(R('block_now'), [
+      R('today_line', { impressions: todayPerf.impressions, clicks: todayPerf.clicks, cost: round2(todayPerf.cost_eur), conv: round2(todayPerf.conversions), cpl: todayCpl }),
+      R('yesterday_line', { clicks: yesterdayPerf.clicks, cost: round2(yesterdayPerf.cost_eur), conv: round2(yesterdayPerf.conversions), cpl: yesterdayCpl }),
+      R('period_line', { label: '7 ' + R('days'), cost: round2(last7.cost_eur), conv: round2(last7.conversions), cpl: cplText(last7) }),
+      detailed ? R('period_line', { label: '30 ' + R('days'), cost: round2(last30.cost_eur), conv: round2(last30.conversions), cpl: cplText(last30) }) : '',
+      detailed ? R('period_line', { label: R('month'), cost: round2(mtd.cost_eur), conv: round2(mtd.conversions), cpl: cplText(mtd) }) : '',
+    ]),
     '',
-    `${R('block_slots')}`,
-    ...slotLines,
+    card(R('block_slots'), slotLines),
     '',
-    `${R('block_meaning')}`,
-    `${meaning}`,
+    card(R('block_meaning'), [
+      meaning,
+      decisionDisciplineText(report),
+    ]),
     '',
-    `${R('block_actions')}`,
-    `${didText}`,
+    card(R('block_actions'), [
+      didText,
+      ...planLines,
+    ]),
+    detailed && campaignLines.length ? card(R('block_campaigns'), campaignLines) : '',
+    detailed && (riskyLines.length || winnerLines.length) ? card(R('block_terms'), [
+      ...winnerLines,
+      ...riskyLines,
+    ]) : '',
+    detailed && hourLines.length ? card(R('block_hours'), hourLines) : '',
+    report.ai_analysis?.text ? card(R('block_ai'), [report.ai_analysis.text]) : '',
     '',
-    `${R('block_money')}`,
-    `${R('billing')}: ${billingDueText(report.billing)}`,
-    `${R('limit_line', { limit: report.max_daily_budget_eur })}`,
+    card(R('block_money'), [
+      `${R('billing')}: ${billingDueText(report.billing)}`,
+      R('limit_line', { limit: report.max_daily_budget_eur }),
+    ]),
     '',
-    `${R('block_next')}`,
-    `${nextStepText(report)}`,
-  ].join('\n');
+    card(R('block_next'), [nextStepText(report)]),
+  ].flat().filter(Boolean).join('\n');
 }
 
 async function sendTelegramReport(text) {
@@ -606,8 +798,108 @@ function metricRow(label, metrics) {
   return `| ${label} | ${metrics.impressions} | ${metrics.clicks} | ${round2(metrics.cost_eur)} EUR | ${round2(metrics.conversions)} | ${cpl} |`;
 }
 
+function card(title, lines) {
+  const clean = lines.filter(Boolean);
+  if (!clean.length) return '';
+  return [`${title}`, ...clean.map((line) => `  ${line}`)].join('\n');
+}
+
+function campaignPerformanceLines(campaigns) {
+  return campaigns
+    .slice()
+    .sort((a, b) => b.cost_eur - a.cost_eur)
+    .map((c) => {
+      const cpc = avgCost(c);
+      const cpl = c.conversions > 0 ? `${round2(c.cost_eur / c.conversions)} EUR` : '-';
+      return `${shortCampaign(c.campaign_name)}: ${round2(c.cost_eur)} EUR, ${c.clicks} clicks, ${round2(c.conversions)} conv, CPC ${cpc} EUR, CPL ${cpl}.`;
+    })
+    .slice(0, 4);
+}
+
+function actionPlanLines(report) {
+  const lines = [];
+  if (report.plan.reason) lines.push(`${R('why')}: ${ruPlanReason(report.plan.reason)}.`);
+  for (const budget of report.plan.budgets.slice(0, 4)) {
+    lines.push(`${shortCampaign(budget.campaign_name)}: ${budget.current_eur} -> ${budget.target_eur} EUR/day.`);
+  }
+  if (report.plan.keywordBidUpdates.length) {
+    const examples = report.plan.keywordBidUpdates.slice(0, 3).map((b) => `${b.keyword} ${b.current_eur}->${b.target_eur}`);
+    lines.push(`${R('bids')}: ${examples.join('; ')}.`);
+  }
+  if (!report.plan.budgets.length && !report.plan.keywordBidUpdates.length) {
+    lines.push(R('no_live_changes_needed'));
+  }
+  return lines;
+}
+
+function riskyTermLines(terms) {
+  return terms.slice(0, 5).map((t) =>
+    `${R('risk')}: "${t.term}" (${t.intent.reason}), ${round2(t.cost_eur)} EUR, ${t.clicks} clicks, ${round2(t.conversions)} conv.`
+  );
+}
+
+function winnerTermLines(terms) {
+  return terms.slice(0, 4).map((t) =>
+    `${R('winner')}: "${t.term}", ${round2(t.conversions)} conv, CPL ${t.cpl_eur ?? '-'} EUR.`
+  );
+}
+
+function hourInsightLines(hourly) {
+  const lines = [];
+  if (hourly?.best?.length) {
+    lines.push(`${R('best_hours')}: ${hourly.best.map((h) => `${padHour(h.hour)} (${h.conversions} conv, CPL ${h.cpl_eur} EUR)`).join(', ')}.`);
+  }
+  if (hourly?.waste?.length) {
+    lines.push(`${R('waste_hours')}: ${hourly.waste.map((h) => `${padHour(h.hour)} (${round2(h.cost_eur)} EUR, 0 conv)`).join(', ')}.`);
+  }
+  return lines;
+}
+
+function decisionDisciplineText(report) {
+  if (report.apply) return R('discipline_apply');
+  return R('discipline_dry');
+}
+
 function cplText(metrics) {
   return metrics.conversions > 0 ? `${round2(metrics.cost_eur / metrics.conversions)} EUR` : '-';
+}
+
+function avgCost(metrics) {
+  return metrics.clicks > 0 ? round2(metrics.cost_eur / metrics.clicks) : 0;
+}
+
+function ctr(metrics) {
+  return metrics.impressions > 0 ? round2((metrics.clicks / metrics.impressions) * 100) : 0;
+}
+
+function conversionRate(metrics) {
+  return metrics.clicks > 0 ? round2((metrics.conversions / metrics.clicks) * 100) : 0;
+}
+
+function padHour(hour) {
+  return `${String(hour).padStart(2, '0')}:00`;
+}
+
+function reportKind(date) {
+  if (CONFIG.forceTelegram) return 'manual';
+  const local = new Date(date.toLocaleString('en-US', { timeZone: 'Europe/Berlin' }));
+  return local.getHours() === 8 ? 'daily' : 'ops';
+}
+
+function classifySearchTerm(term) {
+  const normalized = term.toLowerCase();
+  const badPatterns = [
+    { pattern: /podolog|podologie|medizinisch|arzt|krankenkasse|diabet/i, reason: 'medical/podology intent' },
+    { pattern: /ausbildung|kurs|schule|job|stellenangebot/i, reason: 'education/job intent' },
+    { pattern: /bilder|foto|fotos|design|ideen|pinterest|vorlage/i, reason: 'inspiration/Pinterest intent' },
+    { pattern: /gratis|kostenlos|billig|set kaufen|amazon|dm |rossmann/i, reason: 'low purchase or retail intent' },
+  ];
+  const hit = badPatterns.find((item) => item.pattern.test(normalized));
+  if (hit) return { risk: 'risky', reason: hit.reason };
+  if (/manik|nagel|pedik|fußpflege|fusspflege|gellack|shellac/i.test(normalized)) {
+    return { risk: 'ok', reason: 'service intent' };
+  }
+  return { risk: 'unknown', reason: 'unclear intent' };
 }
 
 function modeIcon(mode) {
@@ -695,6 +987,8 @@ function shouldSendTelegram(report) {
 function R(key, vars = {}) {
   const dict = {
     title: '\u{1F4CA} Crocus Ads: \u043f\u043e\u043d\u044f\u0442\u043d\u044b\u0439 \u043e\u0442\u0447\u0435\u0442',
+    title_ops: '\u{1F4CA} Crocus Ads: \u043a\u043e\u0440\u043e\u0442\u043a\u0438\u0439 \u0447\u0435\u043a',
+    title_deep: '\u{1F9E0} Crocus Ads: \u0433\u043b\u0443\u0431\u043e\u043a\u0438\u0439 \u0440\u0430\u0437\u0431\u043e\u0440',
     health_ok: '\u{1F7E2} \u0421\u0442\u0430\u0442\u0443\u0441: \u0432\u0441\u0435 \u0440\u043e\u0432\u043d\u043e, \u0441\u0442\u043e\u043f\u044b \u043d\u0435 \u0441\u0440\u0430\u0431\u043e\u0442\u0430\u043b\u0438.',
     health_warn: '\u{1F7E1} \u0421\u0442\u0430\u0442\u0443\u0441: \u0435\u0441\u0442\u044c \u043f\u0440\u0435\u0434\u0443\u043f\u0440\u0435\u0436\u0434\u0435\u043d\u0438\u044f, \u0441\u043a\u0440\u0438\u043f\u0442 \u043e\u0441\u0442\u043e\u0440\u043e\u0436\u043d\u0438\u0447\u0430\u0435\u0442.',
     health_stop: '\u{1F534} \u0421\u0442\u0430\u0442\u0443\u0441: \u0436\u0435\u0441\u0442\u043a\u0438\u0439 \u0441\u0442\u043e\u043f, \u0440\u0435\u043a\u043b\u0430\u043c\u0443 \u043d\u0435 \u0442\u0440\u043e\u0433\u0430\u0435\u043c.',
@@ -702,6 +996,10 @@ function R(key, vars = {}) {
     block_slots: '\u{1F4C5} \u0421\u043b\u043e\u0442\u044b \u0438 \u043a\u0443\u0434\u0430 \u043b\u0438\u0442\u044c',
     block_meaning: '\u{1F9E0} \u0427\u0442\u043e \u044d\u0442\u043e \u0437\u043d\u0430\u0447\u0438\u0442',
     block_actions: '\u{1F6E0} \u0427\u0442\u043e \u0441\u0434\u0435\u043b\u0430\u043b \u0441\u043a\u0440\u0438\u043f\u0442',
+    block_campaigns: '\u{1F3AF} \u041a\u0430\u043c\u043f\u0430\u043d\u0438\u0438 \u0437\u0430 7 \u0434\u043d\u0435\u0439',
+    block_terms: '\u{1F50E} \u041f\u043e\u0438\u0441\u043a\u043e\u0432\u044b\u0435 \u0444\u0440\u0430\u0437\u044b',
+    block_hours: '\u{23F0} \u0427\u0430\u0441\u044b \u0438 \u0440\u0438\u0442\u043c',
+    block_ai: '\u{1F9E0} \u041c\u043e\u0437\u0433\u0438 OpenAI',
     block_money: '\u{1F4B6} \u0414\u0435\u043d\u044c\u0433\u0438',
     block_next: '\u{1F680} \u0414\u0430\u043b\u044c\u0448\u0435',
     today_line: '\u0421\u0435\u0433\u043e\u0434\u043d\u044f: {impressions} \u043f\u043e\u043a\u0430\u0437\u043e\u0432, {clicks} \u043a\u043b\u0438\u043a\u043e\u0432, {cost} EUR, {conv} \u043a\u043e\u043d\u0432. Ads, CPL {cpl}.',
@@ -709,6 +1007,15 @@ function R(key, vars = {}) {
     period_line: '{label}: {cost} EUR, {conv} \u043a\u043e\u043d\u0432. Ads, CPL {cpl}.',
     did_apply: '\u041f\u0440\u0438\u043c\u0435\u043d\u0438\u043b: {budgets} \u043f\u0440\u0430\u0432\u043e\u043a \u0431\u044e\u0434\u0436\u0435\u0442\u0430, {bids} \u043f\u0440\u0430\u0432\u043e\u043a \u0441\u0442\u0430\u0432\u043e\u043a.',
     did_dryrun: '\u041d\u0438\u0447\u0435\u0433\u043e \u043d\u0435 \u043c\u0435\u043d\u044f\u043b: \u044d\u0442\u043e dry-run. \u041f\u043b\u0430\u043d \u0433\u043e\u0442\u043e\u0432: {budgets} \u0431\u044e\u0434\u0436\u0435\u0442\u0430, {bids} \u0441\u0442\u0430\u0432\u043e\u043a.',
+    why: '\u041f\u043e\u0447\u0435\u043c\u0443',
+    bids: '\u0421\u0442\u0430\u0432\u043a\u0438',
+    risk: '\u0440\u0438\u0441\u043a',
+    winner: '\u043f\u043e\u0431\u0435\u0434\u0438\u0442\u0435\u043b\u044c',
+    best_hours: '\u043b\u0443\u0447\u0448\u0438\u0435 \u0447\u0430\u0441\u044b',
+    waste_hours: '\u043e\u043f\u0430\u0441\u043d\u044b\u0435 \u0447\u0430\u0441\u044b',
+    no_live_changes_needed: '\u0416\u0438\u0432\u044b\u0435 \u043f\u0440\u0430\u0432\u043a\u0438 \u0441\u0435\u0439\u0447\u0430\u0441 \u043d\u0435 \u043d\u0443\u0436\u043d\u044b: \u043d\u0435\u0442 \u0441\u0438\u043b\u044c\u043d\u043e\u0433\u043e \u0441\u0438\u0433\u043d\u0430\u043b\u0430 \u0438\u043b\u0438 \u0441\u0442\u043e\u043f\u044b \u0434\u0435\u0440\u0436\u0430\u0442 \u0440\u0443\u043b\u044c.',
+    discipline_apply: '\u041f\u0440\u0430\u0432\u043a\u0438 \u043e\u0433\u0440\u0430\u043d\u0438\u0447\u0435\u043d\u044b allowlist, \u043b\u0438\u043c\u0438\u0442\u043e\u043c 30 EUR/day \u0438 \u043c\u0430\u043b\u044b\u043c \u0448\u0430\u0433\u043e\u043c: \u0440\u0435\u0437\u043a\u043e \u043e\u0431\u0443\u0447\u0435\u043d\u0438\u0435 \u043d\u0435 \u043b\u043e\u043c\u0430\u0435\u043c.',
+    discipline_dry: '\u042d\u0442\u043e \u0438\u043d\u0444\u043e-\u0440\u0435\u0436\u0438\u043c: Google Ads \u043d\u0435 \u0442\u0440\u043e\u043d\u0443\u0442, \u0441\u043d\u0430\u0447\u0430\u043b\u0430 \u0441\u043c\u043e\u0442\u0440\u0438\u043c \u0444\u0430\u043a\u0442\u044b.',
     plan_line: '\u041f\u043b\u0430\u043d',
     limit_line: '\u041b\u0438\u043c\u0438\u0442 \u0432 \u0441\u0443\u0442\u043a\u0438: {limit} EUR.',
     meaning_stop: '\u0415\u0441\u0442\u044c \u0441\u0442\u043e\u043f-\u0443\u0441\u043b\u043e\u0432\u0438\u0435. \u041b\u0443\u0447\u0448\u0435 \u0441\u043d\u0430\u0447\u0430\u043b\u0430 \u0440\u0430\u0437\u043e\u0431\u0440\u0430\u0442\u044c \u043f\u0440\u0438\u0447\u0438\u043d\u0443, \u0447\u0435\u043c \u0434\u0432\u0438\u0433\u0430\u0442\u044c \u0434\u0435\u043d\u044c\u0433\u0438.',
@@ -747,6 +1054,9 @@ function R(key, vars = {}) {
     reason_urgency: '\u0441\u043b\u043e\u0442\u043e\u0432 \u0441\u0435\u0433\u043e\u0434\u043d\u044f \u043c\u0430\u043b\u043e, \u0441\u0440\u043e\u0447\u043d\u043e\u0441\u0442\u044c \u043c\u043e\u0436\u0435\u0442 \u0441\u0440\u0430\u0431\u043e\u0442\u0430\u0442\u044c',
     reason_low_slots: '\u043c\u0430\u043b\u043e \u0438\u043b\u0438 \u043d\u0435\u0442 \u0441\u043b\u043e\u0442\u043e\u0432',
     reason_normal: '\u043e\u0431\u044b\u0447\u043d\u0430\u044f \u0437\u0430\u0433\u0440\u0443\u0437\u043a\u0430',
+    plan_by_slots: '\u0440\u0435\u0448\u0435\u043d\u0438\u0435 \u043f\u043e \u0441\u043b\u043e\u0442\u0430\u043c, \u0435\u043c\u043a\u043e\u0441\u0442\u0438 \u0438 \u0442\u0435\u043a\u0443\u0449\u0438\u043c \u0434\u0430\u043d\u043d\u044b\u043c Google Ads',
+    plan_broad: '\u043d\u0430\u0439\u0434\u0435\u043d broad-\u0440\u0438\u0441\u043a, \u043f\u043e\u044d\u0442\u043e\u043c\u0443 \u0441\u0442\u0430\u0432\u043a\u0438 \u043d\u0435 \u0443\u0432\u0435\u043b\u0438\u0447\u0438\u0432\u0430\u0435\u043c',
+    plan_stop: '\u0436\u0435\u0441\u0442\u043a\u0438\u0439 \u0441\u0442\u043e\u043f, \u0438\u0437\u043c\u0435\u043d\u0435\u043d\u0438\u044f \u0437\u0430\u043f\u0440\u0435\u0449\u0435\u043d\u044b',
     dry_run_full: 'dry-run, \u0438\u0437\u043c\u0435\u043d\u0435\u043d\u0438\u044f \u043d\u0435 \u043f\u0440\u0438\u043c\u0435\u043d\u044f\u043b\u0438\u0441\u044c',
     no_data: '\u043d\u0435\u0442 \u0434\u0430\u043d\u043d\u044b\u0445',
     billing_api_error: '\u043d\u0435 \u0443\u0434\u0430\u043b\u043e\u0441\u044c \u043f\u043e\u043b\u0443\u0447\u0438\u0442\u044c \u0447\u0435\u0440\u0435\u0437 API',

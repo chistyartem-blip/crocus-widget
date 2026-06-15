@@ -44,6 +44,9 @@ jobs:
           ALTEGIO_LOCATION_ID: ${{ vars.ALTEGIO_LOCATION_ID || '1357963' }}
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          OPENAI_PROJECT_ID: ${{ secrets.OPENAI_PROJECT_ID }}
+          OPENAI_MODEL: ${{ vars.OPENAI_MODEL || 'gpt-4o-mini' }}
         run: node scripts/ads-budget-governor.mjs
 
       - name: Upload report
