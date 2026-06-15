@@ -22,7 +22,7 @@ export default {
     if (!chatId || !text) return json({ ok: true, skipped: 'no message text' });
 
     if (String(env.TELEGRAM_CHAT_ID) !== chatId) {
-      await sendTelegram(env, chatId, 'Access denied.');
+      console.warn(`unauthorized telegram chat blocked: ${chatId}`);
       return json({ ok: false, error: 'unauthorized chat' }, 403);
     }
 

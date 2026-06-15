@@ -100,7 +100,7 @@ async function main() {
   const performance = await collectPerformance(accessToken);
   const billing = await collectBilling(accessToken);
   const guard = evaluateGuards(ads);
-  const plan = buildPlan({ ads, decisions, guard });
+  const plan = buildPlan({ ads, decisions, guard, performance });
   const mutations = await executePlan(accessToken, plan);
 
   const report = {
@@ -521,13 +521,14 @@ function evaluateGuards(ads) {
   return { hard_stop: hardStops.length > 0, hard_stops: hardStops, warnings };
 }
 
-function buildPlan({ ads, decisions, guard }) {
+function buildPlan({ ads, decisions, guard, performance }) {
   if (guard.hard_stop) {
     return { reason: 'hard stop', budgets: [], keywordBidUpdates: [] };
   }
 
   const byCategory = Object.fromEntries(decisions.map((d) => [d.category, d]));
-  const desiredBudgets = allocateBudgets(byCategory, guard);
+  const performanceRisk = evaluatePerformanceRisk(performance);
+  const desiredBudgets = allocateBudgets(byCategory, guard, performanceRisk);
   const currentCampaigns = Object.fromEntries(ads.campaigns.map((row) => [String(row.campaign.id), row]));
   const budgets = Object.entries(desiredBudgets).map(([key, eur]) => {
     const campaign = CAMPAIGNS[key];
@@ -547,17 +548,18 @@ function buildPlan({ ads, decisions, guard }) {
 
   const broadUnsafe = ads.broadKeywords.length > 0;
   const keywordBidUpdates = broadUnsafe ? [] : ads.keywords
-    .map((row) => desiredKeywordBid(row, byCategory))
+    .map((row) => desiredKeywordBid(row, byCategory, performanceRisk))
     .filter(Boolean);
 
   return {
     reason: broadUnsafe ? 'broad keywords present: budget only' : 'capacity-based budget and bid adjustment',
     budgets,
     keywordBidUpdates,
+    performance_risk: performanceRisk,
   };
 }
 
-function allocateBudgets(byCategory, guard) {
+function allocateBudgets(byCategory, guard, performanceRisk) {
   const manMode = byCategory.manikuere?.recommended_mode || 'hold';
   const pedMode = byCategory.pedikuere?.recommended_mode || 'hold';
   const softGoalPenalty = guard.warnings.some((w) => w.includes('soft website goals'));
@@ -571,6 +573,11 @@ function allocateBudgets(byCategory, guard) {
   else if (manMode.startsWith('protect') && pedMode.startsWith('protect')) budgets = { pmax: 6, manikuere: 2, pedikuere: 2 };
 
   if (softGoalPenalty) budgets.pmax = Math.min(budgets.pmax, 8);
+  for (const [key, risk] of Object.entries(performanceRisk || {})) {
+    if (risk.level === 'poor' && key in budgets) {
+      budgets[key] = Math.min(budgets[key], risk.current_budget_hint_eur || 7);
+    }
+  }
 
   budgets.pmax = clamp(budgets.pmax, CAMPAIGNS.pmax.minBudget, CAMPAIGNS.pmax.maxBudget);
   budgets.manikuere = clamp(budgets.manikuere, CAMPAIGNS.manikuere.minBudget, CAMPAIGNS.manikuere.maxBudget);
@@ -584,7 +591,7 @@ function allocateBudgets(byCategory, guard) {
   return budgets;
 }
 
-function desiredKeywordBid(row, byCategory) {
+function desiredKeywordBid(row, byCategory, performanceRisk) {
   const campaignId = String(row.campaign.id);
   const category = campaignId === CAMPAIGNS.manikuere.id ? 'manikuere' :
     campaignId === CAMPAIGNS.pedikuere.id ? 'pedikuere' : null;
@@ -595,7 +602,9 @@ function desiredKeywordBid(row, byCategory) {
   if (!['EXACT', 'PHRASE'].includes(match)) return null;
 
   const current = Number(row.adGroupCriterion.effectiveCpcBidMicros || 0) / 1_000_000;
-  const targetRaw = SEARCH_BID_RULES[category][mode][match.toLowerCase()];
+  const risk = performanceRisk?.[category];
+  const effectiveMode = risk?.level === 'poor' && mode.startsWith('push') ? 'hold' : mode;
+  const targetRaw = SEARCH_BID_RULES[category][effectiveMode][match.toLowerCase()];
   const target = clampBidDelta(current, targetRaw);
   if (Math.abs(current - target) < 0.01) return null;
 
@@ -720,26 +729,23 @@ function renderTelegramSummary(report) {
 
   return [
     `${detailed ? R('title_deep') : R('title_ops')}`,
-    `${health}`,
+    summaryHero(report, { todayPerf, yesterdayPerf, last7 }),
     '',
-    card(R('block_now'), [
-      R('today_line', { impressions: todayPerf.impressions, clicks: todayPerf.clicks, cost: round2(todayPerf.cost_eur), conv: round2(todayPerf.conversions), cpl: todayCpl }),
-      R('yesterday_line', { clicks: yesterdayPerf.clicks, cost: round2(yesterdayPerf.cost_eur), conv: round2(yesterdayPerf.conversions), cpl: yesterdayCpl }),
-      R('period_line', { label: '7 ' + R('days'), cost: round2(last7.cost_eur), conv: round2(last7.conversions), cpl: cplText(last7) }),
-      detailed ? R('period_line', { label: '30 ' + R('days'), cost: round2(last30.cost_eur), conv: round2(last30.conversions), cpl: cplText(last30) }) : '',
-      detailed ? R('period_line', { label: R('month'), cost: round2(mtd.cost_eur), conv: round2(mtd.conversions), cpl: cplText(mtd) }) : '',
+    card(R('block_money'), [
+      moneyPulse(todayPerf, yesterdayPerf, last7, report.max_daily_budget_eur),
     ]),
     '',
     card(R('block_slots'), slotLines),
     '',
-    card(R('block_meaning'), [
+    card(R('block_decision'), [
       meaning,
+      nextStepText(report),
       decisionDisciplineText(report),
     ]),
     '',
     card(R('block_actions'), [
       didText,
-      ...planLines,
+      ...humanPlanLines(report),
     ]),
     detailed && campaignLines.length ? card(R('block_campaigns'), campaignLines) : '',
     detailed && (riskyLines.length || winnerLines.length) ? card(R('block_terms'), [
@@ -748,14 +754,10 @@ function renderTelegramSummary(report) {
     ]) : '',
     detailed && hourLines.length ? card(R('block_hours'), hourLines) : '',
     report.ai_analysis?.text ? card(R('block_ai'), [report.ai_analysis.text]) : '',
-    '',
-    card(R('block_money'), [
+    detailed ? card(R('block_account'), [
       `${R('billing')}: ${billingDueText(report.billing)}`,
-      R('limit_line', { limit: report.max_daily_budget_eur }),
-    ]),
-    '',
-    card(R('block_next'), [nextStepText(report)]),
-  ].flat().filter(Boolean).join('\n');
+    ]) : '',
+  ].flat().filter(Boolean).join('\n\n');
 }
 
 async function sendTelegramReport(text) {
@@ -801,7 +803,7 @@ function metricRow(label, metrics) {
 function card(title, lines) {
   const clean = lines.filter(Boolean);
   if (!clean.length) return '';
-  return [`${title}`, ...clean.map((line) => `  ${line}`)].join('\n');
+  return [`${title}`, ...clean.map((line) => `• ${line}`)].join('\n');
 }
 
 function campaignPerformanceLines(campaigns) {
@@ -811,7 +813,7 @@ function campaignPerformanceLines(campaigns) {
     .map((c) => {
       const cpc = avgCost(c);
       const cpl = c.conversions > 0 ? `${round2(c.cost_eur / c.conversions)} EUR` : '-';
-      return `${shortCampaign(c.campaign_name)}: ${round2(c.cost_eur)} EUR, ${c.clicks} clicks, ${round2(c.conversions)} conv, CPC ${cpc} EUR, CPL ${cpl}.`;
+      return `${humanCampaign(c.campaign_name)}: ${round2(c.cost_eur)} EUR, ${c.clicks} кликов, ${round2(c.conversions)} конв., CPC ${cpc} EUR, CPL ${cpl}.`;
     })
     .slice(0, 4);
 }
@@ -832,15 +834,84 @@ function actionPlanLines(report) {
   return lines;
 }
 
+function evaluatePerformanceRisk(performance) {
+  const result = {};
+  const campaigns = performance?.last_7_days?.campaigns || [];
+  for (const row of campaigns) {
+    const key = campaignKey(row.campaign_name);
+    if (!key || key === 'pmax') continue;
+    const cpl = row.conversions > 0 ? row.cost_eur / row.conversions : null;
+    let level = 'ok';
+    let reason = 'performance is acceptable';
+    if (row.cost_eur >= 15 && row.conversions === 0) {
+      level = 'poor';
+      reason = 'spent meaningful budget with zero conversions in the last 7 days';
+    } else if (cpl != null && cpl > 12) {
+      level = 'watch';
+      reason = 'CPL is above target';
+    }
+    result[key] = {
+      level,
+      reason,
+      last_7_days_cost_eur: round2(row.cost_eur),
+      last_7_days_clicks: row.clicks,
+      last_7_days_conversions: round2(row.conversions),
+      cpl_eur: cpl == null ? null : round2(cpl),
+      current_budget_hint_eur: level === 'poor' ? 7 : undefined,
+    };
+  }
+  return result;
+}
+
+function humanPlanLines(report) {
+  const lines = [];
+  for (const budget of report.plan.budgets.slice(0, 4)) {
+    const diff = round2(budget.target_eur - budget.current_eur);
+    if (diff > 0) {
+      lines.push(`${humanCampaign(budget.campaign_name)}: аккуратно добавить ${diff} EUR/день, потому что есть емкость и лимит позволяет.`);
+    } else if (diff < 0) {
+      lines.push(`${humanCampaign(budget.campaign_name)}: снизить на ${Math.abs(diff)} EUR/день, чтобы не кормить слабый трафик.`);
+    } else {
+      lines.push(`${humanCampaign(budget.campaign_name)}: оставить как есть.`);
+    }
+  }
+  const risks = Object.entries(report.plan.performance_risk || {})
+    .filter(([, risk]) => risk.level === 'poor')
+    .map(([key]) => ruCategory(key));
+  if (risks.length) {
+    lines.push(`${risks.join(', ')}: есть слоты, но фактическая реклама пока слабая, поэтому только контролируемый тест без разгона.`);
+  }
+  if (!lines.length) lines.push(R('no_live_changes_needed'));
+  return lines;
+}
+
+function summaryHero(report, { todayPerf, yesterdayPerf, last7 }) {
+  const status = report.guard.hard_stop ? '🔴 СТОП: рекламу не трогаем' : report.guard.warnings.length ? '🟡 Осторожно: есть предупреждения' : '🟢 Можно работать';
+  const action = report.apply ? 'правки применяются' : 'это проверка, деньги не трогаем';
+  const main = nextStepText(report);
+  return [
+    status,
+    `Сегодня: ${round2(todayPerf.cost_eur)} EUR, ${todayPerf.clicks} кликов, ${round2(todayPerf.conversions)} конв.`,
+    `Вчера: ${round2(yesterdayPerf.cost_eur)} EUR, ${round2(yesterdayPerf.conversions)} конв., CPL ${cplText(yesterdayPerf)}.`,
+    `7 дней: ${round2(last7.cost_eur)} EUR, ${round2(last7.conversions)} конв., CPL ${cplText(last7)}.`,
+    `Решение: ${main} Сейчас ${action}.`,
+  ].join('\n');
+}
+
+function moneyPulse(todayPerf, yesterdayPerf, last7, limit) {
+  const todayShare = limit > 0 ? round2((todayPerf.cost_eur / limit) * 100) : 0;
+  return `лимит ${limit} EUR/день; сегодня потрачено ${round2(todayPerf.cost_eur)} EUR (${todayShare}% лимита); вчера CPL ${cplText(yesterdayPerf)}; 7 дней CPL ${cplText(last7)}.`;
+}
+
 function riskyTermLines(terms) {
   return terms.slice(0, 5).map((t) =>
-    `${R('risk')}: "${t.term}" (${t.intent.reason}), ${round2(t.cost_eur)} EUR, ${t.clicks} clicks, ${round2(t.conversions)} conv.`
+    `${R('risk')}: "${t.term}" (${ruIntent(t.intent.reason)}), ${round2(t.cost_eur)} EUR, ${t.clicks} кликов, ${round2(t.conversions)} конв.`
   );
 }
 
 function winnerTermLines(terms) {
   return terms.slice(0, 4).map((t) =>
-    `${R('winner')}: "${t.term}", ${round2(t.conversions)} conv, CPL ${t.cpl_eur ?? '-'} EUR.`
+    `${R('winner')}: "${t.term}", ${round2(t.conversions)} конв., CPL ${t.cpl_eur ?? '-'} EUR.`
   );
 }
 
@@ -919,6 +990,22 @@ function shortCampaign(name) {
   return name;
 }
 
+function campaignKey(name) {
+  const normalized = String(name || '').toLowerCase();
+  if (normalized.includes('manik')) return 'manikuere';
+  if (normalized.includes('pedik')) return 'pedikuere';
+  if (normalized.includes('pmax')) return 'pmax';
+  return '';
+}
+
+function humanCampaign(name) {
+  const key = campaignKey(name);
+  if (key === 'manikuere') return 'Маникюр Search';
+  if (key === 'pedikuere') return 'Педикюр Search';
+  if (key === 'pmax') return 'PMax / карта / бренд';
+  return name;
+}
+
 function ruCategory(value) {
   const map = { pmax: 'PMax', manikuere: R('manicure'), pedikuere: R('pedicure'), wimpern: R('lashes') };
   return map[value] || value;
@@ -935,6 +1022,18 @@ function ruReason(value) {
     'few same-day slots: urgency can work': R('reason_urgency'),
     'low capacity today and next 7 days': R('reason_low_slots'),
     'normal capacity': R('reason_normal'),
+  };
+  return map[value] || value;
+}
+
+function ruIntent(value) {
+  const map = {
+    'medical/podology intent': 'медицинский/подологический интент',
+    'education/job intent': 'ищут учебу или работу',
+    'inspiration/Pinterest intent': 'ищут идеи/картинки, не запись',
+    'low purchase or retail intent': 'ищут дешево/товар, не услугу',
+    'service intent': 'похоже на услугу',
+    'unclear intent': 'интент неясный',
   };
   return map[value] || value;
 }
@@ -995,11 +1094,13 @@ function R(key, vars = {}) {
     block_now: '\u{1F4CD} \u0427\u0442\u043e \u0441\u0435\u0439\u0447\u0430\u0441',
     block_slots: '\u{1F4C5} \u0421\u043b\u043e\u0442\u044b \u0438 \u043a\u0443\u0434\u0430 \u043b\u0438\u0442\u044c',
     block_meaning: '\u{1F9E0} \u0427\u0442\u043e \u044d\u0442\u043e \u0437\u043d\u0430\u0447\u0438\u0442',
+    block_decision: '\u{1F9ED} \u0420\u0435\u0448\u0435\u043d\u0438\u0435',
     block_actions: '\u{1F6E0} \u0427\u0442\u043e \u0441\u0434\u0435\u043b\u0430\u043b \u0441\u043a\u0440\u0438\u043f\u0442',
     block_campaigns: '\u{1F3AF} \u041a\u0430\u043c\u043f\u0430\u043d\u0438\u0438 \u0437\u0430 7 \u0434\u043d\u0435\u0439',
     block_terms: '\u{1F50E} \u041f\u043e\u0438\u0441\u043a\u043e\u0432\u044b\u0435 \u0444\u0440\u0430\u0437\u044b',
     block_hours: '\u{23F0} \u0427\u0430\u0441\u044b \u0438 \u0440\u0438\u0442\u043c',
     block_ai: '\u{1F9E0} \u041c\u043e\u0437\u0433\u0438 OpenAI',
+    block_account: '\u{1F9FE} \u0421\u0447\u0435\u0442 \u0438 \u043e\u043f\u043b\u0430\u0442\u0430',
     block_money: '\u{1F4B6} \u0414\u0435\u043d\u044c\u0433\u0438',
     block_next: '\u{1F680} \u0414\u0430\u043b\u044c\u0448\u0435',
     today_line: '\u0421\u0435\u0433\u043e\u0434\u043d\u044f: {impressions} \u043f\u043e\u043a\u0430\u0437\u043e\u0432, {clicks} \u043a\u043b\u0438\u043a\u043e\u0432, {cost} EUR, {conv} \u043a\u043e\u043d\u0432. Ads, CPL {cpl}.',
