@@ -67,16 +67,60 @@ const WIDGET_SLOT_MASTERS = [
 
 const SEARCH_BID_RULES = {
   manikuere: {
+    hard_push: { exact: 0.95, phrase: 0.55 },
     push: { exact: 0.75, phrase: 0.45 },
     push_mobile_today: { exact: 0.65, phrase: 0.40 },
     hold: { exact: 0.45, phrase: 0.30 },
     protect_budget: { exact: 0.20, phrase: 0.15 },
   },
   pedikuere: {
+    hard_push: { exact: 0.55, phrase: 0.34 },
     push: { exact: 0.42, phrase: 0.28 },
     push_mobile_today: { exact: 0.38, phrase: 0.25 },
     hold: { exact: 0.26, phrase: 0.18 },
     protect_budget: { exact: 0.18, phrase: 0.12 },
+  },
+};
+
+const KEYWORD_RULES = {
+  manikuere: {
+    winners: [
+      'manikure goppingen',
+      'manikure termin goppingen',
+      'nagelstudio online termin',
+      'nagelstudio termin goppingen',
+    ],
+    cautious: [
+      'nagelstudio goppingen',
+      'nagel goppingen',
+      'nagelstudio eislingen',
+      'gel nagel goppingen',
+      'gel nails goppingen',
+    ],
+    weak: [
+      'russian manicure',
+      'nail salon goppingen',
+      'nagelstudio uhingen',
+      'nails goppingen',
+    ],
+  },
+  pedikuere: {
+    winners: [
+      'pedikure goppingen',
+      'pedikure termin goppingen',
+      'fussnagel goppingen',
+    ],
+    cautious: [
+      'fusspflege goppingen',
+      'pedikure eislingen',
+    ],
+    weak: [
+      'fusspflege eislingen',
+      'fusspflege ebersbach',
+      'fusspflege uhingen',
+      'fusspflege geislingen',
+      'nagelstudio pedikure',
+    ],
   },
 };
 
@@ -260,6 +304,9 @@ function decideCapacity(rows) {
     if (todaySlots === 0) {
       mode = next7Slots < 10 ? 'protect_budget' : 'hold';
       reason = next7Slots < 10 ? 'low capacity today and next 7 days' : 'future capacity but no same-day slots';
+    } else if (todaySlots >= 4 && next7Slots >= 15) {
+      mode = 'hard_push';
+      reason = 'same-day capacity is strong enough for hard push';
     } else if (todaySlots > 0 && todaySlots <= 6) {
       mode = 'push_mobile_today';
       reason = 'few same-day slots: urgency can work';
@@ -645,7 +692,10 @@ function allocateBudgets(byCategory, guard, performanceRisk) {
 
   let budgets = { pmax: 8, manikuere: 8, pedikuere: 6 };
 
-  if (manMode === 'push_mobile_today' && pedMode === 'push_mobile_today') budgets = { pmax: 6, manikuere: 14, pedikuere: 5 };
+  if (manMode === 'hard_push' && pedMode === 'hard_push') budgets = { pmax: 6, manikuere: 14, pedikuere: 8 };
+  else if (manMode === 'hard_push') budgets = { pmax: 6, manikuere: 14, pedikuere: 4 };
+  else if (pedMode === 'hard_push') budgets = { pmax: 7, manikuere: 6, pedikuere: 10 };
+  else if (manMode === 'push_mobile_today' && pedMode === 'push_mobile_today') budgets = { pmax: 6, manikuere: 14, pedikuere: 5 };
   else if (manMode === 'push_mobile_today' && pedMode === 'hold') budgets = { pmax: 6, manikuere: 14, pedikuere: 5 };
   else if (manMode === 'push' && pedMode === 'hold') budgets = { pmax: 6, manikuere: 14, pedikuere: 5 };
   else if (pedMode === 'push_mobile_today' && manMode === 'hold') budgets = { pmax: 7, manikuere: 7, pedikuere: 8 };
@@ -687,8 +737,9 @@ function desiredKeywordBid(row, byCategory, performanceRisk) {
 
   const current = Number(row.adGroupCriterion.effectiveCpcBidMicros || 0) / 1_000_000;
   const risk = performanceRisk?.[category];
-  const effectiveMode = risk?.level === 'poor' && mode.startsWith('push') ? 'hold' : mode;
-  const targetRaw = SEARCH_BID_RULES[category][effectiveMode][match.toLowerCase()];
+  const effectiveMode = risk?.level === 'poor' && isPushMode(mode) ? 'hold' : mode;
+  const keyword = row.adGroupCriterion.keyword.text;
+  const targetRaw = keywordTargetBid(category, keyword, match, effectiveMode, SEARCH_BID_RULES[category][effectiveMode][match.toLowerCase()]);
   const target = clampBidDelta(current, targetRaw);
   if (Math.abs(current - target) < 0.01) return null;
 
@@ -697,12 +748,58 @@ function desiredKeywordBid(row, byCategory, performanceRisk) {
     campaign_name: row.campaign.name,
     ad_group_name: row.adGroup.name,
     criterion_resource_name: row.adGroupCriterion.resourceName,
-    keyword: row.adGroupCriterion.keyword.text,
+    keyword,
     match_type: match,
     current_eur: round2(current),
     target_eur: round2(target),
     raw_target_eur: round2(targetRaw),
   };
+}
+
+function keywordTargetBid(category, keyword, match, mode, baseTarget) {
+  const normalized = normalizeKeyword(keyword);
+  const rules = KEYWORD_RULES[category] || {};
+  const isExact = match === 'EXACT';
+  const isWinner = (rules.winners || []).includes(normalized);
+  const isCautious = (rules.cautious || []).includes(normalized);
+  const isWeak = (rules.weak || []).includes(normalized);
+
+  if (isWinner && isExact) {
+    if (mode === 'hard_push') return Math.max(baseTarget, category === 'manikuere' ? 0.95 : 0.55);
+    if (mode === 'push_mobile_today') return Math.max(baseTarget, category === 'manikuere' ? 0.75 : 0.42);
+    if (mode === 'push') return Math.max(baseTarget, category === 'manikuere' ? 0.85 : 0.48);
+    return Math.max(baseTarget, category === 'manikuere' ? 0.55 : 0.28);
+  }
+
+  if (isCautious) {
+    const cap = category === 'manikuere' ? 0.45 : 0.24;
+    return Math.min(baseTarget, cap);
+  }
+
+  if (isWeak) {
+    const cap = category === 'manikuere' ? 0.24 : 0.14;
+    return Math.min(baseTarget, cap);
+  }
+
+  return baseTarget;
+}
+
+function isPushMode(mode) {
+  return ['hard_push', 'push', 'push_mobile_today'].includes(mode);
+}
+
+function normalizeKeyword(value) {
+  return String(value || '')
+    .toLowerCase()
+    .normalize('NFKD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/\u00df/g, 'ss')
+    .replace(/oe/g, 'o')
+    .replace(/ae/g, 'a')
+    .replace(/ue/g, 'u')
+    .replace(/[^a-z0-9 ]+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
 }
 
 async function executePlan(accessToken, plan) {
@@ -1103,6 +1200,7 @@ function classifySearchTerm(term) {
 
 function modeIcon(mode) {
   const map = {
+    hard_push: '\u{1F7E2}',
     push: '\u{1F7E2}',
     push_mobile_today: '\u{1F7E1}',
     hold: '\u{26AA}',
@@ -1140,7 +1238,7 @@ function ruCategory(value) {
 }
 
 function ruMode(value) {
-  const map = { push: R('push'), push_mobile_today: R('push_mobile_today'), hold: R('hold'), protect_budget: R('protect_budget') };
+  const map = { hard_push: R('hard_push'), push: R('push'), push_mobile_today: R('push_mobile_today'), hold: R('hold'), protect_budget: R('protect_budget') };
   return map[value] || value;
 }
 
@@ -1150,6 +1248,7 @@ function ruReason(value) {
     'few same-day slots: urgency can work': R('reason_urgency'),
     'low capacity today and next 7 days': R('reason_low_slots'),
     'future capacity but no same-day slots': R('reason_future_only'),
+    'same-day capacity is strong enough for hard push': R('reason_hard_push'),
     'normal capacity': R('reason_normal'),
   };
   return map[value] || value;
@@ -1285,6 +1384,7 @@ function R(key, vars = {}) {
     manicure: '\u041c\u0430\u043d\u0438\u043a\u044e\u0440',
     pedicure: '\u041f\u0435\u0434\u0438\u043a\u044e\u0440',
     lashes: '\u0420\u0435\u0441\u043d\u0438\u0446\u044b',
+    hard_push: '\u0436\u0435\u0441\u0442\u043a\u0438\u0439 \u043f\u0443\u0448',
     push: '\u043f\u0443\u0448\u0438\u043c',
     push_mobile_today: '\u043f\u0443\u0448\u0438\u043c \u043c\u043e\u0431\u0438\u043b\u043a\u0443 \u0441\u0435\u0433\u043e\u0434\u043d\u044f',
     hold: '\u0434\u0435\u0440\u0436\u0438\u043c',
@@ -1293,6 +1393,7 @@ function R(key, vars = {}) {
     reason_urgency: '\u0441\u043b\u043e\u0442\u043e\u0432 \u0441\u0435\u0433\u043e\u0434\u043d\u044f \u043c\u0430\u043b\u043e, \u0441\u0440\u043e\u0447\u043d\u043e\u0441\u0442\u044c \u043c\u043e\u0436\u0435\u0442 \u0441\u0440\u0430\u0431\u043e\u0442\u0430\u0442\u044c',
     reason_low_slots: '\u043c\u0430\u043b\u043e \u0438\u043b\u0438 \u043d\u0435\u0442 \u0441\u043b\u043e\u0442\u043e\u0432',
     reason_future_only: '\u043d\u0430 \u0431\u043b\u0438\u0436\u0430\u0439\u0448\u0438\u0435 \u0434\u043d\u0438 \u043e\u043a\u043d\u0430 \u0435\u0441\u0442\u044c, \u043d\u043e \u0441\u0435\u0433\u043e\u0434\u043d\u044f \u043d\u0435 \u043f\u0443\u0448\u0438\u043c',
+    reason_hard_push: '\u0441\u0435\u0433\u043e\u0434\u043d\u044f \u0434\u043e\u0441\u0442\u0430\u0442\u043e\u0447\u043d\u043e \u043e\u043a\u043e\u043d \u0434\u043b\u044f \u0436\u0435\u0441\u0442\u043a\u043e\u0433\u043e \u043f\u0443\u0448\u0430',
     reason_normal: '\u043e\u0431\u044b\u0447\u043d\u0430\u044f \u0437\u0430\u0433\u0440\u0443\u0437\u043a\u0430',
     plan_by_slots: '\u0440\u0435\u0448\u0435\u043d\u0438\u0435 \u043f\u043e \u0441\u043b\u043e\u0442\u0430\u043c, \u0435\u043c\u043a\u043e\u0441\u0442\u0438 \u0438 \u0442\u0435\u043a\u0443\u0449\u0438\u043c \u0434\u0430\u043d\u043d\u044b\u043c Google Ads',
     plan_broad: '\u043d\u0430\u0439\u0434\u0435\u043d broad-\u0440\u0438\u0441\u043a, \u043f\u043e\u044d\u0442\u043e\u043c\u0443 \u0441\u0442\u0430\u0432\u043a\u0438 \u043d\u0435 \u0443\u0432\u0435\u043b\u0438\u0447\u0438\u0432\u0430\u0435\u043c',
