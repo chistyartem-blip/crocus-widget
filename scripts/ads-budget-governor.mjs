@@ -664,7 +664,7 @@ function buildPlan({ ads, decisions, guard, performance }) {
     const campaign = CAMPAIGNS[key];
     const row = currentCampaigns[campaign.id];
     const currentEur = Number(row?.campaignBudget?.amountMicros || 0) / 1_000_000;
-    const cappedEur = clampBudgetDelta(currentEur, eur);
+    const cappedEur = Object.hasOwn(manualBudgetOverrides, key) ? eur : clampBudgetDelta(currentEur, eur);
     return {
       key,
       campaign_id: campaign.id,
