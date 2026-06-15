@@ -572,9 +572,19 @@ var css = `
 .cw-svc-btn:focus{outline:none;background:rgba(255,255,255,.03);border-color:rgba(255,255,255,.07)}
 .cw-svc-btn:focus:not(:focus-visible){background:rgba(255,255,255,.03);border-color:rgba(255,255,255,.07)}
 .cw-svc-btn:hover{border-color:rgba(123,45,78,.40);background:rgba(123,45,78,.06);transform:translateY(-1px)}
+.cw-svc-btn[disabled]{cursor:not-allowed;opacity:.62;transform:none!important;background:rgba(255,255,255,.025)}
+.cw-svc-btn[disabled] .cw-svc-name{color:rgba(253,250,248,.62)}
 .cw-svc-left{flex:1;min-width:0}
 .cw-svc-name{font-family:'DM Sans',sans-serif;font-size:13.5px;font-weight:500;color:#fdfaf8;margin-bottom:2px}
 .cw-svc-dur{font-family:'DM Sans',sans-serif;font-size:10.5px;color:rgba(253,250,248,.30)}
+.cw-svc-status{display:inline-flex;align-items:center;gap:5px;margin-top:6px;font-family:'DM Sans',sans-serif;font-size:9.5px;font-weight:700;letter-spacing:.045em;text-transform:uppercase;border-radius:999px;padding:3px 7px;border:1px solid rgba(255,255,255,.10);color:rgba(253,250,248,.50);background:rgba(255,255,255,.035)}
+.cw-svc-status::before{content:'';width:5px;height:5px;border-radius:50%;background:rgba(255,255,255,.25)}
+.cw-svc-status.good{color:#a8f0c0;border-color:rgba(46,204,113,.30);background:rgba(46,204,113,.10)}
+.cw-svc-status.good::before{background:#2ecc71;box-shadow:0 0 7px rgba(46,204,113,.45)}
+.cw-svc-status.warn{color:#ffd99a;border-color:rgba(230,166,60,.34);background:rgba(230,166,60,.10)}
+.cw-svc-status.warn::before{background:#e6a63c;box-shadow:0 0 7px rgba(230,166,60,.45)}
+.cw-svc-status.bad{color:rgba(253,250,248,.43);border-color:rgba(255,255,255,.10);background:rgba(255,255,255,.03)}
+.cw-svc-status.bad::before{background:rgba(255,255,255,.28)}
 .cw-svc-price{font-family:'Cormorant Garamond',Georgia,serif;font-size:20px;font-weight:300;color:#c9a87c;white-space:nowrap;flex-shrink:0}
 
 /* ── Step 4: Addons ── */
@@ -966,6 +976,7 @@ var _addonObjs   = [];
 var _globalAddonObjs = []; // кэш аддонов без staff_id — никогда не обнуляется
 var _seanceCache = {}; // кэш seance_length: ключ = staffId+'_'+serviceId → секунды
 var _serviceCacheByStaff = {};
+var _expressPreviewCache = {};
 
 // Gift state
 var gift = {
@@ -1569,7 +1580,7 @@ function hydrateExpressCategoryStatuses() {
         return;
       }
       el.className = 'cw-express-status ' + (hit.ds === localDateString(0) ? 'good' : 'warn');
-      el.textContent = expressDayLabel(hit.ds) + ' ab ' + hit.time;
+      el.textContent = expressDayLabel(hit.ds) + ' ab ' + hit.time + (hit.note ? ' · ' + hit.note : '');
     }).catch(function() {
       el.className = 'cw-express-status bad';
       el.textContent = 'auf Anfrage';
@@ -1577,20 +1588,69 @@ function hydrateExpressCategoryStatuses() {
   });
 }
 
-function loadExpressCategoryPreview(cat) {
-  var dates = [localDateString(0), localDateString(1), localDateString(2)];
-  var loader;
-  if (cat.key === 'kombi') {
-    loader = function(ds){ return loadComboSlotsForDate(ds); };
-  } else {
-    var primaryServiceId = cat.serviceIds[0];
-    loader = function(ds){ return loadSingleExpressSlotsForDate(primaryServiceId, ds, 6); };
+function expressServiceShortTitle(svc) {
+  var title = String((svc && svc.title) || '');
+  title = title
+    .replace(/Maniküre/gi, '')
+    .replace(/Pediküre/gi, '')
+    .replace(/Russische/gi, '')
+    .replace(/Hygienische/gi, 'Basis')
+    .replace(/\s+/g, ' ')
+    .replace(/^[\s+·-]+|[\s+·-]+$/g, '')
+    .trim();
+  if (!title) title = 'Basis';
+  if (title.length > 18) title = title.slice(0, 17).trim() + '…';
+  return title;
+}
+
+function expressPreviewDates() {
+  return [localDateString(0), localDateString(1), localDateString(2)];
+}
+
+function cachedSingleExpressSlots(serviceId, ds, target) {
+  var key = serviceId + '|' + ds + '|' + (target || 3);
+  if (!_expressPreviewCache[key]) {
+    _expressPreviewCache[key] = loadSingleExpressSlotsForDate(serviceId, ds, target || 3);
   }
+  return _expressPreviewCache[key];
+}
+
+function loadExpressCategoryPreview(cat) {
+  var dates = expressPreviewDates();
+  if (cat.key === 'kombi') {
+    return dates.reduce(function(chain, ds) {
+      return chain.then(function(found) {
+        if (found) return found;
+        return loadComboSlotsForDate(ds).then(function(slots) {
+          return slots && slots.length ? { ds: ds, time: slots[0].time, slots: slots, note: 'Kombi frei' } : null;
+        });
+      });
+    }, Promise.resolve(null));
+  }
+
+  var services = (_allServices || []).filter(function(s){ return cat.serviceIds.indexOf(s.id) !== -1; });
+  if (!services.length) return Promise.resolve(null);
   return dates.reduce(function(chain, ds) {
     return chain.then(function(found) {
       if (found) return found;
-      return loader(ds).then(function(slots) {
-        return slots && slots.length ? { ds: ds, time: slots[0].time, slots: slots } : null;
+      return Promise.all(services.map(function(svc) {
+        return cachedSingleExpressSlots(svc.id, ds, 3).then(function(slots) {
+          return { service: svc, slots: slots || [] };
+        });
+      })).then(function(results) {
+        var hits = results.filter(function(r){ return r.slots && r.slots.length; });
+        if (!hits.length) return null;
+        hits.sort(function(a, b) {
+          return String(a.slots[0].datetime).localeCompare(String(b.slots[0].datetime));
+        });
+        var first = hits[0];
+        return {
+          ds: ds,
+          time: first.slots[0].time,
+          slots: first.slots,
+          service: first.service,
+          note: hits.length > 1 ? hits.length + ' Behandlungen' : expressServiceShortTitle(first.service),
+        };
       });
     });
   }, Promise.resolve(null));
@@ -1665,14 +1725,52 @@ function renderServices(cat) {
     var btn = document.createElement('button');
     if (cw.express) priceStr = minP === maxP ? minP+' &euro;' : 'ab '+minP+' &euro;';
     btn.className = 'cw-svc-btn';
+    if (cw.express) {
+      btn.disabled = true;
+      btn.dataset.serviceId = s.id;
+    }
     btn.innerHTML =
       '<div class="cw-svc-left">'
         + '<div class="cw-svc-name">'+s.title+'</div>'
         + (durStr ? '<div class="cw-svc-dur">⏱ '+durStr+'</div>' : '')
+        + (cw.express ? '<span class="cw-svc-status bad" id="cw-svc-status-'+s.id+'">prüfe freie Slots</span>' : '')
       + '</div>'
       + '<div class="cw-svc-price">'+priceStr+'</div>';
     btn.addEventListener('click', function(){ selectService(s); });
     list.appendChild(btn);
+    if (cw.express) hydrateExpressServiceStatus(s, btn);
+  });
+}
+
+function loadExpressServicePreview(serviceId) {
+  return expressPreviewDates().reduce(function(chain, ds) {
+    return chain.then(function(found) {
+      if (found) return found;
+      return cachedSingleExpressSlots(serviceId, ds, 3).then(function(slots) {
+        return slots && slots.length ? { ds: ds, time: slots[0].time, slots: slots } : null;
+      });
+    });
+  }, Promise.resolve(null));
+}
+
+function hydrateExpressServiceStatus(service, btn) {
+  var el = document.getElementById('cw-svc-status-' + service.id);
+  loadExpressServicePreview(service.id).then(function(hit) {
+    if (!el) return;
+    if (!hit) {
+      btn.disabled = true;
+      el.className = 'cw-svc-status bad';
+      el.textContent = 'kein Slot in 3 Tagen';
+      return;
+    }
+    btn.disabled = false;
+    el.className = 'cw-svc-status ' + (hit.ds === localDateString(0) ? 'good' : 'warn');
+    el.textContent = expressDayLabel(hit.ds) + ' ab ' + hit.time;
+  }).catch(function() {
+    if (!el) return;
+    btn.disabled = true;
+    el.className = 'cw-svc-status bad';
+    el.textContent = 'auf Anfrage';
   });
 }
 

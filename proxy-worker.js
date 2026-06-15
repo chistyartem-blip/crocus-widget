@@ -34,7 +34,7 @@ const B2B_PATHS = [
 ];
 
 export default {
-  async fetch(request, env) {
+  async fetch(request, env, ctx) {
     const url = new URL(request.url);
 
     // CORS preflight
@@ -74,6 +74,24 @@ export default {
     }
 
     const altegioUrl = ALTEGIO_BASE + altegioPath + extraSearch;
+    const cacheTtl = cacheTtlFor(request.method, altegioPath);
+    const cacheKey = cacheTtl > 0
+      ? new Request('https://crocus-cache.local' + altegioPath + extraSearch, { method: 'GET' })
+      : null;
+    if (cacheKey) {
+      const cached = await caches.default.match(cacheKey);
+      if (cached) {
+        return new Response(await cached.text(), {
+          status: cached.status,
+          headers: {
+            ...corsHeaders(request),
+            'Content-Type': 'application/json',
+            'Cache-Control': 'public, max-age=' + cacheTtl,
+            'X-Crocus-Cache': 'HIT',
+          },
+        });
+      }
+    }
 
     // Determine auth headers
     const isB2B = B2B_PATHS.some(p => altegioPath.startsWith(p));
@@ -98,13 +116,26 @@ export default {
     try {
       const res = await fetch(proxyReq);
       const body = await res.text();
+      if (cacheKey && res.ok) {
+        const cacheResponse = new Response(body, {
+          status: res.status,
+          headers: {
+            'Content-Type': 'application/json',
+            'Cache-Control': 'public, max-age=' + cacheTtl,
+          },
+        });
+        const put = caches.default.put(cacheKey, cacheResponse);
+        if (ctx && ctx.waitUntil) ctx.waitUntil(put);
+        else await put;
+      }
 
       return new Response(body, {
         status:  res.status,
         headers: {
           ...corsHeaders(request),
           'Content-Type': 'application/json',
-          'Cache-Control': 'no-store',
+          'Cache-Control': cacheTtl > 0 ? 'public, max-age=' + cacheTtl : 'no-store',
+          'X-Crocus-Cache': cacheTtl > 0 ? 'MISS' : 'BYPASS',
         },
       });
     } catch (e) {
@@ -115,6 +146,16 @@ export default {
     }
   }
 };
+
+function cacheTtlFor(method, path) {
+  if (method !== 'GET') return 0;
+  if (path.startsWith('/book_times/')) return 20;
+  if (path.startsWith('/book_dates/')) return 30;
+  if (path.startsWith('/book_services/')) return 300;
+  if (path.startsWith('/book_staff/')) return 300;
+  if (path.startsWith('/book_staff_seances/')) return 120;
+  return 0;
+}
 
 async function altegioRequest(env, path, method, body) {
   const res = await fetch(ALTEGIO_BASE + path, {
