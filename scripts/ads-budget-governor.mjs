@@ -151,6 +151,7 @@ async function collectSlots() {
           'service_ids[]': service.id,
         });
         const slots = Array.isArray(data) ? data : Array.isArray(data?.data) ? data.data : [];
+        const slotHours = uniqueSlotHours(slots);
         rows.push({
           date,
           master_id: master.id,
@@ -158,7 +159,9 @@ async function collectSlots() {
           service_id: service.id,
           service_name: service.name,
           category: service.category,
-          slots_count: slots.length,
+          raw_slots_count: slots.length,
+          slots_count: slotHours.length,
+          slot_hours: slotHours,
           first_time: slots[0]?.time || '',
           last_time: slots.at(-1)?.time || '',
         });
@@ -709,7 +712,7 @@ function renderTelegramSummary(report) {
   const last30 = report.performance?.last_30_days?.totals || emptyMetrics();
   const mtd = report.performance?.month_to_date?.totals || emptyMetrics();
   const slotLines = report.decisions.map((d) =>
-    `${modeIcon(d.recommended_mode)} ${ruCategory(d.category)}: ${d.today_slots} ${R('today_lc')} / ${d.next_7_days_slots} ${R('next7')} -> ${ruMode(d.recommended_mode)} (${ruReason(d.reason)})`
+    `${modeIcon(d.recommended_mode)} ${ruCategory(d.category)}: ${d.today_slots} ${R('hour_windows_today')} / ${d.next_7_days_slots} ${R('hour_windows_next7')} -> ${ruMode(d.recommended_mode)} (${ruReason(d.reason)})`
   );
   const todayCpl = cplText(todayPerf);
   const yesterdayCpl = cplText(yesterdayPerf);
@@ -754,9 +757,6 @@ function renderTelegramSummary(report) {
     ]) : '',
     detailed && hourLines.length ? card(R('block_hours'), hourLines) : '',
     report.ai_analysis?.text ? card(R('block_ai'), [report.ai_analysis.text]) : '',
-    detailed ? card(R('block_account'), [
-      `${R('billing')}: ${billingDueText(report.billing)}`,
-    ]) : '',
   ].flat().filter(Boolean).join('\n\n');
 }
 
@@ -947,6 +947,17 @@ function conversionRate(metrics) {
   return metrics.clicks > 0 ? round2((metrics.conversions / metrics.clicks) * 100) : 0;
 }
 
+function uniqueSlotHours(slots) {
+  const hours = new Set();
+  for (const slot of slots || []) {
+    const value = String(slot?.time || slot?.datetime || slot?.date || '').trim();
+    const match = value.match(/(\d{1,2}):(\d{2})/);
+    if (!match) continue;
+    hours.add(`${String(Number(match[1])).padStart(2, '0')}:00`);
+  }
+  return [...hours].sort();
+}
+
 function padHour(hour) {
   return `${String(hour).padStart(2, '0')}:00`;
 }
@@ -1134,6 +1145,8 @@ function R(key, vars = {}) {
     slots: '\u0421\u043b\u043e\u0442\u044b',
     today_lc: '\u0441\u0435\u0433\u043e\u0434\u043d\u044f',
     next7: '\u043d\u0430 7 \u0434\u043d\u0435\u0439',
+    hour_windows_today: '\u0447\u0430\u0441\u043e\u0432\u044b\u0445 \u043e\u043a\u043e\u043d \u0441\u0435\u0433\u043e\u0434\u043d\u044f',
+    hour_windows_next7: '\u0447\u0430\u0441\u043e\u0432\u044b\u0445 \u043e\u043a\u043e\u043d \u043d\u0430 7 \u0434\u043d\u0435\u0439',
     decision: '\u0420\u0435\u0448\u0435\u043d\u0438\u0435',
     protection: '\u0417\u0430\u0449\u0438\u0442\u0430',
     billing: '\u041e\u043f\u043b\u0430\u0442\u0430',
