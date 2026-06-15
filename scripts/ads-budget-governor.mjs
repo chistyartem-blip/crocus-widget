@@ -60,15 +60,15 @@ const MASTERS = [
 
 const SEARCH_BID_RULES = {
   manikuere: {
-    push: { exact: 0.55, phrase: 0.35 },
-    push_mobile_today: { exact: 0.50, phrase: 0.32 },
-    hold: { exact: 0.35, phrase: 0.25 },
+    push: { exact: 0.75, phrase: 0.45 },
+    push_mobile_today: { exact: 0.65, phrase: 0.40 },
+    hold: { exact: 0.45, phrase: 0.30 },
     protect_budget: { exact: 0.20, phrase: 0.15 },
   },
   pedikuere: {
-    push: { exact: 0.50, phrase: 0.32 },
-    push_mobile_today: { exact: 0.45, phrase: 0.30 },
-    hold: { exact: 0.30, phrase: 0.22 },
+    push: { exact: 0.42, phrase: 0.28 },
+    push_mobile_today: { exact: 0.38, phrase: 0.25 },
+    hold: { exact: 0.26, phrase: 0.18 },
     protect_budget: { exact: 0.18, phrase: 0.12 },
   },
 };
@@ -571,8 +571,8 @@ function allocateBudgets(byCategory, guard, performanceRisk) {
 
   let budgets = { pmax: 8, manikuere: 8, pedikuere: 6 };
 
-  if (manMode === 'push' && pedMode === 'push_mobile_today') budgets = { pmax: 8, manikuere: 12, pedikuere: 10 };
-  else if (manMode === 'push' && pedMode === 'push') budgets = { pmax: 8, manikuere: 11, pedikuere: 11 };
+  if (manMode === 'push' && pedMode === 'push_mobile_today') budgets = { pmax: 6, manikuere: 14, pedikuere: 6 };
+  else if (manMode === 'push' && pedMode === 'push') budgets = { pmax: 6, manikuere: 14, pedikuere: 8 };
   else if (manMode.startsWith('protect') && pedMode.startsWith('push')) budgets = { pmax: 8, manikuere: 2, pedikuere: 14 };
   else if (pedMode.startsWith('protect') && manMode.startsWith('push')) budgets = { pmax: 8, manikuere: 14, pedikuere: 2 };
   else if (manMode.startsWith('protect') && pedMode.startsWith('protect')) budgets = { pmax: 6, manikuere: 2, pedikuere: 2 };
@@ -580,7 +580,7 @@ function allocateBudgets(byCategory, guard, performanceRisk) {
   if (softGoalPenalty) budgets.pmax = Math.min(budgets.pmax, 8);
   for (const [key, risk] of Object.entries(performanceRisk || {})) {
     if (risk.level === 'poor' && key in budgets) {
-      budgets[key] = Math.min(budgets[key], risk.current_budget_hint_eur || 7);
+      budgets[key] = Math.min(budgets[key], risk.current_budget_hint_eur || 5);
     }
   }
 
@@ -806,7 +806,7 @@ function metricRow(label, metrics) {
 function card(title, lines) {
   const clean = lines.filter(Boolean);
   if (!clean.length) return '';
-  return [`${title}`, ...clean.map((line) => `• ${line}`)].join('\n');
+  return [`${title}`, ...clean.map((line) => `â€¢ ${line}`)].join('\n');
 }
 
 function campaignPerformanceLines(campaigns) {
@@ -816,7 +816,7 @@ function campaignPerformanceLines(campaigns) {
     .map((c) => {
       const cpc = avgCost(c);
       const cpl = c.conversions > 0 ? `${round2(c.cost_eur / c.conversions)} EUR` : '-';
-      return `${humanCampaign(c.campaign_name)}: ${round2(c.cost_eur)} EUR, ${c.clicks} кликов, ${round2(c.conversions)} конв., CPC ${cpc} EUR, CPL ${cpl}.`;
+      return `${humanCampaign(c.campaign_name)}: ${round2(c.cost_eur)} EUR, ${c.clicks} clicks, ${round2(c.conversions)} conv, CPC ${cpc} EUR, CPL ${cpl}.`;
     })
     .slice(0, 4);
 }
@@ -842,7 +842,7 @@ function evaluatePerformanceRisk(performance) {
   const campaigns = performance?.last_7_days?.campaigns || [];
   for (const row of campaigns) {
     const key = campaignKey(row.campaign_name);
-    if (!key || key === 'pmax') continue;
+  if (key === 'pmax') return 'PMax / Maps / brand';
     const cpl = row.conversions > 0 ? row.cost_eur / row.conversions : null;
     let level = 'ok';
     let reason = 'performance is acceptable';
@@ -860,7 +860,7 @@ function evaluatePerformanceRisk(performance) {
       last_7_days_clicks: row.clicks,
       last_7_days_conversions: round2(row.conversions),
       cpl_eur: cpl == null ? null : round2(cpl),
-      current_budget_hint_eur: level === 'poor' ? 7 : undefined,
+      current_budget_hint_eur: level === 'poor' ? 5 : undefined,
     };
   }
   return result;
@@ -871,39 +871,39 @@ function humanPlanLines(report) {
   for (const budget of report.plan.budgets.slice(0, 4)) {
     const diff = round2(budget.target_eur - budget.current_eur);
     if (diff > 0) {
-      lines.push(`${humanCampaign(budget.campaign_name)}: аккуратно добавить ${diff} EUR/день, потому что есть емкость и лимит позволяет.`);
+      lines.push(`${humanCampaign(budget.campaign_name)}: add ${diff} EUR/day because slots and performance allow it.`);
     } else if (diff < 0) {
-      lines.push(`${humanCampaign(budget.campaign_name)}: снизить на ${Math.abs(diff)} EUR/день, чтобы не кормить слабый трафик.`);
+      lines.push(`${humanCampaign(budget.campaign_name)}: cut ${Math.abs(diff)} EUR/day to stop feeding weak traffic.`);
     } else {
-      lines.push(`${humanCampaign(budget.campaign_name)}: оставить как есть.`);
+      lines.push(`${humanCampaign(budget.campaign_name)}: keep as is.`);
     }
   }
   const risks = Object.entries(report.plan.performance_risk || {})
     .filter(([, risk]) => risk.level === 'poor')
     .map(([key]) => ruCategory(key));
   if (risks.length) {
-    lines.push(`${risks.join(', ')}: есть слоты, но фактическая реклама пока слабая, поэтому только контролируемый тест без разгона.`);
+    lines.push(`${risks.join(', ')}: slots exist, but ads performance is weak, so only controlled test, no aggressive push.`);
   }
   if (!lines.length) lines.push(R('no_live_changes_needed'));
   return lines;
 }
 
 function summaryHero(report, { todayPerf, yesterdayPerf, last7 }) {
-  const status = report.guard.hard_stop ? '🔴 СТОП: рекламу не трогаем' : report.guard.warnings.length ? '🟡 Осторожно: есть предупреждения' : '🟢 Можно работать';
-  const action = report.apply ? 'правки применяются' : 'это проверка, деньги не трогаем';
+  const status = report.guard.hard_stop ? 'RED STOP: do not touch ads' : report.guard.warnings.length ? 'YELLOW: caution, warnings exist' : 'GREEN: can work';
+  const action = report.apply ? 'changes are being applied' : 'dry-run, money not touched';
   const main = nextStepText(report);
   return [
     status,
-    `Сегодня: ${round2(todayPerf.cost_eur)} EUR, ${todayPerf.clicks} кликов, ${round2(todayPerf.conversions)} конв.`,
-    `Вчера: ${round2(yesterdayPerf.cost_eur)} EUR, ${round2(yesterdayPerf.conversions)} конв., CPL ${cplText(yesterdayPerf)}.`,
-    `7 дней: ${round2(last7.cost_eur)} EUR, ${round2(last7.conversions)} конв., CPL ${cplText(last7)}.`,
-    `Решение: ${main} Сейчас ${action}.`,
+    `Today: ${round2(todayPerf.cost_eur)} EUR, ${todayPerf.clicks} clicks, ${round2(todayPerf.conversions)} conv.`,
+    `Yesterday: ${round2(yesterdayPerf.cost_eur)} EUR, ${round2(yesterdayPerf.conversions)} conv, CPL ${cplText(yesterdayPerf)}.`,
+    `7 days: ${round2(last7.cost_eur)} EUR, ${round2(last7.conversions)} conv, CPL ${cplText(last7)}.`,
+    `Decision: ${main}. Now: ${action}.`,
   ].join('\n');
 }
 
 function moneyPulse(todayPerf, yesterdayPerf, last7, limit) {
   const todayShare = limit > 0 ? round2((todayPerf.cost_eur / limit) * 100) : 0;
-  return `лимит ${limit} EUR/день; сегодня потрачено ${round2(todayPerf.cost_eur)} EUR (${todayShare}% лимита); вчера CPL ${cplText(yesterdayPerf)}; 7 дней CPL ${cplText(last7)}.`;
+  return `limit ${limit} EUR/day; today spent ${round2(todayPerf.cost_eur)} EUR (${todayShare}% of cap); yesterday CPL ${cplText(yesterdayPerf)}; 7-day CPL ${cplText(last7)}.`;
 }
 
 function masterCapacityLines(rows) {
@@ -921,13 +921,13 @@ function masterCapacityLines(rows) {
 
 function riskyTermLines(terms) {
   return terms.slice(0, 5).map((t) =>
-    `${R('risk')}: "${t.term}" (${ruIntent(t.intent.reason)}), ${round2(t.cost_eur)} EUR, ${t.clicks} кликов, ${round2(t.conversions)} конв.`
+    `${R('risk')}: "${t.term}" (${ruIntent(t.intent.reason)}), ${round2(t.cost_eur)} EUR, ${t.clicks} clicks, ${round2(t.conversions)} conv.`
   );
 }
 
 function winnerTermLines(terms) {
   return terms.slice(0, 4).map((t) =>
-    `${R('winner')}: "${t.term}", ${round2(t.conversions)} конв., CPL ${t.cpl_eur ?? '-'} EUR.`
+    `${R('winner')}: "${t.term}", ${round2(t.conversions)} conv, CPL ${t.cpl_eur ?? '-'} EUR.`
   );
 }
 
@@ -1002,7 +1002,7 @@ function classifySearchTerm(term) {
   ];
   const hit = badPatterns.find((item) => item.pattern.test(normalized));
   if (hit) return { risk: 'risky', reason: hit.reason };
-  if (/manik|nagel|pedik|fußpflege|fusspflege|gellack|shellac/i.test(normalized)) {
+  if (/manik|nagel|pedik|fuss|fusspflege|gellack|shellac/i.test(normalized)) {
     return { risk: 'ok', reason: 'service intent' };
   }
   return { risk: 'unknown', reason: 'unclear intent' };
@@ -1035,9 +1035,9 @@ function campaignKey(name) {
 
 function humanCampaign(name) {
   const key = campaignKey(name);
-  if (key === 'manikuere') return 'Маникюр Search';
-  if (key === 'pedikuere') return 'Педикюр Search';
-  if (key === 'pmax') return 'PMax / карта / бренд';
+  if (key === 'manikuere') return 'Manicure Search';
+  if (key === 'pedikuere') return 'Pedicure Search';
+  if (key === 'pmax') return 'PMax / Maps / brand';
   return name;
 }
 
@@ -1063,12 +1063,12 @@ function ruReason(value) {
 
 function ruIntent(value) {
   const map = {
-    'medical/podology intent': 'медицинский/подологический интент',
-    'education/job intent': 'ищут учебу или работу',
-    'inspiration/Pinterest intent': 'ищут идеи/картинки, не запись',
-    'low purchase or retail intent': 'ищут дешево/товар, не услугу',
-    'service intent': 'похоже на услугу',
-    'unclear intent': 'интент неясный',
+    'medical/podology intent': 'medical/podology intent',
+    'education/job intent': 'education/job intent',
+    'inspiration/Pinterest intent': 'inspiration/Pinterest intent',
+    'low purchase or retail intent': 'low purchase/retail intent',
+    'service intent': 'service intent',
+    'unclear intent': 'unclear intent',
   };
   return map[value] || value;
 }
