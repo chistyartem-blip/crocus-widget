@@ -705,6 +705,9 @@ body.crocus-open{overflow:hidden!important;overscroll-behavior:none;}
 .cw-express-day-date{display:block;font-family:'DM Sans',sans-serif;font-size:10px;color:rgba(253,250,248,.45);margin-top:3px}
 .cw-express-day-times{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
 .cw-express-day-note{font-family:'DM Sans',sans-serif;font-size:11px;color:rgba(253,250,248,.48);line-height:1.45;margin-top:2px}
+.cw-express-more-btn{width:100%;margin-top:2px;padding:11px 13px;border-radius:14px;border:1px solid rgba(201,168,124,.26);background:linear-gradient(135deg,rgba(201,168,124,.09),rgba(255,255,255,.035));color:rgba(253,250,248,.82);font-family:'DM Sans',sans-serif;font-size:12px;font-weight:700;letter-spacing:.035em;cursor:pointer;transition:all .18s;text-align:center}
+.cw-express-more-btn:hover{border-color:rgba(201,168,124,.48);background:linear-gradient(135deg,rgba(201,168,124,.14),rgba(255,255,255,.055));color:#fdfaf8;transform:translateY(-1px)}
+.cw-express-more-btn span{display:block;font-size:10px;font-weight:500;letter-spacing:0;color:rgba(253,250,248,.45);margin-top:2px}
 
 /* ── Gift Progress bar ── */
 .cw-gift-progress{display:flex;align-items:center;justify-content:center;gap:0;margin-bottom:18px}
@@ -2068,6 +2071,27 @@ function renderExpressTwoDayPicker() {
       updateExpressDayCard(card, ds, []);
     });
   });
+  var moreBtn = document.createElement('button');
+  moreBtn.type = 'button';
+  moreBtn.className = 'cw-express-more-btn';
+  moreBtn.innerHTML = 'Weitere Termine im Kalender<span>andere nahe Daten ansehen</span>';
+  moreBtn.addEventListener('click', renderExpressFullCalendar);
+  grid.appendChild(moreBtn);
+}
+
+function renderExpressFullCalendar() {
+  cw.date = null; cw.time = null; cw.datetime = null; cw.comboAppointments = null; cw.comboRoute = null;
+  var cal = document.querySelector('#cw-step5 .cw-calendar');
+  var grid = document.getElementById('cw-cal-grid');
+  if (cal) cal.classList.remove('express');
+  if (grid) {
+    grid.className = 'cw-cal-grid';
+    grid.innerHTML = '<div class="cw-loader" style="grid-column:span 7;padding:18px 0"><div class="cw-spinner"></div><span class="cw-loader-text">Kalender wird geprüft...</span></div>';
+  }
+  document.getElementById('cw-times-wrap').style.display = 'none';
+  cw.calY = new Date().getFullYear();
+  cw.calM = new Date().getMonth();
+  loadAvailDates();
 }
 
 function updateExpressDayCard(card, ds, slots) {
@@ -2196,7 +2220,25 @@ function loadComboAvailDates() {
       maniList.forEach(function(ds){ maniDates[ds] = true; });
       pediList.forEach(function(ds){ pediDates[ds] = true; });
     });
-    cw.availDates = Object.keys(maniDates).filter(function(ds){ return !!pediDates[ds]; }).sort();
+    var dates = Object.keys(maniDates).filter(function(ds){ return !!pediDates[ds]; }).sort();
+    if (cw.express) {
+      var today = localDateString(0);
+      var candidates = dates.filter(function(ds){ return ds >= today; }).slice(0, 18);
+      return candidates.reduce(function(chain, ds) {
+        return chain.then(function(found) {
+          if (found.length >= 10) return found;
+          return loadComboSlotsForDate(ds).then(function(slots) {
+            if (slots && slots.length) found.push(ds);
+            return found;
+          }).catch(function(){ return found; });
+        });
+      }, Promise.resolve([])).then(function(verifiedDates) {
+        cw.availDates = verifiedDates;
+        console.log('[crocus] loadComboAvailDates verified: '+cw.availDates.length+' dates: '+JSON.stringify(cw.availDates.slice(0,5)));
+        renderCalendar();
+      });
+    }
+    cw.availDates = dates;
     console.log('[crocus] loadComboAvailDates: got '+cw.availDates.length+' dates: '+JSON.stringify(cw.availDates.slice(0,5)));
     renderCalendar();
   }).catch(function(e) {
