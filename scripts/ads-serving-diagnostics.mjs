@@ -100,6 +100,38 @@ async function main() {
         AND ad_group_ad.status = ENABLED
         AND segments.date DURING LAST_7_DAYS
     `),
+    search_ad_copy: await safeQuery(token, 'search_ad_copy', `
+      SELECT campaign.id, campaign.name, ad_group.id, ad_group.name,
+        ad_group_ad.ad.id, ad_group_ad.status,
+        ad_group_ad.ad.final_urls,
+        ad_group_ad.ad.responsive_search_ad.headlines,
+        ad_group_ad.ad.responsive_search_ad.descriptions
+      FROM ad_group_ad
+      WHERE campaign.id IN (${searchIds})
+        AND ad_group_ad.status = ENABLED
+        AND ad_group_ad.ad.type = RESPONSIVE_SEARCH_AD
+    `),
+    pmax_asset_groups: await safeQuery(token, 'pmax_asset_groups', `
+      SELECT campaign.id, campaign.name,
+        asset_group.id, asset_group.name, asset_group.status,
+        metrics.impressions, metrics.clicks, metrics.cost_micros, metrics.conversions
+      FROM asset_group
+      WHERE campaign.id = ${CAMPAIGNS.pmax}
+        AND segments.date DURING LAST_7_DAYS
+    `),
+    pmax_assets: await safeQuery(token, 'pmax_assets', `
+      SELECT campaign.id, campaign.name,
+        asset_group.id, asset_group.name,
+        asset_group_asset.field_type,
+        asset_group_asset.performance_label,
+        asset_group_asset.status,
+        asset.resource_name,
+        asset.type,
+        asset.text_asset.text,
+        asset.youtube_video_asset.youtube_video_title
+      FROM asset_group_asset
+      WHERE campaign.id = ${CAMPAIGNS.pmax}
+    `),
     criteria: await safeQuery(token, 'campaign_criteria', `
       SELECT campaign.id, campaign.name,
         campaign_criterion.type, campaign_criterion.negative,
