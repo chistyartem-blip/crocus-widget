@@ -9,7 +9,7 @@ loadDotEnv(path.join(ROOT, '.env'));
 
 const CONFIG = {
   apply: envBool('ADS_GOVERNOR_APPLY', false),
-  maxDailyBudgetEur: envNumber('ADS_GOVERNOR_MAX_DAILY_BUDGET_EUR', 30),
+  maxDailyBudgetEur: Math.min(20, envNumber('ADS_GOVERNOR_MAX_DAILY_BUDGET_EUR', 20)),
   lookAheadDays: Math.max(21, envNumber('ADS_GOVERNOR_LOOKAHEAD_DAYS', 21)),
   reportEveryHours: envNumber('ADS_GOVERNOR_REPORT_EVERY_HOURS', 3),
   forceTelegram: envBool('ADS_GOVERNOR_FORCE_TELEGRAM', false),
