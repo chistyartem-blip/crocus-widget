@@ -1059,6 +1059,16 @@ function keepCrocusHistory() {
   });
 }
 
+function isCrocusModalActive() {
+  var modal = document.getElementById('crocus-modal');
+  var backdrop = document.getElementById('crocus-backdrop');
+  return !!(
+    (modal && modal.classList.contains('open')) ||
+    (backdrop && backdrop.classList.contains('open')) ||
+    document.body.classList.contains('crocus-open')
+  );
+}
+
 function isCrocusOpenTrigger(el) {
   if (!el) return false;
   var attr = (el.getAttribute && (el.getAttribute('onclick') || '')) || '';
@@ -3580,56 +3590,17 @@ document.addEventListener('keydown', function(e) {
 
 // ── Android back button / browser back ─────────────────────────
 window.addEventListener('popstate', function(e) {
-  var modal = document.getElementById('crocus-modal');
-  if (!modal || !modal.classList.contains('open')) return;
+  if (!isCrocusModalActive()) {
+    _crocusHistoryActive = false;
+    return;
+  }
 
   // Modal is open — intercept back navigation
   e.preventDefault();
   _crocusHistoryActive = false;
   var keepOpen = crocusWidgetBack();
   if (keepOpen) keepCrocusHistory();
-  else keepCrocusHistory();
-  return;
-
-  var isGiftMode = document.getElementById('cw-gift1') && document.getElementById('cw-gift1').classList.contains('active');
-  var isGiftStep2 = document.getElementById('cw-gift2') && document.getElementById('cw-gift2').classList.contains('active');
-  var isGiftSuccess = document.getElementById('cw-gift-success') && document.getElementById('cw-gift-success').classList.contains('active');
-
-  if (isGiftStep2) {
-    // Gift step 2 → Gift step 1
-    document.querySelectorAll('.cw-step').forEach(function(el){ el.classList.remove('active'); });
-    document.getElementById('cw-gift1').classList.add('active');
-    resetWidgetScroll();
-    return;
-  }
-  if (isGiftMode || isGiftSuccess) {
-    // Gift step 1 or success → main step 1
-    document.getElementById('crocus-progress').style.display = 'flex';
-    document.querySelectorAll('.cw-step').forEach(function(el){ el.classList.remove('active'); });
-    document.getElementById('cw-step1').classList.add('active');
-    updateProgress(1);
-    resetWidgetScroll();
-    return;
-  }
-
-  var step = cw.step;
-  if (step === 'success' || step === 1) {
-    // On step 1 or success — close the modal entirely, no new pushState
-    crocusClose();
-    return;
-  }
-
-  // Steps 2–6: go back one step
-  if (step === 2) { goStep(1); return; }
-  if (step === 3) { goStep(2); return; }
-  if (step === 4) { goStep(3); return; }
-  if (step === 5) {
-    var skipBack = (cw.category && cw.category.key === 'wimpern')
-      || (cw.service && NO_ADDON_SERVICE_IDS.indexOf(cw.service.id) !== -1);
-    goStep(skipBack ? 3 : 4);
-    return;
-  }
-  if (step === 6) { goStep(5); return; }
+  else _crocusHistoryActive = false;
 });
 
 // Кнопка "далее" после выбора допа (клик на карточку) — авто-переход с задержкой
