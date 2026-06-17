@@ -57,14 +57,12 @@ const MASTERS = [
   { id: 3020185, name: 'Diana', categories: ['manikuere', 'pedikuere'] },
   { id: 3020186, name: 'Nelia', categories: ['manikuere', 'pedikuere'] },
   { id: 3020187, name: 'Sofia', categories: ['manikuere', 'pedikuere'] },
-  { id: 3020188, name: 'Karina', categories: ['wimpern'] },
 ];
 
 const WIDGET_SLOT_MASTERS = [
   { id: 3020185, name: 'Diana', serviceId: 13485754, serviceName: 'Nagelkorrektur', focus: 'manikuere' },
   { id: 3020186, name: 'Nelia', serviceId: 13485753, serviceName: 'Manikuere + Gellack', focus: 'manikuere' },
   { id: 3020187, name: 'Sofia', serviceId: 13485753, serviceName: 'Manikuere + Gellack', focus: 'manikuere' },
-  { id: 3020188, name: 'Karina', serviceId: 13485771, serviceName: 'Wimpern Neuset', focus: 'wimpern' },
 ];
 
 const SEARCH_BID_RULES = {
@@ -147,16 +145,14 @@ async function main() {
     throw new Error(`Missing required Google Ads env vars: ${missing.join(', ')}`);
   }
 
-  const [slots, widgetMasterAvailability] = await Promise.all([
-    collectSlots(),
-    collectWidgetMasterAvailability(),
-  ]);
+  const slotState = await collectSlotState();
+  const { slots, widgetMasterAvailability } = slotState;
   const decisions = decideCapacity(slots);
   const accessToken = await googleAccessToken();
   const ads = await collectAdsState(accessToken);
   const performance = await collectPerformance(accessToken);
   const billing = await collectBilling(accessToken);
-  const guard = evaluateGuards(ads);
+  const guard = evaluateGuards(ads, slotState);
   const plan = buildPlan({ ads, decisions, guard, performance });
   const mutations = await executePlan(accessToken, plan);
 
@@ -167,6 +163,10 @@ async function main() {
     apply: CONFIG.apply,
     max_daily_budget_eur: CONFIG.maxDailyBudgetEur,
     decisions,
+    slot_source: {
+      ok: slotState.ok,
+      errors: slotState.errors,
+    },
     guard,
     plan,
     mutations,
@@ -196,6 +196,19 @@ async function main() {
     planned_bid_updates: plan.keywordBidUpdates.length,
     guard,
   }, null, 2));
+}
+
+async function collectSlotState() {
+  const errors = [];
+  const slots = await collectSlots().catch((error) => {
+    errors.push(`collectSlots: ${error.message}`);
+    return [];
+  });
+  const widgetMasterAvailability = await collectWidgetMasterAvailability().catch((error) => {
+    errors.push(`collectWidgetMasterAvailability: ${error.message}`);
+    return [];
+  });
+  return { ok: errors.length === 0, errors, slots, widgetMasterAvailability };
 }
 
 async function collectSlots() {
@@ -281,6 +294,9 @@ async function widgetAvailableDates(master) {
   const data = await altegioGet(`book_dates/${CONFIG.altegioLocationId}`, {
     staff_id: master.id,
     'service_ids[]': master.serviceId,
+  }).catch((error) => {
+    if (String(error.message || '').includes('Altegio 404')) return {};
+    throw error;
   });
   const dates = Array.isArray(data?.booking_dates)
     ? data.booking_dates
@@ -617,9 +633,13 @@ async function collectAiAnalysis(report) {
   }
 }
 
-function evaluateGuards(ads) {
+function evaluateGuards(ads, slotState = { ok: true, errors: [] }) {
   const warnings = [];
   const hardStops = [];
+
+  if (!slotState.ok) {
+    hardStops.push(`Slot source unavailable: ${slotState.errors.join('; ')}`);
+  }
 
   const broadCount = ads.broadKeywords.length;
   if (broadCount > 0) {
