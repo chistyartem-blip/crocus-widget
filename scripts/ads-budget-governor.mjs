@@ -9,7 +9,7 @@ loadDotEnv(path.join(ROOT, '.env'));
 
 const CONFIG = {
   apply: envBool('ADS_GOVERNOR_APPLY', false),
-  maxDailyBudgetEur: Math.min(20, envNumber('ADS_GOVERNOR_MAX_DAILY_BUDGET_EUR', 20)),
+  maxDailyBudgetEur: Math.min(25, envNumber('ADS_GOVERNOR_MAX_DAILY_BUDGET_EUR', 25)),
   lookAheadDays: Math.max(21, envNumber('ADS_GOVERNOR_LOOKAHEAD_DAYS', 21)),
   reportEveryHours: envNumber('ADS_GOVERNOR_REPORT_EVERY_HOURS', 3),
   forceTelegram: envBool('ADS_GOVERNOR_FORCE_TELEGRAM', false),
@@ -110,13 +110,19 @@ const KEYWORD_RULES = {
     winners: [
       'pedikure goppingen',
       'pedikure termin goppingen',
+      'pedikure termin',
+      'shellac pedikure',
+      'pedikure shellac',
+      'pedikure mit shellac',
+      'kosmetische fusspflege',
       'fussnagel goppingen',
     ],
     cautious: [
-      'fusspflege goppingen',
       'pedikure eislingen',
+      'fusspflege goppingen',
     ],
     weak: [
+      'fusspflege',
       'fusspflege eislingen',
       'fusspflege ebersbach',
       'fusspflege uhingen',
@@ -831,7 +837,11 @@ function desiredKeywordBid(row, byCategory, performanceRisk) {
 
   const current = Number(row.adGroupCriterion.effectiveCpcBidMicros || 0) / 1_000_000;
   const risk = performanceRisk?.[category];
-  const effectiveMode = risk?.level === 'poor' && isPushMode(mode) ? 'hold' : mode;
+  const effectiveMode = risk?.level === 'poor' && isPushMode(mode)
+    ? category === 'pedikuere' && mode === 'push_next_72h'
+      ? 'push_next_72h'
+      : 'hold'
+    : mode;
   const keyword = row.adGroupCriterion.keyword.text;
   const targetRaw = keywordTargetBid(category, keyword, match, effectiveMode, SEARCH_BID_RULES[category][effectiveMode][match.toLowerCase()]);
   const target = clampBidDelta(current, targetRaw);
