@@ -60,7 +60,7 @@ async function main() {
 
 function buildPlan({ keywords, ads }) {
   const keywordIndex = keywordKeyIndex(keywords);
-  const activeAdFinals = new Set(ads.map((row) => `${row.adGroup.id}:${(row.adGroupAd.ad.finalUrls || []).join('|')}:${row.adGroupAd.ad.type}`));
+  const existingAdCount = ads.length;
   const keywordCreates = [];
   const bidUpdates = [];
 
@@ -82,10 +82,11 @@ function buildPlan({ keywords, ads }) {
     }
   }
 
-  const adCreates = urgentAds().filter((item) => !activeAdFinals.has(`${item.adGroupId}:${item.finalUrl}:RESPONSIVE_SEARCH_AD`));
+  const adCreates = urgentAds();
 
   return {
     reason: 'Tomorrow has 3 Manikuere windows with Nelia at 09:00-11:00. Push only high-intent Manikuere Search without changing budgets.',
+    existingAdCount,
     keywordCreates,
     bidUpdates,
     adCreates,
