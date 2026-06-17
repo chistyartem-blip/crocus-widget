@@ -123,7 +123,6 @@ async function main() {
       SELECT campaign.id, campaign.name,
         asset_group.id, asset_group.name,
         asset_group_asset.field_type,
-        asset_group_asset.performance_label,
         asset_group_asset.status,
         asset.resource_name,
         asset.type,
