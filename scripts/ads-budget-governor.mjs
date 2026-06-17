@@ -10,7 +10,7 @@ loadDotEnv(path.join(ROOT, '.env'));
 const CONFIG = {
   apply: envBool('ADS_GOVERNOR_APPLY', false),
   maxDailyBudgetEur: envNumber('ADS_GOVERNOR_MAX_DAILY_BUDGET_EUR', 30),
-  lookAheadDays: envNumber('ADS_GOVERNOR_LOOKAHEAD_DAYS', 14),
+  lookAheadDays: envNumber('ADS_GOVERNOR_LOOKAHEAD_DAYS', 21),
   reportEveryHours: envNumber('ADS_GOVERNOR_REPORT_EVERY_HOURS', 3),
   forceTelegram: envBool('ADS_GOVERNOR_FORCE_TELEGRAM', false),
   reportMode: env('ADS_GOVERNOR_REPORT_MODE', ''),
@@ -316,11 +316,14 @@ function decideCapacity(rows) {
   const today = dateOnly(new Date());
   const day3 = dateOnly(addDays(new Date(), 2));
   const day7 = dateOnly(addDays(new Date(), 6));
+  const horizonDays = Math.max(7, CONFIG.lookAheadDays);
+  const horizonEnd = dateOnly(addDays(new Date(), horizonDays - 1));
 
   return ['manikuere', 'pedikuere', 'wimpern'].map((category) => {
     const todaySlots = countSlotWindows(rows, (r) => r.category === category && r.date === today);
     const next3Slots = countSlotWindows(rows, (r) => r.category === category && r.date >= today && r.date <= day3);
     const next7Slots = countSlotWindows(rows, (r) => r.category === category && r.date >= today && r.date <= day7);
+    const horizonSlots = countSlotWindows(rows, (r) => r.category === category && r.date >= today && r.date <= horizonEnd);
     let mode = 'hold';
     let reason = 'normal capacity';
     if (todaySlots >= 4 && next3Slots >= 8 && next7Slots >= 15) {
@@ -335,6 +338,12 @@ function decideCapacity(rows) {
     } else if (next3Slots >= 3) {
       mode = 'push';
       reason = 'near-term capacity can be filled';
+    } else if (next7Slots >= 18) {
+      mode = 'push';
+      reason = 'weekly capacity can be filled';
+    } else if (horizonSlots >= 35) {
+      mode = 'push';
+      reason = 'future booking horizon has enough capacity';
     } else if (todaySlots === 0) {
       mode = next7Slots < 10 ? 'protect_budget' : 'hold';
       reason = next7Slots < 10 ? 'low capacity today and next 7 days' : 'future capacity but no same-day slots';
@@ -347,6 +356,8 @@ function decideCapacity(rows) {
       today_slots: todaySlots,
       next_3_days_slots: next3Slots,
       next_7_days_slots: next7Slots,
+      booking_horizon_days: horizonDays,
+      booking_horizon_slots: horizonSlots,
       recommended_mode: mode,
       reason,
     };
@@ -794,6 +805,7 @@ function allocateBudgets(byCategory, guard, performanceRisk) {
       budgets[key] = Math.min(budgets[key], risk.current_budget_hint_eur || 5);
     }
   }
+  budgets.pmax = Math.max(budgets.pmax, pmaxPerformanceFloor(performanceRisk));
 
   budgets.pmax = clamp(budgets.pmax, CAMPAIGNS.pmax.minBudget, CAMPAIGNS.pmax.maxBudget);
   budgets.manikuere = clamp(budgets.manikuere, CAMPAIGNS.manikuere.minBudget, CAMPAIGNS.manikuere.maxBudget);
@@ -972,9 +984,11 @@ function renderTelegramSummary(report) {
   const last7 = report.performance?.last_7_days?.totals || emptyMetrics();
   const last30 = report.performance?.last_30_days?.totals || emptyMetrics();
   const mtd = report.performance?.month_to_date?.totals || emptyMetrics();
-  const slotLines = report.decisions.map((d) =>
-    `${modeIcon(d.recommended_mode)} ${ruCategory(d.category)}: ${d.today_slots} ${R('hour_windows_today')} / ${d.next_3_days_slots ?? '-'} ${R('hour_windows_next3')} / ${d.next_7_days_slots} ${R('hour_windows_next7')} -> ${ruMode(d.recommended_mode)} (${ruReason(d.reason)})`
-  );
+  const slotLines = report.decisions.map((d) => {
+    const horizonDays = d.booking_horizon_days ?? CONFIG.lookAheadDays;
+    const horizonSlots = d.booking_horizon_slots ?? '-';
+    return `${modeIcon(d.recommended_mode)} ${ruCategory(d.category)}: ${d.today_slots} ${R('hour_windows_today')} / ${d.next_3_days_slots ?? '-'} ${R('hour_windows_next3')} / ${d.next_7_days_slots} ${R('hour_windows_next7')} / ${horizonSlots} ${R('hour_windows_horizon', { days: horizonDays })} -> ${ruMode(d.recommended_mode)} (${ruReason(d.reason)})`;
+  });
   const masterLines = widgetMasterLines(report.widget_master_availability || []);
   const todayCpl = cplText(todayPerf);
   const yesterdayCpl = cplText(yesterdayPerf);
@@ -1101,11 +1115,11 @@ function evaluatePerformanceRisk(performance) {
   const campaigns = performance?.last_7_days?.campaigns || [];
   for (const row of campaigns) {
     const key = campaignKey(row.campaign_name);
-    if (!key || key === 'pmax') continue;
+    if (!key) continue;
     const cpl = row.conversions > 0 ? row.cost_eur / row.conversions : null;
     let level = 'ok';
     let reason = 'performance is acceptable';
-    if (row.cost_eur >= 15 && row.conversions === 0) {
+    if (key !== 'pmax' && row.cost_eur >= 15 && row.conversions === 0) {
       level = 'poor';
       reason = 'spent meaningful budget with zero conversions in the last 7 days';
     } else if (cpl != null && cpl > 12) {
@@ -1123,6 +1137,14 @@ function evaluatePerformanceRisk(performance) {
     };
   }
   return result;
+}
+
+function pmaxPerformanceFloor(performanceRisk) {
+  const pmax = performanceRisk?.pmax;
+  if (!pmax || !Number.isFinite(pmax.cpl_eur)) return CAMPAIGNS.pmax.minBudget;
+  if (pmax.last_7_days_conversions >= 10 && pmax.cpl_eur <= 5) return 8;
+  if (pmax.last_7_days_conversions >= 5 && pmax.cpl_eur <= 7) return 7;
+  return CAMPAIGNS.pmax.minBudget;
 }
 
 function humanPlanLines(report) {
@@ -1338,6 +1360,8 @@ function ruReason(value) {
     'few same-day slots: urgency can work': R('reason_urgency'),
     '2-3 day capacity is strong enough': R('reason_next_72h'),
     'near-term capacity can be filled': R('reason_near_term'),
+    'weekly capacity can be filled': R('reason_weekly_capacity'),
+    'future booking horizon has enough capacity': R('reason_horizon_capacity'),
     'low capacity today and next 7 days': R('reason_low_slots'),
     'future capacity but no same-day slots': R('reason_future_only'),
     'same-day capacity is strong enough for hard push': R('reason_hard_push'),
@@ -1464,6 +1488,7 @@ function R(key, vars = {}) {
     hour_windows_today: '\u0447\u0430\u0441\u043e\u0432\u044b\u0445 \u043e\u043a\u043e\u043d \u0441\u0435\u0433\u043e\u0434\u043d\u044f',
     hour_windows_next3: '\u0447\u0430\u0441\u043e\u0432\u044b\u0445 \u043e\u043a\u043e\u043d \u043d\u0430 72\u0447',
     hour_windows_next7: '\u0447\u0430\u0441\u043e\u0432\u044b\u0445 \u043e\u043a\u043e\u043d \u043d\u0430 7 \u0434\u043d\u0435\u0439',
+    hour_windows_horizon: `\u0447\u0430\u0441\u043e\u0432\u044b\u0445 \u043e\u043a\u043e\u043d \u043d\u0430 ${vars.days} \u0434\u043d\u0435\u0439`,
     decision: '\u0420\u0435\u0448\u0435\u043d\u0438\u0435',
     protection: '\u0417\u0430\u0449\u0438\u0442\u0430',
     billing: '\u041e\u043f\u043b\u0430\u0442\u0430',
@@ -1487,6 +1512,8 @@ function R(key, vars = {}) {
     reason_urgency: '\u0441\u043b\u043e\u0442\u043e\u0432 \u0441\u0435\u0433\u043e\u0434\u043d\u044f \u043c\u0430\u043b\u043e, \u0441\u0440\u043e\u0447\u043d\u043e\u0441\u0442\u044c \u043c\u043e\u0436\u0435\u0442 \u0441\u0440\u0430\u0431\u043e\u0442\u0430\u0442\u044c',
     reason_next_72h: '\u043e\u043a\u043d\u0430 \u0435\u0441\u0442\u044c \u043d\u0430 2-3 \u0434\u043d\u044f, \u044d\u0442\u043e \u043d\u043e\u0440\u043c\u0430\u043b\u044c\u043d\u044b\u0439 \u0433\u043e\u0440\u0438\u0437\u043e\u043d\u0442 \u0437\u0430\u043f\u0438\u0441\u0438',
     reason_near_term: '\u0435\u0441\u0442\u044c \u0431\u043b\u0438\u0436\u043d\u0438\u0435 \u043e\u043a\u043d\u0430, \u0438\u0445 \u043c\u043e\u0436\u043d\u043e \u0434\u043e\u0437\u0430\u043f\u043e\u043b\u043d\u0438\u0442\u044c',
+    reason_weekly_capacity: '\u0435\u0441\u0442\u044c \u043e\u0431\u044a\u0435\u043c \u043d\u0430 \u043d\u0435\u0434\u0435\u043b\u044e, \u043d\u0443\u0436\u043d\u043e \u043f\u043e\u0434\u0433\u0440\u0435\u0432\u0430\u0442\u044c \u0437\u0430\u043f\u0438\u0441\u0438 \u0437\u0430\u0440\u0430\u043d\u0435\u0435',
+    reason_horizon_capacity: '\u0435\u0441\u0442\u044c \u0434\u0430\u043b\u044c\u043d\u044f\u044f \u0435\u043c\u043a\u043e\u0441\u0442\u044c, \u0434\u0435\u0440\u0436\u0438\u043c \u0441\u043f\u0440\u043e\u0441 \u0438 \u043a\u0430\u0440\u0442\u044b',
     reason_low_slots: '\u043c\u0430\u043b\u043e \u0438\u043b\u0438 \u043d\u0435\u0442 \u0441\u043b\u043e\u0442\u043e\u0432',
     reason_future_only: '\u043d\u0430 \u0431\u043b\u0438\u0436\u0430\u0439\u0448\u0438\u0435 \u0434\u043d\u0438 \u043e\u043a\u043d\u0430 \u0435\u0441\u0442\u044c, \u043d\u043e \u0441\u0435\u0433\u043e\u0434\u043d\u044f \u043d\u0435 \u043f\u0443\u0448\u0438\u043c',
     reason_hard_push: '\u0441\u0435\u0433\u043e\u0434\u043d\u044f \u0434\u043e\u0441\u0442\u0430\u0442\u043e\u0447\u043d\u043e \u043e\u043a\u043e\u043d \u0434\u043b\u044f \u0436\u0435\u0441\u0442\u043a\u043e\u0433\u043e \u043f\u0443\u0448\u0430',

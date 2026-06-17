@@ -59,7 +59,7 @@ jobs:
           ADS_GOVERNOR_BUDGET_OVERRIDE_JSON: ${{ github.event_name == 'workflow_dispatch' && inputs.budget_override_json || '' }}
           ADS_GOVERNOR_MANUAL_BUDGET_ONLY: ${{ github.event_name == 'workflow_dispatch' && inputs.manual_budget_only && 'true' || 'false' }}
           ADS_GOVERNOR_MAX_DAILY_BUDGET_EUR: ${{ vars.ADS_GOVERNOR_MAX_DAILY_BUDGET_EUR || '30' }}
-          ADS_GOVERNOR_LOOKAHEAD_DAYS: ${{ vars.ADS_GOVERNOR_LOOKAHEAD_DAYS || '14' }}
+          ADS_GOVERNOR_LOOKAHEAD_DAYS: ${{ vars.ADS_GOVERNOR_LOOKAHEAD_DAYS || '21' }}
           ADS_GOVERNOR_REPORT_EVERY_HOURS: ${{ vars.ADS_GOVERNOR_REPORT_EVERY_HOURS || '3' }}
           ALTEGIO_PROXY_BASE: ${{ vars.ALTEGIO_PROXY_BASE || 'https://crocus-proxy.crocusbeautystudio.workers.dev/api/proxy' }}
           ALTEGIO_LOCATION_ID: ${{ vars.ALTEGIO_LOCATION_ID || '1357963' }}
