@@ -118,6 +118,7 @@ const KEYWORD_RULES = {
       'fussnagel goppingen',
     ],
     cautious: [
+      'pedikure',
       'pedikure eislingen',
       'fusspflege goppingen',
       'fusspflege termin goppingen',
@@ -885,7 +886,7 @@ function keywordTargetBid(category, keyword, match, mode, baseTarget) {
   }
 
   if (isCautious) {
-    const cap = category === 'manikuere' ? 0.45 : 0.24;
+    const cap = category === 'manikuere' ? 0.45 : 0.22;
     return Math.min(baseTarget, cap);
   }
 
