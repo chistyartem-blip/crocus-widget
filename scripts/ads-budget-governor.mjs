@@ -69,6 +69,7 @@ const SEARCH_BID_RULES = {
   manikuere: {
     hard_push: { exact: 0.95, phrase: 0.55 },
     push: { exact: 0.75, phrase: 0.45 },
+    push_next_72h: { exact: 0.70, phrase: 0.42 },
     push_mobile_today: { exact: 0.65, phrase: 0.40 },
     hold: { exact: 0.45, phrase: 0.30 },
     protect_budget: { exact: 0.20, phrase: 0.15 },
@@ -76,6 +77,7 @@ const SEARCH_BID_RULES = {
   pedikuere: {
     hard_push: { exact: 0.55, phrase: 0.34 },
     push: { exact: 0.42, phrase: 0.28 },
+    push_next_72h: { exact: 0.40, phrase: 0.26 },
     push_mobile_today: { exact: 0.38, phrase: 0.25 },
     hold: { exact: 0.26, phrase: 0.18 },
     protect_budget: { exact: 0.18, phrase: 0.12 },
@@ -312,27 +314,42 @@ function normalizeSlots(data) {
 
 function decideCapacity(rows) {
   const today = dateOnly(new Date());
+  const day3 = dateOnly(addDays(new Date(), 2));
   const day7 = dateOnly(addDays(new Date(), 6));
 
   return ['manikuere', 'pedikuere', 'wimpern'].map((category) => {
     const todaySlots = countSlotWindows(rows, (r) => r.category === category && r.date === today);
+    const next3Slots = countSlotWindows(rows, (r) => r.category === category && r.date >= today && r.date <= day3);
     const next7Slots = countSlotWindows(rows, (r) => r.category === category && r.date >= today && r.date <= day7);
     let mode = 'hold';
     let reason = 'normal capacity';
-    if (todaySlots === 0) {
-      mode = next7Slots < 10 ? 'protect_budget' : 'hold';
-      reason = next7Slots < 10 ? 'low capacity today and next 7 days' : 'future capacity but no same-day slots';
-    } else if (todaySlots >= 4 && next7Slots >= 15) {
+    if (todaySlots >= 4 && next3Slots >= 8 && next7Slots >= 15) {
       mode = 'hard_push';
       reason = 'same-day capacity is strong enough for hard push';
     } else if (todaySlots > 0 && todaySlots <= 6) {
       mode = 'push_mobile_today';
       reason = 'few same-day slots: urgency can work';
+    } else if (next3Slots >= 8) {
+      mode = 'push_next_72h';
+      reason = '2-3 day capacity is strong enough';
+    } else if (next3Slots >= 3) {
+      mode = 'push';
+      reason = 'near-term capacity can be filled';
+    } else if (todaySlots === 0) {
+      mode = next7Slots < 10 ? 'protect_budget' : 'hold';
+      reason = next7Slots < 10 ? 'low capacity today and next 7 days' : 'future capacity but no same-day slots';
     } else if (todaySlots > 6 || next7Slots >= 30) {
       mode = 'push';
       reason = 'enough bookable capacity';
     }
-    return { category, today_slots: todaySlots, next_7_days_slots: next7Slots, recommended_mode: mode, reason };
+    return {
+      category,
+      today_slots: todaySlots,
+      next_3_days_slots: next3Slots,
+      next_7_days_slots: next7Slots,
+      recommended_mode: mode,
+      reason,
+    };
   });
 }
 
@@ -757,6 +774,11 @@ function allocateBudgets(byCategory, guard, performanceRisk) {
   else if (pedMode === 'hard_push') budgets = { pmax: 7, manikuere: 6, pedikuere: 10 };
   else if (manMode === 'push_mobile_today' && pedMode === 'push_mobile_today') budgets = { pmax: 6, manikuere: 14, pedikuere: 5 };
   else if (manMode === 'push_mobile_today' && pedMode === 'hold') budgets = { pmax: 6, manikuere: 14, pedikuere: 5 };
+  else if (manMode === 'push_next_72h' && ['hold', 'protect_budget'].includes(pedMode)) budgets = { pmax: 7, manikuere: 13, pedikuere: 4 };
+  else if (pedMode === 'push_next_72h' && ['hold', 'protect_budget'].includes(manMode)) budgets = { pmax: 7, manikuere: 6, pedikuere: 9 };
+  else if (manMode === 'push_next_72h' && pedMode === 'push_next_72h') budgets = { pmax: 6, manikuere: 13, pedikuere: 7 };
+  else if (manMode === 'push_next_72h' && pedMode === 'push') budgets = { pmax: 6, manikuere: 13, pedikuere: 7 };
+  else if (pedMode === 'push_next_72h' && manMode === 'push') budgets = { pmax: 6, manikuere: 12, pedikuere: 8 };
   else if (manMode === 'push' && pedMode === 'hold') budgets = { pmax: 6, manikuere: 14, pedikuere: 5 };
   else if (pedMode === 'push_mobile_today' && manMode === 'hold') budgets = { pmax: 7, manikuere: 7, pedikuere: 8 };
   else if (pedMode === 'push' && manMode === 'hold') budgets = { pmax: 7, manikuere: 7, pedikuere: 8 };
@@ -845,7 +867,7 @@ function keywordTargetBid(category, keyword, match, mode, baseTarget) {
 }
 
 function isPushMode(mode) {
-  return ['hard_push', 'push', 'push_mobile_today'].includes(mode);
+  return ['hard_push', 'push', 'push_next_72h', 'push_mobile_today'].includes(mode);
 }
 
 function normalizeKeyword(value) {
@@ -951,7 +973,7 @@ function renderTelegramSummary(report) {
   const last30 = report.performance?.last_30_days?.totals || emptyMetrics();
   const mtd = report.performance?.month_to_date?.totals || emptyMetrics();
   const slotLines = report.decisions.map((d) =>
-    `${modeIcon(d.recommended_mode)} ${ruCategory(d.category)}: ${d.today_slots} ${R('hour_windows_today')} / ${d.next_7_days_slots} ${R('hour_windows_next7')} -> ${ruMode(d.recommended_mode)} (${ruReason(d.reason)})`
+    `${modeIcon(d.recommended_mode)} ${ruCategory(d.category)}: ${d.today_slots} ${R('hour_windows_today')} / ${d.next_3_days_slots ?? '-'} ${R('hour_windows_next3')} / ${d.next_7_days_slots} ${R('hour_windows_next7')} -> ${ruMode(d.recommended_mode)} (${ruReason(d.reason)})`
   );
   const masterLines = widgetMasterLines(report.widget_master_availability || []);
   const todayCpl = cplText(todayPerf);
@@ -1262,6 +1284,7 @@ function modeIcon(mode) {
   const map = {
     hard_push: '\u{1F7E2}',
     push: '\u{1F7E2}',
+    push_next_72h: '\u{1F7E2}',
     push_mobile_today: '\u{1F7E1}',
     hold: '\u{26AA}',
     protect_budget: '\u{1F534}',
@@ -1298,7 +1321,14 @@ function ruCategory(value) {
 }
 
 function ruMode(value) {
-  const map = { hard_push: R('hard_push'), push: R('push'), push_mobile_today: R('push_mobile_today'), hold: R('hold'), protect_budget: R('protect_budget') };
+  const map = {
+    hard_push: R('hard_push'),
+    push: R('push'),
+    push_next_72h: R('push_next_72h'),
+    push_mobile_today: R('push_mobile_today'),
+    hold: R('hold'),
+    protect_budget: R('protect_budget'),
+  };
   return map[value] || value;
 }
 
@@ -1306,6 +1336,8 @@ function ruReason(value) {
   const map = {
     'enough bookable capacity': R('reason_enough_slots'),
     'few same-day slots: urgency can work': R('reason_urgency'),
+    '2-3 day capacity is strong enough': R('reason_next_72h'),
+    'near-term capacity can be filled': R('reason_near_term'),
     'low capacity today and next 7 days': R('reason_low_slots'),
     'future capacity but no same-day slots': R('reason_future_only'),
     'same-day capacity is strong enough for hard push': R('reason_hard_push'),
@@ -1349,7 +1381,7 @@ function billingDueText(billing) {
 function nextStepText(report) {
   if (report.guard.hard_stop) return R('next_stop');
   const protect = report.decisions.filter((d) => d.recommended_mode === 'protect_budget').map((d) => ruCategory(d.category));
-  const push = report.decisions.filter((d) => d.recommended_mode === 'push' || d.recommended_mode === 'push_mobile_today').map((d) => ruCategory(d.category));
+  const push = report.decisions.filter((d) => isPushMode(d.recommended_mode)).map((d) => ruCategory(d.category));
   if (push.length && protect.length) return `${R('boost')} ${push.join(', ')}, ${R('no_budget_to')} ${protect.join(', ')}.`;
   if (push.length) return `${R('careful_boost')} ${push.join(', ')} ${R('within_limit')}.`;
   return R('hold_budget');
@@ -1357,7 +1389,7 @@ function nextStepText(report) {
 
 function meaningText(report) {
   if (report.guard.hard_stop) return R('meaning_stop');
-  const push = report.decisions.filter((d) => d.recommended_mode === 'push' || d.recommended_mode === 'push_mobile_today').map((d) => ruCategory(d.category));
+  const push = report.decisions.filter((d) => isPushMode(d.recommended_mode)).map((d) => ruCategory(d.category));
   const protect = report.decisions.filter((d) => d.recommended_mode === 'protect_budget').map((d) => ruCategory(d.category));
   if (push.length && protect.length) return R('meaning_push_protect', { push: push.join(', '), protect: protect.join(', ') });
   if (push.length) return R('meaning_push', { push: push.join(', ') });
@@ -1430,6 +1462,7 @@ function R(key, vars = {}) {
     today_lc: '\u0441\u0435\u0433\u043e\u0434\u043d\u044f',
     next7: '\u043d\u0430 7 \u0434\u043d\u0435\u0439',
     hour_windows_today: '\u0447\u0430\u0441\u043e\u0432\u044b\u0445 \u043e\u043a\u043e\u043d \u0441\u0435\u0433\u043e\u0434\u043d\u044f',
+    hour_windows_next3: '\u0447\u0430\u0441\u043e\u0432\u044b\u0445 \u043e\u043a\u043e\u043d \u043d\u0430 72\u0447',
     hour_windows_next7: '\u0447\u0430\u0441\u043e\u0432\u044b\u0445 \u043e\u043a\u043e\u043d \u043d\u0430 7 \u0434\u043d\u0435\u0439',
     decision: '\u0420\u0435\u0448\u0435\u043d\u0438\u0435',
     protection: '\u0417\u0430\u0449\u0438\u0442\u0430',
@@ -1446,11 +1479,14 @@ function R(key, vars = {}) {
     lashes: '\u0420\u0435\u0441\u043d\u0438\u0446\u044b',
     hard_push: '\u0436\u0435\u0441\u0442\u043a\u0438\u0439 \u043f\u0443\u0448',
     push: '\u043f\u0443\u0448\u0438\u043c',
+    push_next_72h: '\u043f\u0443\u0448\u0438\u043c \u043e\u043a\u043d\u0430 \u043d\u0430 2-3 \u0434\u043d\u044f',
     push_mobile_today: '\u043f\u0443\u0448\u0438\u043c \u043c\u043e\u0431\u0438\u043b\u043a\u0443 \u0441\u0435\u0433\u043e\u0434\u043d\u044f',
     hold: '\u0434\u0435\u0440\u0436\u0438\u043c',
     protect_budget: '\u0431\u0435\u0440\u0435\u0436\u0435\u043c \u0431\u044e\u0434\u0436\u0435\u0442',
     reason_enough_slots: '\u0435\u0441\u0442\u044c \u0434\u043e\u0441\u0442\u0430\u0442\u043e\u0447\u043d\u043e \u0441\u043b\u043e\u0442\u043e\u0432',
     reason_urgency: '\u0441\u043b\u043e\u0442\u043e\u0432 \u0441\u0435\u0433\u043e\u0434\u043d\u044f \u043c\u0430\u043b\u043e, \u0441\u0440\u043e\u0447\u043d\u043e\u0441\u0442\u044c \u043c\u043e\u0436\u0435\u0442 \u0441\u0440\u0430\u0431\u043e\u0442\u0430\u0442\u044c',
+    reason_next_72h: '\u043e\u043a\u043d\u0430 \u0435\u0441\u0442\u044c \u043d\u0430 2-3 \u0434\u043d\u044f, \u044d\u0442\u043e \u043d\u043e\u0440\u043c\u0430\u043b\u044c\u043d\u044b\u0439 \u0433\u043e\u0440\u0438\u0437\u043e\u043d\u0442 \u0437\u0430\u043f\u0438\u0441\u0438',
+    reason_near_term: '\u0435\u0441\u0442\u044c \u0431\u043b\u0438\u0436\u043d\u0438\u0435 \u043e\u043a\u043d\u0430, \u0438\u0445 \u043c\u043e\u0436\u043d\u043e \u0434\u043e\u0437\u0430\u043f\u043e\u043b\u043d\u0438\u0442\u044c',
     reason_low_slots: '\u043c\u0430\u043b\u043e \u0438\u043b\u0438 \u043d\u0435\u0442 \u0441\u043b\u043e\u0442\u043e\u0432',
     reason_future_only: '\u043d\u0430 \u0431\u043b\u0438\u0436\u0430\u0439\u0448\u0438\u0435 \u0434\u043d\u0438 \u043e\u043a\u043d\u0430 \u0435\u0441\u0442\u044c, \u043d\u043e \u0441\u0435\u0433\u043e\u0434\u043d\u044f \u043d\u0435 \u043f\u0443\u0448\u0438\u043c',
     reason_hard_push: '\u0441\u0435\u0433\u043e\u0434\u043d\u044f \u0434\u043e\u0441\u0442\u0430\u0442\u043e\u0447\u043d\u043e \u043e\u043a\u043e\u043d \u0434\u043b\u044f \u0436\u0435\u0441\u0442\u043a\u043e\u0433\u043e \u043f\u0443\u0448\u0430',
