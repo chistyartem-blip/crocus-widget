@@ -792,7 +792,7 @@ wrap.innerHTML =
         + '<button class="cw-express-cta" id="cw-btn-express" type="button">'
           + '<span class="cw-express-glow" aria-hidden="true"></span>'
           + '<span class="cw-express-ico">Spontan</span>'
-          + '<span><span class="cw-express-title">Spontan-Termin sichern</span><span class="cw-express-sub">Nächster freier Nagelslot — automatisch passend gefunden.</span></span>'
+          + '<span><span class="cw-express-title">Kurzfristig zum Nageltermin</span><span class="cw-express-sub">Freie Zeiten für heute und die nächsten Tage.</span></span>'
         + '</button>'
         + '<div class="cw-masters" id="cw-masters-list"></div>'
         + '<div class="cw-gift-divider"><span>oder</span></div>'
