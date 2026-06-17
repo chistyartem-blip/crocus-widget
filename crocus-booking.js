@@ -980,6 +980,7 @@ var _globalAddonObjs = []; // кэш аддонов без staff_id — нико
 var _seanceCache = {}; // кэш seance_length: ключ = staffId+'_'+serviceId → секунды
 var _serviceCacheByStaff = {};
 var _expressPreviewCache = {};
+var _comboSlotsCache = {};
 
 // Gift state
 var gift = {
@@ -2232,21 +2233,11 @@ function loadComboAvailDates() {
     });
     var dates = Object.keys(maniDates).filter(function(ds){ return !!pediDates[ds]; }).sort();
     if (cw.express) {
-      var today = localDateString(0);
-      var candidates = dates.filter(function(ds){ return ds >= today; }).slice(0, 18);
-      return candidates.reduce(function(chain, ds) {
-        return chain.then(function(found) {
-          if (found.length >= 10) return found;
-          return loadComboSlotsForDate(ds).then(function(slots) {
-            if (slots && slots.length) found.push(ds);
-            return found;
-          }).catch(function(){ return found; });
-        });
-      }, Promise.resolve([])).then(function(verifiedDates) {
-        cw.availDates = verifiedDates;
-        console.log('[crocus] loadComboAvailDates verified: '+cw.availDates.length+' dates: '+JSON.stringify(cw.availDates.slice(0,5)));
-        renderCalendar();
-      });
+      cw.availDates = dates;
+      console.log('[crocus] loadComboAvailDates quick: '+cw.availDates.length+' dates: '+JSON.stringify(cw.availDates.slice(0,5)));
+      renderCalendar();
+      warmComboCalendarDates(dates);
+      return;
     }
     cw.availDates = dates;
     console.log('[crocus] loadComboAvailDates: got '+cw.availDates.length+' dates: '+JSON.stringify(cw.availDates.slice(0,5)));
@@ -2488,7 +2479,16 @@ function batchCheckSlots(candidates, appointmentsForSlot, options) {
   });
 }
 
+function warmComboCalendarDates(dates) {
+  if (!cw.express || !dates || !dates.length) return;
+  var today = localDateString(0);
+  dates.filter(function(ds){ return ds >= today; }).slice(0, 3).forEach(function(ds) {
+    loadComboSlotsForDate(ds).catch(function(){});
+  });
+}
+
 function loadComboSlotsForDate(ds) {
+  if (_comboSlotsCache[ds]) return _comboSlotsCache[ds];
   var timeLoads = [];
   KOMBI_STAFF_IDS.forEach(function(staffId) {
     timeLoads.push(fetchStaffServices(staffId));
@@ -2496,7 +2496,7 @@ function loadComboSlotsForDate(ds) {
     timeLoads.push(apiGet('/book_times/'+CONFIG.locationId+'/'+staffId+'/'+ds, { service_ids: [KOMBI_PEDI_SERVICE_ID] }).catch(function(){ return null; }));
   });
 
-  return Promise.all(timeLoads).then(function(results) {
+  _comboSlotsCache[ds] = Promise.all(timeLoads).then(function(results) {
     var byStaff = {};
     KOMBI_STAFF_IDS.forEach(function(staffId, idx) {
       var maniRes = results[idx * 3 + 1];
@@ -2532,10 +2532,16 @@ function loadComboSlotsForDate(ds) {
   }).then(function(verifiedSlots) {
     return dedupeComboSlots(verifiedSlots);
   });
+  return _comboSlotsCache[ds];
 }
 
 function loadComboTimes() {
   loadComboSlotsForDate(cw.date).then(function(verifiedSlots) {
+    if (!verifiedSlots || !verifiedSlots.length) {
+      var grid = document.getElementById('cw-time-grid');
+      grid.innerHTML = '<div class="cw-error" style="grid-column:span 4">Für diesen Tag gibt es leider keinen passenden Kombi-Slot. Bitte wähle ein anderes Datum.</div>';
+      return;
+    }
     renderTimesLoaded(verifiedSlots);
   }).catch(function(err) {
     console.error('[crocus] loadComboTimes error:', err);
