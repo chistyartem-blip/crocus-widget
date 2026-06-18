@@ -1,0 +1,41 @@
+name: Ads Slim Presence Targeting
+
+on:
+  workflow_dispatch:
+    inputs:
+      apply:
+        description: "Apply presence-only targeting to Slim Search campaigns"
+        type: boolean
+        required: true
+        default: false
+
+jobs:
+  slim-presence:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Set Slim Search to presence targeting
+        env:
+          GOOGLE_ADS_CLIENT_ID: ${{ secrets.GOOGLE_ADS_CLIENT_ID }}
+          GOOGLE_ADS_CLIENT_SECRET: ${{ secrets.GOOGLE_ADS_CLIENT_SECRET }}
+          GOOGLE_ADS_REFRESH_TOKEN: ${{ secrets.GOOGLE_ADS_REFRESH_TOKEN }}
+          GOOGLE_ADS_DEVELOPER_TOKEN: ${{ secrets.GOOGLE_ADS_DEVELOPER_TOKEN }}
+          GOOGLE_ADS_CUSTOMER_ID: ${{ secrets.GOOGLE_ADS_CUSTOMER_ID }}
+          GOOGLE_ADS_LOGIN_CUSTOMER_ID: ${{ secrets.GOOGLE_ADS_LOGIN_CUSTOMER_ID }}
+          SLIM_PRESENCE_APPLY: ${{ inputs.apply && 'true' || 'false' }}
+        run: node scripts/set-slim-presence-targeting.mjs
+
+      - name: Upload report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: slim-presence-targeting-report
+          path: reports/slim-presence-targeting-*.json
+          if-no-files-found: ignore

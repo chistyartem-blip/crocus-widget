@@ -345,12 +345,15 @@ function decideCapacity(rows) {
     if (todaySlots >= 4 && next3Slots >= 8 && next7Slots >= 15) {
       mode = 'hard_push';
       reason = 'same-day capacity is strong enough for hard push';
-    } else if (todaySlots > 0 && todaySlots <= 6) {
-      mode = 'push_mobile_today';
-      reason = 'few same-day slots: urgency can work';
     } else if (next3Slots >= 8) {
       mode = 'push_next_72h';
       reason = '2-3 day capacity is strong enough';
+    } else if (todaySlots > 0 && todaySlots <= 3 && next7Slots >= 18) {
+      mode = 'push_next_72h';
+      reason = 'weekly capacity can be filled';
+    } else if (todaySlots > 0 && todaySlots <= 6) {
+      mode = 'push_mobile_today';
+      reason = 'few same-day slots: urgency can work';
     } else if (next3Slots >= 3) {
       mode = 'push';
       reason = 'near-term capacity can be filled';
@@ -1162,8 +1165,8 @@ function evaluatePerformanceRisk(performance) {
 function pmaxPerformanceFloor(performanceRisk) {
   const pmax = performanceRisk?.pmax;
   if (!pmax || !Number.isFinite(pmax.cpl_eur)) return CAMPAIGNS.pmax.minBudget;
-  if (pmax.last_7_days_conversions >= 10 && pmax.cpl_eur <= 5) return 8;
-  if (pmax.last_7_days_conversions >= 5 && pmax.cpl_eur <= 7) return 7;
+  if (pmax.last_7_days_conversions >= 10 && pmax.cpl_eur <= 5) return 15;
+  if (pmax.last_7_days_conversions >= 5 && pmax.cpl_eur <= 7) return 12;
   return CAMPAIGNS.pmax.minBudget;
 }
 
