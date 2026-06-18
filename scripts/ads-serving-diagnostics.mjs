@@ -51,6 +51,8 @@ async function main() {
       SELECT campaign.id, campaign.name, campaign.status, campaign.serving_status,
         campaign.primary_status, campaign.primary_status_reasons,
         campaign.advertising_channel_type, campaign.bidding_strategy_type,
+        campaign.geo_target_type_setting.positive_geo_target_type,
+        campaign.geo_target_type_setting.negative_geo_target_type,
         campaign_budget.amount_micros,
         metrics.impressions, metrics.clicks, metrics.cost_micros, metrics.conversions
       FROM campaign
@@ -141,6 +143,55 @@ async function main() {
         campaign_criterion.ad_schedule.end_hour
       FROM campaign_criterion
       WHERE campaign.id IN (${campaignIds})
+    `),
+    ip_blocks: await safeQuery(token, 'campaign_ip_blocks', `
+      SELECT campaign.id, campaign.name,
+        campaign_criterion.resource_name,
+        campaign_criterion.status,
+        campaign_criterion.ip_block.ip_address
+      FROM campaign_criterion
+      WHERE campaign.id IN (${campaignIds})
+        AND campaign_criterion.type = IP_BLOCK
+    `),
+    device_today: await safeQuery(token, 'device_today', `
+      SELECT campaign.id, campaign.name, segments.device,
+        metrics.impressions, metrics.clicks, metrics.cost_micros, metrics.conversions
+      FROM campaign
+      WHERE campaign.id IN (${campaignIds})
+        AND segments.date DURING TODAY
+      ORDER BY metrics.cost_micros DESC
+    `),
+    device_last_7_days: await safeQuery(token, 'device_last_7_days', `
+      SELECT campaign.id, campaign.name, segments.device,
+        metrics.impressions, metrics.clicks, metrics.cost_micros, metrics.conversions
+      FROM campaign
+      WHERE campaign.id IN (${campaignIds})
+        AND segments.date DURING LAST_7_DAYS
+      ORDER BY metrics.cost_micros DESC
+    `),
+    geographic_view: await safeQuery(token, 'geographic_view_last_7_days', `
+      SELECT campaign.id, campaign.name,
+        geographic_view.country_criterion_id,
+        geographic_view.location_type,
+        segments.geo_target_city,
+        segments.geo_target_region,
+        metrics.impressions, metrics.clicks, metrics.cost_micros, metrics.conversions
+      FROM geographic_view
+      WHERE campaign.id IN (${campaignIds})
+        AND segments.date DURING LAST_7_DAYS
+      ORDER BY metrics.clicks DESC
+    `),
+    user_location_view: await safeQuery(token, 'user_location_view_last_7_days', `
+      SELECT campaign.id, campaign.name,
+        user_location_view.country_criterion_id,
+        user_location_view.targeting_location,
+        segments.geo_target_city,
+        segments.geo_target_region,
+        metrics.impressions, metrics.clicks, metrics.cost_micros, metrics.conversions
+      FROM user_location_view
+      WHERE campaign.id IN (${campaignIds})
+        AND segments.date DURING LAST_7_DAYS
+      ORDER BY metrics.clicks DESC
     `),
   };
 
