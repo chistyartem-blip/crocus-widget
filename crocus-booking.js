@@ -987,6 +987,7 @@ var _suppressNextHashClick = false;
 var _scrollLocked = false;
 var _fixedScrollLock = false;
 var _crocusHistoryActive = false;
+var _crocusApplyingHistory = false;
 var _closingFromPopstate = false;
 var _pendingOpenScrollY = 0;
 
@@ -1052,14 +1053,35 @@ function resetWidgetScroll() {
 function ensureCrocusHistory() {
   if (!window.history || !window.history.pushState) return;
   var state = window.history.state || {};
-  if (_crocusHistoryActive && state.crocusWidget && state.crocusOpen) return;
+  if (_crocusHistoryActive && state.crocusWidget && state.crocusOpen) {
+    if (window.history.replaceState && state.crocusStep !== (cw.step || 1)) {
+      window.history.replaceState({ crocusWidget: true, crocusOpen: true, crocusStep: cw.step || 1 }, '', window.location.href);
+    }
+    return;
+  }
   if (state.crocusWidget && state.crocusOpen) {
+    if (window.history.replaceState && state.crocusStep !== (cw.step || 1)) {
+      window.history.replaceState({ crocusWidget: true, crocusOpen: true, crocusStep: cw.step || 1 }, '', window.location.href);
+    }
     _crocusHistoryActive = true;
     return;
   }
   if (!(state.crocusWidget && state.crocusOpen === false)) {
     window.history.pushState({ crocusWidget: true, crocusOpen: false }, '', window.location.href);
   }
+  window.history.pushState({ crocusWidget: true, crocusOpen: true, crocusStep: cw.step || 1 }, '', window.location.href);
+  _crocusHistoryActive = true;
+}
+
+function pushCrocusStepHistory() {
+  if (_crocusApplyingHistory || !isCrocusModalActive()) return;
+  if (!window.history || !window.history.pushState) return;
+  var state = window.history.state || {};
+  if (!(state.crocusWidget && state.crocusOpen)) {
+    ensureCrocusHistory();
+    return;
+  }
+  if (state.crocusStep === (cw.step || 1)) return;
   window.history.pushState({ crocusWidget: true, crocusOpen: true, crocusStep: cw.step || 1 }, '', window.location.href);
   _crocusHistoryActive = true;
 }
@@ -1222,7 +1244,7 @@ function goStep(n) {
   if (el) el.classList.add('active');
   resetWidgetScroll();
   updateProgress(n);
-  if (isCrocusModalActive()) ensureCrocusHistory();
+  pushCrocusStepHistory();
 }
 
 // ── Loader ─────────────────────────────────────────────────────
@@ -3664,6 +3686,19 @@ function isCrocusWidgetFirstScreen() {
   return cw.step === 1 || !!(first && first.classList.contains('active'));
 }
 
+function showCrocusStepFromHistory(step) {
+  var target = step === 'success' ? 'success' : parseInt(step, 10);
+  if (target !== 'success' && (!target || target < 1 || target > 6)) target = 1;
+  cw.step = target;
+  document.querySelectorAll('.cw-step').forEach(function(el){ el.classList.remove('active'); });
+  var id = target === 'success' ? 'cw-success' : 'cw-step' + target;
+  var el = document.getElementById(id);
+  if (el) el.classList.add('active');
+  resetWidgetScroll();
+  updateProgress(target);
+  if (target === 5) renderCalendar();
+}
+
 document.addEventListener('keydown', function(e) {
   var modal = document.getElementById('crocus-modal');
   if (!modal || !modal.classList.contains('open')) return;
@@ -3685,13 +3720,19 @@ window.addEventListener('popstate', function(e) {
   // Modal is open — intercept back navigation
   e.preventDefault();
   _crocusHistoryActive = false;
-  if (isCrocusWidgetFirstScreen()) {
+  var state = e.state || {};
+  if (state.crocusWidget && state.crocusOpen === false) {
     crocusClose();
     return;
   }
-  var keepOpen = crocusWidgetBack();
-  if (keepOpen) keepCrocusHistory();
-  else _crocusHistoryActive = false;
+  if (state.crocusWidget && state.crocusOpen) {
+    _crocusApplyingHistory = true;
+    showCrocusStepFromHistory(state.crocusStep || 1);
+    _crocusApplyingHistory = false;
+    _crocusHistoryActive = true;
+    return;
+  }
+  crocusClose();
 });
 
 // Кнопка "далее" после выбора допа (клик на карточку) — авто-переход с задержкой
