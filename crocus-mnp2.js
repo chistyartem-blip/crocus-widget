@@ -3,9 +3,8 @@
   /* ══════════════════════════════════════════════
      API CONFIG
   ══════════════════════════════════════════════ */
-  var MNP2_API_TOKEN = 'u8xzkdpkgfc73uektn64';
   var MNP2_LOC       = '1357963';
-  var MNP2_API_BASE  = 'https://api.alteg.io/api/v1';
+  var MNP2_API_BASE  = 'https://crocus-proxy.crocusbeautystudio.workers.dev/api/proxy';
 
   /* Staff IDs */
   var STAFF = { diana:3020185, nelia:3020186, sofia:3020187 };
@@ -80,9 +79,8 @@
   function loadMasterData(masterKey, callback){
     if(apiCache[masterKey]){ callback(apiCache[masterKey]); return; }
     var staffId = STAFF[masterKey];
-    fetch(MNP2_API_BASE + '/book_services/' + MNP2_LOC + '?staff_id=' + staffId, {
+    fetch(MNP2_API_BASE + '?path=' + encodeURIComponent('book_services/' + MNP2_LOC) + '&staff_id=' + staffId, {
       headers:{
-        'Authorization':'Bearer ' + MNP2_API_TOKEN,
         'Accept':'application/vnd.api.v2+json',
         'Accept-Language':'de'
       }

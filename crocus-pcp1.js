@@ -1,9 +1,8 @@
 (function(){
 
   /* ── API CONFIG ── */
-  var PCP1_API_TOKEN = 'u8xzkdpkgfc73uektn64';
   var PCP1_LOC       = '1357963';
-  var PCP1_API_BASE  = 'https://api.alteg.io/api/v1';
+  var PCP1_API_BASE  = 'https://crocus-proxy.crocusbeautystudio.workers.dev/api/proxy';
 
   /* Staff IDs */
   var STAFF = { diana:3020185, nelia:3020186, sofia:3020187 };
@@ -49,9 +48,8 @@
   function loadMasterData(masterKey, callback){
     if(apiCache[masterKey]){ callback(apiCache[masterKey]); return; }
     var staffId = STAFF[masterKey];
-    fetch(PCP1_API_BASE + '/book_services/' + PCP1_LOC + '?staff_id=' + staffId, {
+    fetch(PCP1_API_BASE + '?path=' + encodeURIComponent('book_services/' + PCP1_LOC) + '&staff_id=' + staffId, {
       headers:{
-        'Authorization':'Bearer ' + PCP1_API_TOKEN,
         'Accept':'application/vnd.api.v2+json',
         'Accept-Language':'de'
       }

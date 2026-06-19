@@ -6,7 +6,6 @@ if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
 
 // ── CONFIG ─────────────────────────────────────────────────────
 var CONFIG = {
-  partnerToken: 'u8xzkdpkgfc73uektn64',
   locationId:   '1357963',
   apiBase:      'https://crocus-proxy.crocusbeautystudio.workers.dev/api/proxy',
   lang: 'de',
@@ -234,7 +233,7 @@ function apiGet(path, params) {
   var timer = setTimeout(function(){ ctrl.abort(); }, 10000);
   return fetch(url, {
     signal: ctrl.signal,
-    headers: { 'Authorization': 'Bearer '+CONFIG.partnerToken, 'Accept': 'application/vnd.api.v2+json', 'Accept-Language': CONFIG.lang }
+    headers: { 'Accept': 'application/vnd.api.v2+json', 'Accept-Language': CONFIG.lang }
   }).then(function(r){ clearTimeout(timer); return r.json(); })
     .catch(function(e){ clearTimeout(timer); throw e; });
 }
@@ -246,7 +245,6 @@ function apiPost(path, body) {
     method: 'POST',
     signal: ctrl.signal,
     headers: {
-      'Authorization':    'Bearer '+CONFIG.partnerToken,
       'Accept':           'application/vnd.api.v2+json',
       'Content-Type':     'application/json',
       'Accept-Language':  CONFIG.lang,

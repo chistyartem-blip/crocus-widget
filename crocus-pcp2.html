@@ -432,9 +432,8 @@ window.addEventListener('scroll',function(){
 },{passive:true});
 
 /* ── Live slots (педикюр: Hygienische Pediküre = 13485760) ── */
-var PCP2_TOKEN='u8xzkdpkgfc73uektn64';
 var PCP2_LOC='1357963';
-var PCP2_API='https://api.alteg.io/api/v1';
+var PCP2_API='https://crocus-proxy.crocusbeautystudio.workers.dev/api/proxy';
 var PCP2_SVC=13485760; // Hygienische Pediküre
 var PCP2_STAFF=[
   {id:3020185,name:'Diana'},
@@ -455,8 +454,8 @@ function pcp2DateLabel(s){
 }
 
 function pcp2FetchSlots(staffId,date){
-  return fetch(PCP2_API+'/book_times/'+PCP2_LOC+'/'+staffId+'/'+date+'?service_ids[]='+PCP2_SVC,{
-    headers:{'Authorization':'Bearer '+PCP2_TOKEN,'Accept':'application/vnd.api.v2+json'}
+  return fetch(PCP2_API+'?path='+encodeURIComponent('book_times/'+PCP2_LOC+'/'+staffId+'/'+date)+'&service_ids%5B%5D='+PCP2_SVC,{
+    headers:{'Accept':'application/vnd.api.v2+json'}
   }).then(function(r){return r.json();})
   .then(function(d){return(d.success&&Array.isArray(d.data))?d.data:[];})
   .catch(function(){return[];});

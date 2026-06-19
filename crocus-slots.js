@@ -7,9 +7,8 @@
 'use strict';
 
 var CONFIG = {
-  partnerToken: 'u8xzkdpkgfc73uektn64',
   locationId:   '1357963',
-  apiBase:      'https://crocus-proxy.vercel.app/api/proxy',
+  apiBase:      'https://crocus-proxy.crocusbeautystudio.workers.dev/api/proxy',
   // Мастера и их основные услуги для проверки слотов
   staff: [
     { id: 3020185, name: 'Diana',  serviceId: 13485754 }, // Nagelkorrektur
@@ -48,7 +47,6 @@ function fetchSlots(staffId, serviceId, date){
     + '&service_ids%5B%5D=' + serviceId;
   return fetch(url, {
     headers: {
-      'Authorization': 'Bearer ' + CONFIG.partnerToken,
       'Accept': 'application/vnd.api.v2+json'
     }
   })
@@ -69,7 +67,6 @@ function fetchFirstAvailableDate(staffId, serviceId){
     + '&service_ids%5B%5D=' + serviceId;
   return fetch(url, {
     headers: {
-      'Authorization': 'Bearer ' + CONFIG.partnerToken,
       'Accept': 'application/vnd.api.v2+json'
     }
   })
