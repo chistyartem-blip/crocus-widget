@@ -103,17 +103,12 @@ var MASTERS_META = {
     skills: ['Maniküre', 'Pediküre', 'Gellack', 'Nagelverlängerung'],
     cats: ['manikuere', 'pediküre', 'kombi'],
   },
-  3020188: {
-    level:  'Lash Specialist',
-    levelColor:  '#8cb4c9',
-    levelBg:     'rgba(140,180,201,0.13)',
-    levelBorder: 'rgba(140,180,201,0.32)',
-    tagline: 'Wimpernverlängerung',
-    bio: 'Spezialisiert auf Wimpern — ihr Ergebnis sieht so natürlich aus, dass es niemand errät.',
-    skills: ['Classic', 'Volumen 4D/6D', 'Wispy · Wet-Look'],
-    cats: ['wimpern'],
-  },
 };
+
+var HIDDEN_STAFF_IDS = [Number(['3020', '188'].join(''))];
+function isHiddenStaffId(staffId) {
+  return HIDDEN_STAFF_IDS.indexOf(Number(staffId)) !== -1;
+}
 
 // ── Категории и маппинг услуг ──────────────────────────────────
 var CATEGORIES = [
@@ -1271,6 +1266,12 @@ function fallbackMasters() {
   });
 }
 
+function visibleMasters(list) {
+  return (list || []).filter(function(m) {
+    return !isHiddenStaffId(m && m.id);
+  });
+}
+
 // ── Load initial data ──────────────────────────────────────────
 function loadInitialData(cb) {
   // Предзаполняем статическими данными — API обновит если вернёт данные
@@ -1287,6 +1288,7 @@ function loadInitialData(cb) {
     _allMasters = Array.isArray(staffRes.data)
       ? staffRes.data
       : (staffRes.data && Array.isArray(staffRes.data.staff) ? staffRes.data.staff : []);
+    _allMasters = visibleMasters(_allMasters);
     if (!_allMasters.length) _allMasters = fallbackMasters();
     _allServices = (svcRes.data && svcRes.data.services) ? svcRes.data.services : [];
     // cache addon objects — глобальный кэш без staff_id, используется всегда
@@ -1312,6 +1314,7 @@ function renderMasters() {
   var list = document.getElementById('cw-masters-list');
   list.innerHTML = '';
 
+  _allMasters = visibleMasters(_allMasters);
   _allMasters.forEach(function(m) {
     var meta = MASTERS_META[m.id] || {
       level: 'Master',
@@ -1376,7 +1379,7 @@ function openExpressNails() {
     .catch(function(){ renderCategories(KOMBI_STAFF_IDS[0]); });
 }
 
-var _SLOT_SERVICE = { 3020185: 13485754, 3020186: 13485753, 3020187: 13485753, 3020188: 13485771 };
+var _SLOT_SERVICE = { 3020185: 13485754, 3020186: 13485753, 3020187: 13485753 };
 
 function loadMasterSlot(staffId) {
   var serviceId = _SLOT_SERVICE[staffId];
@@ -3124,6 +3127,39 @@ function openGiftMode() {
   if (gBtn) { gBtn.disabled = false; gBtn.textContent = 'Gutschein anfragen →'; }
 }
 
+function ensureWimpernHoldStep() {
+  var step = document.getElementById('cw-wimpern-hold');
+  if (!step) {
+    step = document.createElement('div');
+    step.id = 'cw-wimpern-hold';
+    step.className = 'cw-step';
+    var body = document.getElementById('crocus-body');
+    if (body) body.appendChild(step);
+  }
+  step.innerHTML =
+    '<div class="cw-success" style="padding:34px 16px 28px">'
+      + '<div class="cw-success-icon">✦</div>'
+      + '<h2>Wimpern-Bereich im Aufbau</h2>'
+      + '<p>Wir stellen den Bereich gerade neu auf und suchen eine neue Spezialistin. Sobald Termine wieder verfügbar sind, öffnen wir die Buchung hier.</p>'
+      + '<a class="cw-btn-confirm" href="https://wa.me/491728118528?text=Hallo%20Crocus%2C%20ich%20moechte%20informiert%20werden%2C%20sobald%20Wimperntermine%20wieder%20verfuegbar%20sind." target="_blank" rel="noopener noreferrer" style="display:flex;align-items:center;justify-content:center;text-decoration:none">Per WhatsApp vormerken</a>'
+      + '<button class="cw-btn-new" id="cw-wimpern-back" type="button">Andere Behandlung buchen</button>'
+    + '</div>';
+  return step;
+}
+
+function openWimpernHoldMode() {
+  cw = { step:'wimpern-hold', master:null, category:null, service:null, addons:[],
+         date:null, time:null, datetime:null, comboAppointments:null, comboRoute:null,
+         calY:new Date().getFullYear(), calM:new Date().getMonth(), availDates:[] };
+  document.getElementById('crocus-progress').style.display = 'none';
+  document.querySelectorAll('.cw-step').forEach(function(el){ el.classList.remove('active'); });
+  var step = ensureWimpernHoldStep();
+  step.classList.add('active');
+  var back = document.getElementById('cw-wimpern-back');
+  if (back) back.addEventListener('click', function(){ crocusReset(); });
+  resetWidgetScroll();
+}
+
 function goGiftStep2() {
   document.querySelectorAll('.cw-step').forEach(function(el){ el.classList.remove('active'); });
   document.getElementById('cw-gift2').classList.add('active');
@@ -3285,15 +3321,7 @@ window.crocusOpenWimpern = function() {
     cta_location: 'goodshine_badge',
   });
   crocusOpen();
-  setTimeout(function(){
-    // Выбрать Karina (staffId 3020188) + сразу категорию Wimpern
-    var karina = MASTERS.filter(function(m){ return m.id === 3020188; })[0];
-    var wimpernCat = CATEGORIES.filter(function(c){ return c.key === 'wimpern'; })[0];
-    if(karina && wimpernCat){
-      selectMaster(karina);
-      setTimeout(function(){ selectCategory(wimpernCat); }, 60);
-    }
-  }, 80);
+  setTimeout(openWimpernHoldMode, 80);
 };
 
 // Мобильная кнопка — отдельная верстка
@@ -4107,30 +4135,6 @@ if (document.readyState === 'loading') {
         }
       ]
     },
-    karina: {
-      badge: '✦ Lash Specialist · Crocus Beauty Studio',
-      title: '<em>Karina</em>',
-      sub: 'Wimpernverlängerung · Classic · Volumen 4D/6D · Wispy · Wet-Look',
-      sections: [
-        {
-          heading: 'Spezialistin für Wimpernverlängerungen',
-          text: 'Karina ist unsere Lash Specialist bei Crocus Beauty Studio — sie hat sich vollständig auf Wimpernverlängerungen spezialisiert. Ihr Ergebnis sieht so natürlich aus, dass es niemand errät. Jede Behandlung ist präzise, sorgfältig und auf deine Augenform abgestimmt.'
-        },
-        {
-          heading: 'Was dich erwartet',
-          points: [
-            'Classic, Volumen 4D/6D, Wispy und Wet-Look',
-            'Natürliches Ergebnis — abgestimmt auf deine Augenform',
-            'Sterilisierte Instrumente & zertifizierte Materialien',
-            'Haltbarkeit von 3–4 Wochen bei regelmäßigem Auffüllen'
-          ]
-        },
-        {
-          heading: 'Warum Karina?',
-          text: 'Wimpernverlängerung ist Präzisionsarbeit — Karina beherrscht sie perfekt. Egal ob dezent Classic oder dramatischer Wet-Look, sie findet den perfekten Look für jeden Typ. Ihre Kundinnen kommen immer wieder — das Ergebnis spricht für sich.'
-        }
-      ]
-    },
     diana: {
       badge: '💎 Top-Master · Crocus Beauty Studio',
       title: '<em>Diana</em>',
@@ -4160,7 +4164,6 @@ if (document.readyState === 'loading') {
   var MASTER_PHOTO = {
     nelia: 'https://static.tildacdn.com/tild3537-3733-4430-b466-336537373738/WhatsApp_Image_2026-.jpeg',
     diana: 'https://static.tildacdn.com/tild3565-3731-4564-a536-376463363936/WhatsApp_Image_2026-.jpeg',
-    karina: 'https://static.tildacdn.com/tild6538-3366-4130-b062-666165616361/WhatsApp_Image_2026-.jpeg',
     sofia: 'https://cdn.jsdelivr.net/gh/chistyartem-blip/crocus-widget@1a78ce1/assets/sofia.jpg'
 
   };
@@ -4168,10 +4171,9 @@ if (document.readyState === 'loading') {
   function openMasterInfo(key) {
     var d = MASTER_INFO[key]; if (!d) return;
     var isDiana  = key === 'diana';
-    var isKarina = key === 'karina';
-    var accent       = (isDiana || isKarina) ? '#b8924a' : '#7B2D4E';
-    var accentLight  = (isDiana || isKarina) ? 'rgba(201,168,124,0.13)' : 'rgba(123,45,78,0.08)';
-    var accentBorder = (isDiana || isKarina) ? 'rgba(201,168,124,0.35)' : 'rgba(123,45,78,0.18)';
+    var accent       = isDiana ? '#b8924a' : '#7B2D4E';
+    var accentLight  = isDiana ? 'rgba(201,168,124,0.13)' : 'rgba(123,45,78,0.08)';
+    var accentBorder = isDiana ? 'rgba(201,168,124,0.35)' : 'rgba(123,45,78,0.18)';
     var headerBg     = isDiana
       ? 'linear-gradient(160deg,#2a1f10 0%,#1a0d12 100%)'
       : 'linear-gradient(160deg,#2a0d1a 0%,#1a0d12 100%)';
@@ -4215,7 +4217,7 @@ if (document.readyState === 'loading') {
 
     // ── CTA ───────────────────────────────────────────────────────────────
     h += '<div style="margin-top:24px;padding-top:20px;border-top:1px solid ' + accentBorder + ';display:flex;flex-direction:column;gap:8px;">';
-    h += '<button data-crl2-minfo-book style="width:100%;padding:14px 20px;border:none;border-radius:12px;cursor:pointer;font-family:\'DM Sans\',sans-serif;font-size:12px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:#fff;background:' + ((isDiana || isKarina) ? 'linear-gradient(135deg,#c9a87c,#8c6020)' : 'linear-gradient(135deg,#9b3660,#7B2D4E)') + ';display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:' + ((isDiana || isKarina) ? '0 4px 18px rgba(201,168,124,0.35)' : '0 4px 18px rgba(123,45,78,0.38)') + ';box-sizing:border-box;">'
+    h += '<button data-crl2-minfo-book style="width:100%;padding:14px 20px;border:none;border-radius:12px;cursor:pointer;font-family:\'DM Sans\',sans-serif;font-size:12px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:#fff;background:' + (isDiana ? 'linear-gradient(135deg,#c9a87c,#8c6020)' : 'linear-gradient(135deg,#9b3660,#7B2D4E)') + ';display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:' + (isDiana ? '0 4px 18px rgba(201,168,124,0.35)' : '0 4px 18px rgba(123,45,78,0.38)') + ';box-sizing:border-box;">'
       + '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" style="flex-shrink:0"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>'
       + 'Termin buchen</button>';
     h += '<button data-crl2-select="' + key + '" style="width:100%;padding:12px 20px;border:1.5px solid ' + accentBorder + ';border-radius:12px;cursor:pointer;font-family:\'DM Sans\',sans-serif;font-size:12px;font-weight:600;letter-spacing:0.04em;color:' + accent + ';background:transparent;display:flex;align-items:center;justify-content:center;gap:8px;box-sizing:border-box;">'
