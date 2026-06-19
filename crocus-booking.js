@@ -1057,6 +1057,9 @@ function ensureCrocusHistory() {
     _crocusHistoryActive = true;
     return;
   }
+  if (!(state.crocusWidget && state.crocusOpen === false)) {
+    window.history.pushState({ crocusWidget: true, crocusOpen: false }, '', window.location.href);
+  }
   window.history.pushState({ crocusWidget: true, crocusOpen: true, crocusStep: cw.step || 1 }, '', window.location.href);
   _crocusHistoryActive = true;
 }
@@ -3658,7 +3661,7 @@ function crocusWidgetBack() {
 
 function isCrocusWidgetFirstScreen() {
   var first = document.getElementById('cw-step1');
-  return !!(first && first.classList.contains('active'));
+  return cw.step === 1 || !!(first && first.classList.contains('active'));
 }
 
 document.addEventListener('keydown', function(e) {
