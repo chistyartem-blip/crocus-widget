@@ -2885,6 +2885,22 @@ function submitBooking(e) {
     return;
   }
 
+  if (cw.service.id === KOMBI_SERVICE_ID && (!cw.comboAppointments || cw.comboAppointments.length !== 2 || !cw.comboRoute)) {
+    console.error('[Crocus] Missing Kombi split route', {
+      comboAppointments: cw.comboAppointments,
+      comboRoute: cw.comboRoute,
+      datetime: cw.datetime,
+    });
+    var comboErr = document.getElementById('cw-form').querySelector('.cw-err-msg');
+    if (comboErr) comboErr.remove();
+    var comboPErr = document.createElement('p');
+    comboPErr.className = 'cw-err-msg';
+    comboPErr.style.cssText = 'color:#fca5a5;font-size:12px;text-align:center;margin:4px 0 0;font-family:DM Sans,sans-serif';
+    comboPErr.textContent = 'Bitte waehlen Sie die Kombi-Zeit erneut aus.';
+    document.getElementById('cw-form').appendChild(comboPErr);
+    return;
+  }
+
   var btn = document.getElementById('cw-btn-submit');
   btn.disabled = true; btn.textContent = 'Wird gesendet…';
 
