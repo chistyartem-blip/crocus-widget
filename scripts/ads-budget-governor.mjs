@@ -9,7 +9,7 @@ loadDotEnv(path.join(ROOT, '.env'));
 
 const CONFIG = {
   apply: envBool('ADS_GOVERNOR_APPLY', false),
-  maxDailyBudgetEur: Math.min(25, envNumber('ADS_GOVERNOR_MAX_DAILY_BUDGET_EUR', 25)),
+  maxDailyBudgetEur: Math.min(20, envNumber('ADS_GOVERNOR_MAX_DAILY_BUDGET_EUR', 20)),
   lookAheadDays: Math.max(21, envNumber('ADS_GOVERNOR_LOOKAHEAD_DAYS', 21)),
   reportEveryHours: envNumber('ADS_GOVERNOR_REPORT_EVERY_HOURS', 3),
   forceTelegram: envBool('ADS_GOVERNOR_FORCE_TELEGRAM', false),
@@ -120,6 +120,10 @@ const KEYWORD_RULES = {
     cautious: [
       'pedikure',
       'pedikure eislingen',
+      'pedikure geislingen',
+      'pedikure uhingen',
+      'pedikure ebersbach',
+      'pedikure sussen',
       'fusspflege goppingen',
       'fusspflege termin goppingen',
       'fusspflege online termin goppingen',
@@ -727,7 +731,7 @@ function buildPlan({ ads, decisions, guard, performance }) {
   const manualBudgetOverrides = sanitizeBudgetOverrides(CONFIG.budgetOverrides);
   applyBudgetOverrides(desiredBudgets, manualBudgetOverrides);
   const currentCampaigns = Object.fromEntries(ads.campaigns.map((row) => [String(row.campaign.id), row]));
-  const budgets = Object.entries(desiredBudgets).map(([key, eur]) => {
+  const allBudgets = Object.entries(desiredBudgets).map(([key, eur]) => {
     const campaign = CAMPAIGNS[key];
     const row = currentCampaigns[campaign.id];
     const currentEur = Number(row?.campaignBudget?.amountMicros || 0) / 1_000_000;
@@ -741,7 +745,10 @@ function buildPlan({ ads, decisions, guard, performance }) {
       target_eur: round2(cappedEur),
       raw_target_eur: round2(eur),
     };
-  }).filter((b) => b.budget_resource_name && Math.abs(b.current_eur - b.target_eur) >= 0.01);
+  });
+  enforcePlannedBudgetCap(allBudgets, manualBudgetOverrides);
+  const budgets = allBudgets
+    .filter((b) => b.budget_resource_name && Math.abs(b.current_eur - b.target_eur) >= 0.01);
 
   const broadUnsafe = ads.broadKeywords.length > 0;
   const keywordBidUpdates = (broadUnsafe || CONFIG.manualBudgetOnly) ? [] : ads.keywords
@@ -790,6 +797,31 @@ function applyBudgetOverrides(budgets, overrides) {
     }
   }
   return budgets;
+}
+
+function enforcePlannedBudgetCap(plannedBudgets, overrides) {
+  let total = round2(plannedBudgets.reduce((sumValue, budget) => sumValue + Number(budget.target_eur || 0), 0));
+  if (total <= CONFIG.maxDailyBudgetEur) return plannedBudgets;
+
+  const locked = new Set(Object.keys(overrides || {}));
+  const reductionOrder = [...plannedBudgets]
+    .filter((budget) => !locked.has(budget.key))
+    .sort((a, b) => {
+      const priority = { pmax: 0, pedikuere: 1, manikuere: 2 };
+      return (priority[a.key] ?? 99) - (priority[b.key] ?? 99);
+    });
+
+  for (const budget of reductionOrder) {
+    if (total <= CONFIG.maxDailyBudgetEur) break;
+    const minBudget = CAMPAIGNS[budget.key].minBudget;
+    const reduction = Math.min(budget.target_eur - minBudget, total - CONFIG.maxDailyBudgetEur);
+    if (reduction > 0) {
+      budget.target_eur = round2(budget.target_eur - reduction);
+      total = round2(total - reduction);
+    }
+  }
+
+  return plannedBudgets;
 }
 
 function allocateBudgets(byCategory, guard, performanceRisk) {
@@ -851,7 +883,7 @@ function desiredKeywordBid(row, byCategory, performanceRisk) {
   const current = Number(row.adGroupCriterion.effectiveCpcBidMicros || 0) / 1_000_000;
   const risk = performanceRisk?.[category];
   const effectiveMode = risk?.level === 'poor' && isPushMode(mode)
-    ? category === 'pedikuere' && mode === 'push_next_72h'
+    ? category === 'pedikuere' && ['push', 'push_next_72h'].includes(mode)
       ? 'push_next_72h'
       : 'hold'
     : mode;
