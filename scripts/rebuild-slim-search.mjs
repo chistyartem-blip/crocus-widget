@@ -96,14 +96,15 @@ function buildPlan({ keywords, campaignNegatives: existingCampaignNegatives, ads
     }
     const currentBid = euros(existing.adGroupCriterion.effectiveCpcBidMicros);
     const status = existing.adGroupCriterion.status;
-    if (status !== 'ENABLED' || Math.abs(currentBid - item.bidEur) >= 0.01) {
+    if (status !== 'ENABLED' || currentBid + 0.01 < item.bidEur) {
       keywordUpdates.push({
         resourceName: existing.adGroupCriterion.resourceName,
         text: item.text,
         matchType: item.matchType,
         currentBid,
-        targetBid: item.bidEur,
+        targetBid: Math.max(currentBid, item.bidEur),
         currentStatus: status,
+        targetStatus: status !== 'ENABLED' ? 'ENABLED' : undefined,
       });
     }
   }
@@ -134,7 +135,7 @@ function buildPlan({ keywords, campaignNegatives: existingCampaignNegatives, ads
 }
 
 function targetKeywords() {
-  return [
+  const items = [
     // Manikuere: exact/phrase booking intent and local service intent.
     kw(AD_GROUPS.manTermin, 'maniküre göppingen', 'EXACT', 0.85),
     kw(AD_GROUPS.manTermin, 'maniküre termin göppingen', 'EXACT', 0.85),
@@ -159,6 +160,7 @@ function targetKeywords() {
     kw(AD_GROUPS.pedTop, 'pediküre mit shellac', 'PHRASE', 0.26),
     kw(AD_GROUPS.pedTop, 'fußnägel', 'PHRASE', 0.22),
   ];
+  return items.filter((item) => !isBlockedFootCareTerm(item.text));
 }
 
 function bidAndStatusFixes(keywords) {
@@ -171,7 +173,7 @@ function bidAndStatusFixes(keywords) {
     const currentBid = euros(row.adGroupCriterion.effectiveCpcBidMicros);
     const currentStatus = row.adGroupCriterion.status;
 
-    const pause = (
+    const pause = isBlockedFootCareTerm(row.adGroupCriterion.keyword.text) || (
       text === 'fusspflege eislingen' ||
       text === 'fusspflege ebersbach' ||
       text === 'fusspflege uhingen' ||
@@ -189,9 +191,6 @@ function bidAndStatusFixes(keywords) {
       continue;
     }
 
-    if (adGroupId === AD_GROUPS.manNagelstudio && text === 'nagelstudio goppingen' && currentBid > 0.28) {
-      updates.push({ resourceName, text: row.adGroupCriterion.keyword.text, matchType, currentBid, targetBid: 0.28, currentStatus });
-    }
   }
   return updates;
 }
@@ -418,6 +417,14 @@ function keywordKey(adGroupId, text, matchType) {
 
 function negativeKey(campaignId, text, matchType) {
   return `${campaignId}:${matchType}:${normalizeKeyword(text)}`;
+}
+
+function isBlockedFootCareTerm(value) {
+  const raw = String(value || '').toLowerCase();
+  return raw.includes('fußpflege') ||
+    raw.includes('fusspflege') ||
+    raw.includes('fuãÿpflege') ||
+    normalizeKeyword(value).includes('fusspflege');
 }
 
 function normalizeKeyword(value) {
