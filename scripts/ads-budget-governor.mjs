@@ -88,6 +88,9 @@ const KEYWORD_RULES = {
   manikuere: {
     winners: [
       'manikure goppingen',
+      'manikure pedikure goppingen',
+      'manikure pedikure termin goppingen',
+      'manikure und pedikure goppingen',
       'manikure termin goppingen',
       'nagelstudio online termin',
       'nagelstudio termin goppingen',
@@ -927,6 +930,11 @@ function keywordTargetBid(category, keyword, match, mode, baseTarget) {
 
   if (isRussianManicureExact && mode === 'push_next_72h') {
     return Math.max(baseTarget, 0.85);
+  }
+
+  if (isCautious && category === 'pedikuere' && normalized.includes('fusspflege')) {
+    const cap = 0.22;
+    return Math.min(baseTarget, cap);
   }
 
   if (isNearTermIntent && mode === 'push_next_72h') {
