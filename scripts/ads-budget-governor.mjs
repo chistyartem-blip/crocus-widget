@@ -39,7 +39,7 @@ const CONFIG = {
 };
 
 const CAMPAIGNS = {
-  pmax: { id: '23833205018', name: '[PMax] Crocus Beauty Studio - Goeppingen', minBudget: 5, maxBudget: 15 },
+  pmax: { id: '23833205018', name: '[PMax] Crocus Beauty Studio - Goeppingen', minBudget: 4, maxBudget: 15 },
   pedikuere: { id: '23873203584', name: '[Slim] Pedikuere - Goeppingen', minBudget: 2, maxBudget: 12 },
   manikuere: { id: '23878434401', name: '[Slim] Manikuere - Goeppingen', minBudget: 2, maxBudget: 14 },
 };
@@ -69,7 +69,7 @@ const SEARCH_BID_RULES = {
   manikuere: {
     hard_push: { exact: 0.95, phrase: 0.55 },
     push: { exact: 0.75, phrase: 0.45 },
-    push_next_72h: { exact: 0.70, phrase: 0.42 },
+    push_next_72h: { exact: 0.95, phrase: 0.55 },
     push_mobile_today: { exact: 0.65, phrase: 0.40 },
     hold: { exact: 0.45, phrase: 0.30 },
     protect_budget: { exact: 0.20, phrase: 0.15 },
@@ -77,7 +77,7 @@ const SEARCH_BID_RULES = {
   pedikuere: {
     hard_push: { exact: 0.55, phrase: 0.34 },
     push: { exact: 0.42, phrase: 0.28 },
-    push_next_72h: { exact: 0.40, phrase: 0.26 },
+    push_next_72h: { exact: 0.55, phrase: 0.34 },
     push_mobile_today: { exact: 0.38, phrase: 0.25 },
     hold: { exact: 0.26, phrase: 0.18 },
     protect_budget: { exact: 0.18, phrase: 0.12 },
@@ -99,6 +99,8 @@ const KEYWORD_RULES = {
       'nagelstudio goppingen',
       'nagel goppingen',
       'nagelstudio eislingen',
+      'gelnagel',
+      'gelnagel goppingen',
       'gel nagel goppingen',
       'gel nails goppingen',
     ],
@@ -117,16 +119,9 @@ const KEYWORD_RULES = {
       'shellac pedikure',
       'pedikure shellac',
       'pedikure mit shellac',
-      'kosmetische fusspflege',
       'fussnagel goppingen',
     ],
     cautious: [
-      'pedikure',
-      'pedikure eislingen',
-      'pedikure geislingen',
-      'pedikure uhingen',
-      'pedikure ebersbach',
-      'pedikure sussen',
       'fusspflege goppingen',
       'fusspflege termin goppingen',
       'fusspflege online termin goppingen',
@@ -841,7 +836,7 @@ function allocateBudgets(byCategory, guard, performanceRisk) {
   else if (manMode === 'push_mobile_today' && pedMode === 'hold') budgets = { pmax: 6, manikuere: 14, pedikuere: 5 };
   else if (manMode === 'push_next_72h' && ['hold', 'protect_budget'].includes(pedMode)) budgets = { pmax: 7, manikuere: 13, pedikuere: 4 };
   else if (pedMode === 'push_next_72h' && ['hold', 'protect_budget'].includes(manMode)) budgets = { pmax: 7, manikuere: 6, pedikuere: 9 };
-  else if (manMode === 'push_next_72h' && pedMode === 'push_next_72h') budgets = { pmax: 5, manikuere: 10, pedikuere: 5 };
+  else if (manMode === 'push_next_72h' && pedMode === 'push_next_72h') budgets = { pmax: 4, manikuere: 10, pedikuere: 6 };
   else if (manMode === 'push_next_72h' && pedMode === 'push') budgets = { pmax: 6, manikuere: 13, pedikuere: 7 };
   else if (pedMode === 'push_next_72h' && manMode === 'push') budgets = { pmax: 6, manikuere: 12, pedikuere: 8 };
   else if (manMode === 'push' && pedMode === 'hold') budgets = { pmax: 6, manikuere: 14, pedikuere: 5 };
@@ -856,7 +851,14 @@ function allocateBudgets(byCategory, guard, performanceRisk) {
   if (softGoalPenalty) budgets.pmax = Math.min(budgets.pmax, 8);
   for (const [key, risk] of Object.entries(performanceRisk || {})) {
     if (risk.level === 'poor' && key in budgets) {
-      budgets[key] = Math.min(budgets[key], risk.current_budget_hint_eur || 5);
+      const hasNearTermPedCapacity = key === 'pedikuere' &&
+        pedMode === 'push_next_72h' &&
+        (byCategory.pedikuere?.next_3_days_slots || 0) > 0;
+      const hasNearTermManCapacity = key === 'manikuere' &&
+        manMode === 'push_next_72h' &&
+        (byCategory.manikuere?.next_3_days_slots || 0) > 0;
+      const floor = hasNearTermPedCapacity ? 6 : hasNearTermManCapacity ? 10 : 0;
+      budgets[key] = Math.max(floor, Math.min(budgets[key], risk.current_budget_hint_eur || 5));
     }
   }
   budgets.pmax = Math.max(budgets.pmax, pmaxPerformanceFloor(performanceRisk));
@@ -892,6 +894,11 @@ function desiredKeywordBid(row, byCategory, performanceRisk) {
     : mode;
   const keyword = row.adGroupCriterion.keyword.text;
   const targetRaw = keywordTargetBid(category, keyword, match, effectiveMode, SEARCH_BID_RULES[category][effectiveMode][match.toLowerCase()]);
+  const normalizedKeyword = normalizeKeyword(keyword);
+  const isFusspflegeKeyword = category === 'pedikuere' && normalizedKeyword.includes('fusspflege');
+  if (isFusspflegeKeyword && targetRaw > current) return null;
+  const protectiveLower = isFusspflegeKeyword && targetRaw < current;
+  if (isPushMode(effectiveMode) && targetRaw < current && !protectiveLower) return null;
   const target = clampBidDelta(current, targetRaw);
   if (Math.abs(current - target) < 0.01) return null;
 
@@ -920,16 +927,20 @@ function keywordTargetBid(category, keyword, match, mode, baseTarget) {
   const isNearTermIntent = hasTerminIntent || hasNearDateIntent;
   const isRussianManicureExact = isExact && /\b(russische manikure|russian manicure)\b/.test(normalized);
 
+  if (category === 'pedikuere' && normalized.includes('fusspflege')) {
+    return Math.min(baseTarget, 0.22);
+  }
+
   if (isWinner && isExact) {
     if (mode === 'hard_push') return Math.max(baseTarget, category === 'manikuere' ? 0.95 : 0.55);
     if (mode === 'push_mobile_today') return Math.max(baseTarget, category === 'manikuere' ? 0.75 : 0.42);
     if (mode === 'push') return Math.max(baseTarget, category === 'manikuere' ? 0.85 : 0.48);
-    if (mode === 'push_next_72h') return Math.max(baseTarget, category === 'manikuere' ? 0.95 : 0.44);
+    if (mode === 'push_next_72h') return Math.max(baseTarget, category === 'manikuere' ? 1.3 : 0.7);
     return Math.max(baseTarget, category === 'manikuere' ? 0.55 : 0.28);
   }
 
   if (isRussianManicureExact && mode === 'push_next_72h') {
-    return Math.max(baseTarget, 0.85);
+    return Math.max(baseTarget, 1.1);
   }
 
   if (isCautious && category === 'pedikuere' && normalized.includes('fusspflege')) {
@@ -939,9 +950,9 @@ function keywordTargetBid(category, keyword, match, mode, baseTarget) {
 
   if (isNearTermIntent && mode === 'push_next_72h') {
     if (category === 'manikuere') {
-      return Math.max(baseTarget, isExact ? 0.72 : hasTerminIntent ? 0.48 : 0.4);
+      return Math.max(baseTarget, isExact ? (hasTerminIntent ? 1.25 : 1.05) : hasTerminIntent ? 0.7 : 0.6);
     }
-    return Math.max(baseTarget, isExact ? (hasTerminIntent ? 0.44 : 0.38) : hasTerminIntent ? 0.32 : 0.28);
+    return Math.max(baseTarget, isExact ? (hasTerminIntent ? 0.65 : 0.6) : hasTerminIntent ? 0.45 : 0.4);
   }
 
   if (isCautious) {
