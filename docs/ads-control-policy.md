@@ -16,7 +16,7 @@ Spend less, get more real bookings. Clicks are secondary. Every decision must an
 
 ## Hard Rules
 
-- Total daily budget cap: 30 EUR.
+- Total daily budget cap: 20 EUR. Normal rescue range: 15-20 EUR for all active campaigns together.
 - Scheduled runs are report-only. Live changes require manual dispatch.
 - Never enable old paused junk automatically.
 - Never add or enable broad keywords automatically.
@@ -35,8 +35,8 @@ Spend less, get more real bookings. Clicks are secondary. Every decision must an
 ## Current Rescue Logic
 
 - Manicure gets priority because it has recent conversions and lost impression share.
-- Pedicure is capped because it has recent spend/clicks but zero conversions.
-- PMax is held at a lower useful budget while Search is being rescued.
+- Pedicure gets controlled Monday/Tuesday push when Altegio has capacity, but broad Fußpflege stays capped because it can attract podology traffic.
+- PMax is held at a low useful budget while Search is being rescued.
 
 ## What To Watch After Changes
 

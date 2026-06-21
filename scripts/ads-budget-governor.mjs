@@ -39,7 +39,7 @@ const CONFIG = {
 };
 
 const CAMPAIGNS = {
-  pmax: { id: '23833205018', name: '[PMax] Crocus Beauty Studio - Goeppingen', minBudget: 6, maxBudget: 15 },
+  pmax: { id: '23833205018', name: '[PMax] Crocus Beauty Studio - Goeppingen', minBudget: 5, maxBudget: 15 },
   pedikuere: { id: '23873203584', name: '[Slim] Pedikuere - Goeppingen', minBudget: 2, maxBudget: 12 },
   manikuere: { id: '23878434401', name: '[Slim] Manikuere - Goeppingen', minBudget: 2, maxBudget: 14 },
 };
@@ -838,7 +838,7 @@ function allocateBudgets(byCategory, guard, performanceRisk) {
   else if (manMode === 'push_mobile_today' && pedMode === 'hold') budgets = { pmax: 6, manikuere: 14, pedikuere: 5 };
   else if (manMode === 'push_next_72h' && ['hold', 'protect_budget'].includes(pedMode)) budgets = { pmax: 7, manikuere: 13, pedikuere: 4 };
   else if (pedMode === 'push_next_72h' && ['hold', 'protect_budget'].includes(manMode)) budgets = { pmax: 7, manikuere: 6, pedikuere: 9 };
-  else if (manMode === 'push_next_72h' && pedMode === 'push_next_72h') budgets = { pmax: 6, manikuere: 13, pedikuere: 7 };
+  else if (manMode === 'push_next_72h' && pedMode === 'push_next_72h') budgets = { pmax: 5, manikuere: 10, pedikuere: 5 };
   else if (manMode === 'push_next_72h' && pedMode === 'push') budgets = { pmax: 6, manikuere: 13, pedikuere: 7 };
   else if (pedMode === 'push_next_72h' && manMode === 'push') budgets = { pmax: 6, manikuere: 12, pedikuere: 8 };
   else if (manMode === 'push' && pedMode === 'hold') budgets = { pmax: 6, manikuere: 14, pedikuere: 5 };
@@ -912,12 +912,28 @@ function keywordTargetBid(category, keyword, match, mode, baseTarget) {
   const isWinner = (rules.winners || []).includes(normalized);
   const isCautious = (rules.cautious || []).includes(normalized);
   const isWeak = (rules.weak || []).includes(normalized);
+  const hasTerminIntent = /\btermin\b/.test(normalized);
+  const hasNearDateIntent = /\b(morgen|montag|dienstag)\b/.test(normalized);
+  const isNearTermIntent = hasTerminIntent || hasNearDateIntent;
+  const isRussianManicureExact = isExact && /\b(russische manikure|russian manicure)\b/.test(normalized);
 
   if (isWinner && isExact) {
     if (mode === 'hard_push') return Math.max(baseTarget, category === 'manikuere' ? 0.95 : 0.55);
     if (mode === 'push_mobile_today') return Math.max(baseTarget, category === 'manikuere' ? 0.75 : 0.42);
     if (mode === 'push') return Math.max(baseTarget, category === 'manikuere' ? 0.85 : 0.48);
+    if (mode === 'push_next_72h') return Math.max(baseTarget, category === 'manikuere' ? 0.95 : 0.44);
     return Math.max(baseTarget, category === 'manikuere' ? 0.55 : 0.28);
+  }
+
+  if (isRussianManicureExact && mode === 'push_next_72h') {
+    return Math.max(baseTarget, 0.85);
+  }
+
+  if (isNearTermIntent && mode === 'push_next_72h') {
+    if (category === 'manikuere') {
+      return Math.max(baseTarget, isExact ? 0.72 : hasTerminIntent ? 0.48 : 0.4);
+    }
+    return Math.max(baseTarget, isExact ? (hasTerminIntent ? 0.44 : 0.38) : hasTerminIntent ? 0.32 : 0.28);
   }
 
   if (isCautious) {
