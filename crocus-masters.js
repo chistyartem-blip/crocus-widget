@@ -78,6 +78,7 @@
 
   function loadMasterData(masterKey, cb){
     if(apiCache[masterKey]){ cb(apiCache[masterKey]); return; }
+    if(!STAFF[masterKey]){ cb({}); return; }
     fetch(API + '?path=' + encodeURIComponent('book_services/' + LOC) + '&staff_id=' + STAFF[masterKey], {
       headers:{
         'Accept':'application/vnd.api.v2+json',
@@ -459,7 +460,7 @@
     btn.addEventListener('click', function(e){
       e.stopPropagation();
       var master = btn.getAttribute('data-crl2-hint');
-      if(master && master !== 'karina') crl2SelectMaster(master);
+      if(master && document.getElementById('crl2-sub-' + master)) crl2SelectMaster(master);
     });
   });
 
@@ -468,7 +469,7 @@
     card.addEventListener('click', function(e){
       if(e.target.closest('[data-crl2-hint],[data-crl2-about]')) return;
       var master = card.getAttribute('data-crl2-master');
-      if(master && master !== 'karina') crl2SelectMaster(master);
+      if(master && document.getElementById('crl2-sub-' + master)) crl2SelectMaster(master);
     });
   });
 
