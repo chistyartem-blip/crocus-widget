@@ -246,6 +246,7 @@ var KOMBI_STAFF_IDS = [3020185, 3020186, 3020187];
 // from real book_record checks are blocked below.
 var TEMP_BLOCKED_RECORDS = [];
 var TEMP_BLOCK_GUARD_MS = 15 * 60 * 1000;
+var TIME_SLOT_DISPLAY_STEP_MIN = 30;
 var TEMP_UNBOOKABLE_SINGLE_SLOTS = [
   '3020187|13485753|2026-06-24T13:45:00+02:00',
   '3020187|13485753|2026-06-24T14:00:00+02:00',
@@ -2671,6 +2672,29 @@ function filterTestBlockedSlots(slots, serviceId) {
   });
 }
 
+function slotMinuteOfDay(slot) {
+  var raw = String((slot && (slot.time || slot.datetime)) || '');
+  var match = raw.match(/(?:T|\b)(\d{1,2}):(\d{2})/);
+  if (!match) return null;
+  return Number(match[1]) * 60 + Number(match[2]);
+}
+
+function filterDisplayTimeSlots(slots) {
+  slots = slots || [];
+  if (TIME_SLOT_DISPLAY_STEP_MIN <= 15 || slots.length <= 1) return slots;
+  var evenGrid = slots.filter(function(slot) {
+    var minute = slotMinuteOfDay(slot);
+    return minute == null || minute % TIME_SLOT_DISPLAY_STEP_MIN === 0;
+  });
+  if (evenGrid.length) return evenGrid;
+  var firstMinute = slotMinuteOfDay(slots[0]);
+  if (firstMinute == null) return slots;
+  return slots.filter(function(slot) {
+    var minute = slotMinuteOfDay(slot);
+    return minute == null || (minute - firstMinute) % TIME_SLOT_DISPLAY_STEP_MIN === 0;
+  });
+}
+
 function comboAppointment(serviceId, staffId, datetime) {
   return { id: serviceId, services: [serviceId], staff_id: Number(staffId), datetime: datetime };
 }
@@ -3102,6 +3126,7 @@ function renderTimesLoaded(slots) {
   var grid = document.getElementById('cw-time-grid');
   if (!slots) return;
   slots = filterTestBlockedSlots(slots);
+  slots = filterDisplayTimeSlots(slots);
   if (!slots.length) {
     grid.innerHTML = '<div class="cw-error" style="grid-column:span 4">Keine freien Zeiten.</div>';
     return;
