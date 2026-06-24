@@ -57,12 +57,14 @@ const MASTERS = [
   { id: 3020185, name: 'Diana', categories: ['manikuere', 'pedikuere'] },
   { id: 3020186, name: 'Nelia', categories: ['manikuere', 'pedikuere'] },
   { id: 3020187, name: 'Sofia', categories: ['manikuere', 'pedikuere'] },
+  { id: 3047989, name: 'Albina', categories: ['wimpern'] },
 ];
 
 const WIDGET_SLOT_MASTERS = [
   { id: 3020185, name: 'Diana', serviceId: 13485754, serviceName: 'Nagelkorrektur', focus: 'manikuere' },
   { id: 3020186, name: 'Nelia', serviceId: 13485753, serviceName: 'Manikuere + Gellack', focus: 'manikuere' },
   { id: 3020187, name: 'Sofia', serviceId: 13485753, serviceName: 'Manikuere + Gellack', focus: 'manikuere' },
+  { id: 3047989, name: 'Albina', serviceId: 13485771, serviceName: 'Wimpern Neuset', focus: 'wimpern' },
 ];
 
 const SEARCH_BID_RULES = {

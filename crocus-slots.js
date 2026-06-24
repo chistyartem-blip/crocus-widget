@@ -14,13 +14,13 @@ var CONFIG = {
     { id: 3020185, name: 'Diana',  serviceId: 13485754 }, // Nagelkorrektur
     { id: 3020186, name: 'Nelia',  serviceId: 13485753 }, // Maniküre+Gel
     { id: 3020187, name: 'Sofia',  serviceId: 13485753 }, // Maniküre+Gel
-    { id: 3020188, name: 'Albina', serviceId: 13485771 }, // Master Lashes — Neuset
+    { id: 3047989, name: 'Albina', serviceId: 13485771 }, // Master Lashes — Neuset
   ],
   // Сколько дней вперёд искать ближайший слот
   lookAheadDays: 14,
   // Для мастеров у которых расписание далеко вперёд
   lookAheadDaysExtended: 90,
-  extendedStaff: [3020188], // Albina
+  extendedStaff: [3047989], // Albina
 };
 
 // ── Helpers ──────────────────────────────────────────────────────

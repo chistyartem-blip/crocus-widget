@@ -103,11 +103,33 @@ var MASTERS_META = {
     skills: ['Maniküre', 'Pediküre', 'Gellack', 'Nagelverlängerung'],
     cats: ['manikuere', 'pediküre', 'kombi'],
   },
+  3047989: {
+    level:  'Lash Artistin',
+    levelColor:  '#c9a87c',
+    levelBg:     'rgba(201,168,124,0.13)',
+    levelBorder: 'rgba(201,168,124,0.35)',
+    tagline: 'Wimpernverlängerung & Lifting',
+    bio: 'Albina ist spezialisiert auf individuelle Lash-Looks — von natürlich bis ausdrucksstark.',
+    skills: ['Classic Lashes', '3D–6D Volumen', 'Wispy', 'Wet-Look'],
+    cats: ['wimpern'],
+    avatar: 'https://cdn.jsdelivr.net/gh/chistyartem-blip/crocus-widget@0df00f6/assets/albina.webp',
+  },
 };
 
 var HIDDEN_STAFF_IDS = [Number(['3020', '188'].join('')), 3020006, 3047641];
+var ALWAYS_SHOW_STAFF_IDS = [3047989];
+var MASTER_ORDER = { 3020185: 10, 3020186: 20, 3020187: 30, 3047989: 999 };
 function isHiddenStaffId(staffId) {
   return HIDDEN_STAFF_IDS.indexOf(Number(staffId)) !== -1;
+}
+
+function sortMasters(list) {
+  return (list || []).slice().sort(function(a, b) {
+    var ao = MASTER_ORDER[Number(a && a.id)] || 500;
+    var bo = MASTER_ORDER[Number(b && b.id)] || 500;
+    if (ao !== bo) return ao - bo;
+    return String((a && a.name) || '').localeCompare(String((b && b.name) || ''));
+  });
 }
 
 // ── Категории и маппинг услуг ──────────────────────────────────
@@ -116,7 +138,7 @@ var STATIC_MASTER_NAMES = {
   3020185: 'Diana',
   3020186: 'Nelia',
   3020187: 'Sofia',
-  3020188: 'Karina',
+  3047989: 'Albina',
 };
 
 function isHiddenStaff(staff) {
@@ -137,7 +159,10 @@ function isHiddenStaff(staff) {
 
 function visibleMasters(list) {
   return (list || []).filter(function(master) {
-    return !isHiddenStaff(master);
+    if (!master) return false;
+    if (isHiddenStaff(master)) return false;
+    if (master.bookable === false && ALWAYS_SHOW_STAFF_IDS.indexOf(Number(master.id)) === -1) return false;
+    return true;
   });
 }
 
@@ -1386,7 +1411,10 @@ function fallbackMasters() {
 
 function visibleMasters(list) {
   return (list || []).filter(function(m) {
-    return !isHiddenStaffId(m && m.id);
+    if (!m) return false;
+    if (isHiddenStaff(m)) return false;
+    if (m.bookable === false && ALWAYS_SHOW_STAFF_IDS.indexOf(Number(m.id)) === -1) return false;
+    return true;
   });
 }
 
@@ -1406,7 +1434,7 @@ function loadInitialData(cb) {
     _allMasters = Array.isArray(staffRes.data)
       ? staffRes.data
       : (staffRes.data && Array.isArray(staffRes.data.staff) ? staffRes.data.staff : []);
-    _allMasters = visibleMasters(_allMasters);
+    _allMasters = sortMasters(visibleMasters(_allMasters));
     if (!_allMasters.length) _allMasters = fallbackMasters();
     _allServices = (svcRes.data && svcRes.data.services) ? svcRes.data.services : [];
     // cache addon objects — глобальный кэш без staff_id, используется всегда
@@ -1432,7 +1460,7 @@ function renderMasters() {
   var list = document.getElementById('cw-masters-list');
   list.innerHTML = '';
 
-  _allMasters = visibleMasters(_allMasters);
+  _allMasters = sortMasters(visibleMasters(_allMasters));
   _allMasters.forEach(function(m) {
     var meta = MASTERS_META[m.id] || {
       level: 'Master',
@@ -1448,7 +1476,7 @@ function renderMasters() {
     card.className = 'cw-master-card';
     card.innerHTML =
       '<div class="cw-master-top-row">'
-        + '<img class="cw-master-avatar" src="'+(m.avatar||'https://be.cdn.alteg.io/images/no-master-sm.png')+'" alt="'+m.name+'" loading="lazy" onerror="this.src=\'https://be.cdn.alteg.io/images/no-master-sm.png\'">'
+        + '<img class="cw-master-avatar" src="'+(meta.avatar||m.avatar||'https://be.cdn.alteg.io/images/no-master-sm.png')+'" alt="'+m.name+'" loading="lazy" onerror="this.src=\'https://be.cdn.alteg.io/images/no-master-sm.png\'">'
         + '<div class="cw-master-info">'
           + '<div class="cw-master-name">'+m.name+'</div>'
           + '<div class="cw-master-tagline">'+meta.tagline+'</div>'
@@ -1574,7 +1602,7 @@ function selectMaster(m, meta) {
   list.innerHTML = '<div class="cw-loader"><div class="cw-spinner"></div><span class="cw-loader-text">Laden…</span></div>';
   apiGet('/book_services/'+CONFIG.locationId, { staff_id: m.id })
     .then(function(res) {
-      if (res.success && res.data && res.data.services) {
+      if (res.success && res.data && res.data.services && res.data.services.length) {
         _allServices = res.data.services;
         // Кэшируем seance_length per staff+service
         _allServices.forEach(function(svc) {
