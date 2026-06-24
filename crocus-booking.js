@@ -223,6 +223,7 @@ var TEMP_BLOCKED_RECORDS = [
   { staffId: 3020186, datetime: '2026-06-26T09:00:00+02:00', duration: 1800 },
   { staffId: 3020186, datetime: '2026-06-26T14:55:00+02:00', duration: 2700 },
 ];
+var TEMP_BLOCK_GUARD_MS = 15 * 60 * 1000;
 
 // Mandel-Form (13502395) — только для Nelia и Sofia
 var MANDEL_STAFF_IDS = [3020186, 3020187];
@@ -2509,6 +2510,8 @@ function intervalOverlaps(startA, durationA, startB, durationB) {
   if (!a0 || !b0 || !durationA || !durationB) return false;
   var a1 = a0 + durationA * 1000;
   var b1 = b0 + durationB * 1000;
+  b0 -= TEMP_BLOCK_GUARD_MS;
+  b1 += TEMP_BLOCK_GUARD_MS;
   return a0 < b1 && b0 < a1;
 }
 
