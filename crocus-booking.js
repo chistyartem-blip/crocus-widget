@@ -241,6 +241,8 @@ var KOMBI_SERVICE_ID = 13485762;
 var KOMBI_MANI_SERVICE_ID = 13485753;
 var KOMBI_PEDI_SERVICE_ID = 13485761;
 var KOMBI_STAFF_IDS = [3020185, 3020186, 3020187];
+var WIMPER_STAFF_IDS = [3047989];
+var EXPRESS_CATEGORY_KEYS = ['manikuere', 'pediküre', 'kombi', 'wimpern'];
 
 // Stale test reservations are not hard-coded here. Only proven 409 slots
 // from real book_record checks are blocked below.
@@ -911,7 +913,7 @@ wrap.innerHTML =
         + '<button class="cw-express-cta" id="cw-btn-express" type="button">'
           + '<span class="cw-express-glow" aria-hidden="true"></span>'
           + '<span class="cw-express-ico">Spontan</span>'
-          + '<span><span class="cw-express-title">Kurzfristig zum Nageltermin</span><span class="cw-express-sub">Freie Zeiten für heute und die nächsten Tage.</span></span>'
+          + '<span><span class="cw-express-title">Kurzfristig zum Beauty-Termin</span><span class="cw-express-sub">Freie Zeiten für Nägel &amp; Wimpern.</span></span>'
         + '</button>'
         + '<div class="cw-masters" id="cw-masters-list"></div>'
         + '<div class="cw-gift-divider"><span>oder</span></div>'
@@ -1421,6 +1423,14 @@ function serviceForStaff(staffId, serviceId) {
     || {};
 }
 
+function expressStaffIdsForCategory(categoryKey) {
+  return categoryKey === 'wimpern' ? WIMPER_STAFF_IDS : KOMBI_STAFF_IDS;
+}
+
+function expressStaffIdsForService(serviceId) {
+  return WIMPER_MAIN_SERVICE_IDS.indexOf(Number(serviceId)) !== -1 ? WIMPER_STAFF_IDS : KOMBI_STAFF_IDS;
+}
+
 function servicePriceForStaff(staffId, serviceId) {
   var svc = serviceForStaff(staffId, serviceId);
   if (svc.price_min != null) return Number(svc.price_min) || 0;
@@ -1706,7 +1716,7 @@ function renderCategories(masterId) {
         return comboPrices.length ? 'ab '+Math.min.apply(Math, comboPrices)+' €' : '';
       }
       var allPrices = [];
-      KOMBI_STAFF_IDS.forEach(function(staffId) {
+      expressStaffIdsForCategory(cat.key).forEach(function(staffId) {
         cat.serviceIds.forEach(function(serviceId) {
           var oldMasterId = masterId;
           masterId = staffId;
@@ -1727,7 +1737,7 @@ function renderCategories(masterId) {
   }
 
   CATEGORIES.forEach(function(cat) {
-    if (cw.express && cat.key !== 'manikuere' && cat.key !== 'pediküre' && cat.key !== 'kombi') return;
+    if (cw.express && EXPRESS_CATEGORY_KEYS.indexOf(cat.key) === -1) return;
     // Показываем только категории из meta.cats мастера
     var meta = cw.master ? MASTERS_META[cw.master.id] : null;
     if (meta && meta.cats && meta.cats.indexOf(cat.key) === -1) return;
@@ -1774,7 +1784,7 @@ function expressDayLabel(ds) {
 
 function hydrateExpressCategoryStatuses() {
   CATEGORIES.forEach(function(cat) {
-    if (cat.key !== 'manikuere' && cat.key !== 'pediküre' && cat.key !== 'kombi') return;
+    if (EXPRESS_CATEGORY_KEYS.indexOf(cat.key) === -1) return;
     var el = document.getElementById('cw-express-status-' + cat.key);
     if (!el) return;
     loadExpressCategoryPreview(cat).then(function(hit) {
@@ -1945,7 +1955,7 @@ function renderServices(cat) {
     }
     if (cw.express && s.staff && s.staff.length) {
       var staffPrices = s.staff
-        .filter(function(st){ return KOMBI_STAFF_IDS.indexOf(Number(st.id)) !== -1; })
+        .filter(function(st){ return expressStaffIdsForService(s.id).indexOf(Number(st.id)) !== -1; })
         .map(function(st){ return Number(st.price_min || s.price_min || 0); })
         .filter(function(p){ return p > 0; });
       if (staffPrices.length) {
@@ -2398,7 +2408,7 @@ function loadAvailDates() {
 function loadExpressAvailDates() {
   var firstDay = new Date(cw.calY, cw.calM, 1).toISOString().split('T')[0];
   var serviceIds = currentSingleServiceIds(cw.service.id);
-  Promise.all(KOMBI_STAFF_IDS.map(function(staffId) {
+  Promise.all(expressStaffIdsForService(cw.service.id).map(function(staffId) {
     var params = {
       staff_id: staffId,
       service_ids: serviceIds,
@@ -2544,7 +2554,7 @@ function loadTimes() {
 
 function loadSingleExpressSlotsForDate(serviceId, ds, target) {
   var serviceIds = currentSingleServiceIds(serviceId);
-  return Promise.all(KOMBI_STAFF_IDS.map(function(staffId) {
+  return Promise.all(expressStaffIdsForService(serviceId).map(function(staffId) {
     return fetchStaffServices(staffId).then(function() {
       var params = { service_ids: serviceIds };
       var duration = currentSingleDurationForStaff(staffId, serviceId);
