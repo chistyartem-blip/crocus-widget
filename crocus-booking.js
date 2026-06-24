@@ -1711,7 +1711,7 @@ function expressPreviewDates() {
 }
 
 function cachedSingleExpressSlots(serviceId, ds, target) {
-  var key = serviceId + '|' + ds + '|' + (target || 3);
+  var key = currentSingleServiceIds(serviceId).join(',') + '|' + ds + '|' + (target || 3);
   if (!_expressPreviewCache[key]) {
     _expressPreviewCache[key] = loadSingleExpressSlotsForDate(serviceId, ds, target || 3);
   }
@@ -2241,15 +2241,12 @@ function loadAvailDates() {
     loadExpressAvailDates();
     return;
   }
-  var serviceIds = [cw.service.id];
+  var serviceIds = currentSingleServiceIds(cw.service.id);
   // Для Комби (13485762) аддоны (French и т.п.) — только UI-выбор, в API не передаём
-  if (cw.service.id !== 13485762) {
-    cw.addons.forEach(function(a){ serviceIds.push(a.id); });
-  }
   // apiGet автоматически добавляет [] для массивов → service_ids[]=xxx
   var params = { 'service_ids': serviceIds, staff_id: cw.master.id };
   // Передаём длительность из кэша если есть (критично для Kombi и длинных услуг)
-  var cachedDur = _seanceCache[cw.master.id + '_' + cw.service.id];
+  var cachedDur = currentSingleDurationForStaff(cw.master.id, cw.service.id);
   if (cachedDur) params.duration = cachedDur;
   var firstDay = new Date(cw.calY, cw.calM, 1).toISOString().split('T')[0];
   params.date = firstDay;
@@ -2270,12 +2267,16 @@ function loadAvailDates() {
 
 function loadExpressAvailDates() {
   var firstDay = new Date(cw.calY, cw.calM, 1).toISOString().split('T')[0];
+  var serviceIds = currentSingleServiceIds(cw.service.id);
   Promise.all(KOMBI_STAFF_IDS.map(function(staffId) {
-    return apiGet('/book_dates/'+CONFIG.locationId, {
+    var params = {
       staff_id: staffId,
-      service_ids: [cw.service.id],
+      service_ids: serviceIds,
       date: firstDay,
-    }).catch(function(){ return null; });
+    };
+    var duration = currentSingleDurationForStaff(staffId, cw.service.id);
+    if (duration) params.duration = duration;
+    return apiGet('/book_dates/'+CONFIG.locationId, params).catch(function(){ return null; });
   })).then(function(results) {
     var dates = {};
     results.forEach(function(res) {
@@ -2392,11 +2393,11 @@ function loadTimes() {
     return;
   }
   // Передаём только основную услугу — аддоны не влияют на доступность слотов
-  var serviceIds = [cw.service.id];
+  var serviceIds = currentSingleServiceIds(cw.service.id);
   // apiGet автоматически добавляет [] для массивов → service_ids[]=xxx
   var timeParams = { 'service_ids': serviceIds };
   // Длительность из кэша — критично для Kombi (3ч) и длинных услуг
-  var cachedDur = _seanceCache[cw.master.id + '_' + cw.service.id];
+  var cachedDur = currentSingleDurationForStaff(cw.master.id, cw.service.id);
   if (cachedDur) timeParams.duration = cachedDur;
   console.log('[crocus] loadTimes: master='+cw.master.id+' date='+cw.date+' serviceIds='+JSON.stringify(serviceIds)+' dur='+(cachedDur||'?')+' addons='+JSON.stringify(cw.addons.map(function(a){return a.id;})));
   apiGet('/book_times/'+CONFIG.locationId+'/'+cw.master.id+'/'+cw.date, timeParams)
@@ -2412,9 +2413,13 @@ function loadTimes() {
 }
 
 function loadSingleExpressSlotsForDate(serviceId, ds, target) {
+  var serviceIds = currentSingleServiceIds(serviceId);
   return Promise.all(KOMBI_STAFF_IDS.map(function(staffId) {
     return fetchStaffServices(staffId).then(function() {
-      return apiGet('/book_times/'+CONFIG.locationId+'/'+staffId+'/'+ds, { service_ids: [serviceId] });
+      var params = { service_ids: serviceIds };
+      var duration = currentSingleDurationForStaff(staffId, serviceId);
+      if (duration) params.duration = duration;
+      return apiGet('/book_times/'+CONFIG.locationId+'/'+staffId+'/'+ds, params);
     }).then(function(res) {
       return { staffId: staffId, slots: res && res.success ? (res.data || []) : [] };
     }).catch(function(){ return { staffId: staffId, slots: [] }; });
@@ -2427,7 +2432,7 @@ function loadSingleExpressSlotsForDate(serviceId, ds, target) {
         candidates.push(Object.assign({}, slot, {
           staff_id: item.staffId,
           expressMaster: expressMaster,
-          expressAppointment: comboAppointment(serviceId, item.staffId, slot.datetime),
+          expressAppointment: singleAppointment(serviceId, item.staffId, slot.datetime, serviceIds),
         }));
       });
     });
@@ -2476,6 +2481,28 @@ function addSecondsToAltegioDatetime(datetime, seconds) {
 
 function comboAppointment(serviceId, staffId, datetime) {
   return { id: serviceId, services: [serviceId], staff_id: Number(staffId), datetime: datetime };
+}
+
+function singleAppointment(serviceId, staffId, datetime, serviceIds) {
+  serviceIds = serviceIds && serviceIds.length ? serviceIds.slice() : [serviceId];
+  return { id: serviceId, services: serviceIds, staff_id: Number(staffId), datetime: datetime };
+}
+
+function currentSingleServiceIds(serviceId) {
+  var ids = [Number(serviceId)];
+  if (cw.service && Number(cw.service.id) === Number(serviceId) && Number(serviceId) !== KOMBI_SERVICE_ID) {
+    cw.addons.forEach(function(addon) {
+      var id = Number(addon.id);
+      if (id && ids.indexOf(id) === -1) ids.push(id);
+    });
+  }
+  return ids;
+}
+
+function currentSingleDurationForStaff(staffId, serviceId) {
+  return currentSingleServiceIds(serviceId).reduce(function(total, id) {
+    return total + (serviceDurationForStaff(staffId, id, null, 0) || 0);
+  }, 0);
 }
 
 function checkAppointments(appointments, client) {
