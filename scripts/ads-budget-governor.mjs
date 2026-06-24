@@ -831,7 +831,7 @@ function allocateBudgets(byCategory, guard, performanceRisk) {
 
   let budgets = { pmax: 8, manikuere: 8, pedikuere: 6 };
 
-  if (manMode === 'hard_push' && pedMode === 'hard_push') budgets = { pmax: 3, manikuere: 9, pedikuere: 8 };
+  if (manMode === 'hard_push' && pedMode === 'hard_push') budgets = { pmax: 5, manikuere: 8, pedikuere: 7 };
   else if (manMode === 'hard_push') budgets = { pmax: 3, manikuere: 12, pedikuere: 5 };
   else if (pedMode === 'hard_push') budgets = { pmax: 3, manikuere: 6, pedikuere: 11 };
   else if (manMode === 'push_mobile_today' && pedMode === 'push_mobile_today') budgets = { pmax: 6, manikuere: 14, pedikuere: 5 };
@@ -845,7 +845,7 @@ function allocateBudgets(byCategory, guard, performanceRisk) {
   else if (pedMode === 'push_mobile_today' && manMode === 'hold') budgets = { pmax: 7, manikuere: 7, pedikuere: 8 };
   else if (pedMode === 'push' && manMode === 'hold') budgets = { pmax: 7, manikuere: 7, pedikuere: 8 };
   else if (manMode === 'push' && pedMode === 'push_mobile_today') budgets = { pmax: 6, manikuere: 14, pedikuere: 6 };
-  else if (manMode === 'push' && pedMode === 'push') budgets = { pmax: 6, manikuere: 14, pedikuere: 8 };
+  else if (manMode === 'push' && pedMode === 'push') budgets = { pmax: 5, manikuere: 8, pedikuere: 7 };
   else if (manMode.startsWith('protect') && pedMode.startsWith('push')) budgets = { pmax: 8, manikuere: 2, pedikuere: 14 };
   else if (pedMode.startsWith('protect') && manMode.startsWith('push')) budgets = { pmax: 8, manikuere: 14, pedikuere: 2 };
   else if (manMode.startsWith('protect') && pedMode.startsWith('protect')) budgets = { pmax: 6, manikuere: 2, pedikuere: 2 };
@@ -859,7 +859,11 @@ function allocateBudgets(byCategory, guard, performanceRisk) {
       const hasNearTermManCapacity = key === 'manikuere' &&
         ['hard_push', 'push', 'push_next_72h', 'push_mobile_today'].includes(manMode) &&
         ((byCategory.manikuere?.today_slots || 0) > 0 || (byCategory.manikuere?.next_3_days_slots || 0) > 0);
-      const floor = hasNearTermPedCapacity ? 8 : hasNearTermManCapacity ? 8 : 0;
+      const floor = hasNearTermPedCapacity
+        ? (byCategory.pedikuere?.today_slots || 0) > 0 ? 8 : 7
+        : hasNearTermManCapacity
+          ? (byCategory.manikuere?.today_slots || 0) > 0 ? 8 : 7
+          : 0;
       budgets[key] = Math.max(floor, Math.min(budgets[key], risk.current_budget_hint_eur || 5));
     }
   }
