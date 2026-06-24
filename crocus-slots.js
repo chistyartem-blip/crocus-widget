@@ -14,7 +14,7 @@ var CONFIG = {
     { id: 3020185, name: 'Diana',  serviceId: 13485754 }, // Nagelkorrektur
     { id: 3020186, name: 'Nelia',  serviceId: 13485753 }, // Maniküre+Gel
     { id: 3020187, name: 'Sofia',  serviceId: 13485753 }, // Maniküre+Gel
-    { id: 3047989, name: 'Albina', serviceId: 13485771 }, // Master Lashes — Neuset
+    { id: 3047989, name: 'Albina', serviceId: 13485763 }, // Wimpernverlängerung Klassisch 1:1
   ],
   // Сколько дней вперёд искать ближайший слот
   lookAheadDays: 14,

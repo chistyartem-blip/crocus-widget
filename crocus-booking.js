@@ -191,9 +191,10 @@ var CATEGORIES = [
   {
     key: 'wimpern',
     label: 'Wimpern',
-    img: 'https://cdn.jsdelivr.net/gh/chistyartem-blip/crocus-widget@1a78ce1/assets/wimpern-card.png',
-    desc: 'Classic · Volumen 4D/6D · Wispy Look — natürlich oder dramatisch.',
-    serviceIds: [13485763,13485764,13485765,13485766,13485767,13485768,13485769,13485770,13485771,13485772,13485773],
+    img: 'https://cdn.jsdelivr.net/gh/chistyartem-blip/crocus-widget@a2499dd/assets/lash.webp',
+    fallbackImg: 'https://cdn.jsdelivr.net/gh/chistyartem-blip/crocus-widget@a2499dd/assets/lashes.webp',
+    desc: 'Classic · 2D · 3D · Volume · Lifting — natürlich oder dramatisch.',
+    serviceIds: [13485763,13485764,13485765,13485766,13485767,13485768,13485769,13622817,13485770,13485771,13485772,13485773],
   },
 ];
 
@@ -1525,7 +1526,7 @@ function openExpressNails() {
     .catch(function(){ renderCategories(KOMBI_STAFF_IDS[0]); });
 }
 
-var _SLOT_SERVICE = { 3020185: 13485754, 3020186: 13485753, 3020187: 13485753 };
+var _SLOT_SERVICE = { 3020185: 13485754, 3020186: 13485753, 3020187: 13485753, 3047989: 13485763 };
 
 function loadMasterSlot(staffId) {
   var serviceId = _SLOT_SERVICE[staffId];
@@ -1695,7 +1696,9 @@ function renderCategories(masterId) {
     btn.className = 'cw-cat-card';
     var priceHtml = categoryPriceFromAltegio(cat);
     var imgHtml = cat.img
-      ? '<img class="cw-cat-img" src="'+cat.img+'" alt="'+cat.label+'" loading="lazy">'
+      ? '<img class="cw-cat-img" src="'+cat.img+'" alt="'+cat.label+'" loading="lazy"'
+        + (cat.fallbackImg ? ' onerror="this.onerror=null;this.src=\''+cat.fallbackImg+'\'"' : '')
+        + '>'
       : '<div class="cw-cat-img" style="background:rgba(255,255,255,.05);display:flex;align-items:center;justify-content:center;font-size:22px">👁</div>';
     btn.innerHTML =
       imgHtml
