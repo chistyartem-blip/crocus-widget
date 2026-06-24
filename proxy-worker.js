@@ -25,6 +25,9 @@ const PUBLIC_PATHS = [
 const B2B_PATHS = [
   '/records/',
   '/record/',
+  '/schedule/',
+  '/timetable/',
+  '/company/',
   '/resources/',
   '/staff/',
   '/services/',
