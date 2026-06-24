@@ -559,6 +559,11 @@ var css = `
   /* Titles */
   .cw-title{font-size:20px}
   .cw-sub{font-size:11.5px;margin-bottom:10px}
+  .cw-direction-grid{grid-template-columns:1fr;gap:11px;margin-top:10px}
+  .cw-direction-card{min-height:250px;border-radius:17px}
+  .cw-direction-media{height:154px}
+  .cw-direction-title{font-size:24px}
+  .cw-direction-text{min-height:0}
 
   /* Calendar — bigger touch targets */
   .cw-cal-grid{gap:3px;padding:6px 6px 8px}
@@ -635,6 +640,26 @@ var css = `
 .cw-title{font-family:'Cormorant Garamond',Georgia,serif;font-size:23px;font-weight:300;color:#fdfaf8;letter-spacing:-.01em;margin:0 0 3px}
 .cw-sub{font-family:'DM Sans',sans-serif;font-size:12px;color:rgba(253,250,248,.38);margin:0 0 14px;line-height:1.5}
 .cw-sub strong{color:#c9a87c;font-weight:500}
+.cw-direction-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:12px 0 14px}
+.cw-direction-card{position:relative;min-height:292px;border:1px solid rgba(255,255,255,.09);border-radius:19px;background:rgba(255,255,255,.035);overflow:hidden;padding:0;color:inherit;font-family:inherit;text-align:left;cursor:pointer;display:flex;flex-direction:column;box-shadow:0 12px 30px rgba(0,0,0,.22);transition:transform .2s cubic-bezier(.2,.8,.2,1),border-color .2s,box-shadow .2s,background .2s;-webkit-tap-highlight-color:transparent}
+.cw-direction-card:hover{transform:translateY(-3px);border-color:rgba(201,168,124,.40);background:rgba(255,255,255,.055);box-shadow:0 16px 42px rgba(0,0,0,.34)}
+.cw-direction-card:active{transform:translateY(-1px) scale(.995)}
+.cw-direction-media{position:relative;height:176px;overflow:hidden;background:#120b10;flex-shrink:0}
+.cw-direction-media img{width:100%;height:100%;object-fit:cover;display:block;transform:scale(1.02);transition:transform .35s ease}
+.cw-direction-card:hover .cw-direction-media img{transform:scale(1.07)}
+.cw-direction-media::after{content:'';position:absolute;inset:0;background:linear-gradient(to bottom,rgba(5,4,8,0) 38%,rgba(5,4,8,.82) 100%),radial-gradient(circle at 20% 12%,rgba(255,255,255,.22),transparent 34%);pointer-events:none}
+.cw-direction-badge{position:absolute;left:12px;top:12px;z-index:1;display:inline-flex;align-items:center;gap:6px;padding:5px 10px;border-radius:999px;background:rgba(10,7,10,.58);border:1px solid rgba(255,255,255,.18);backdrop-filter:blur(8px);font-family:'DM Sans',sans-serif;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.11em;color:#f1d3a2}
+.cw-direction-body{position:relative;z-index:1;display:flex;flex-direction:column;gap:7px;flex:1;padding:13px 13px 14px}
+.cw-direction-title{font-family:'Cormorant Garamond',Georgia,serif;font-size:25px;font-weight:300;line-height:1.02;color:#fdfaf8;letter-spacing:-.015em}
+.cw-direction-text{font-family:'DM Sans',sans-serif;font-size:11.5px;line-height:1.45;color:rgba(253,250,248,.52);margin:0;min-height:50px}
+.cw-direction-meta{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:auto;padding-top:9px;border-top:1px solid rgba(255,255,255,.075)}
+.cw-direction-meta span{font-family:'DM Sans',sans-serif;font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:rgba(253,250,248,.45)}
+.cw-direction-arrow{width:27px;height:27px;border-radius:999px;display:grid;place-items:center;background:rgba(201,168,124,.11);border:1px solid rgba(201,168,124,.25);color:#e7c590;font-family:Georgia,serif;font-size:20px;line-height:20px;flex-shrink:0}
+.cw-direction-card--wimpern{background:linear-gradient(180deg,rgba(184,200,216,.07),rgba(201,168,124,.035));border-color:rgba(184,200,216,.14)}
+.cw-direction-card--wimpern:hover{border-color:rgba(184,200,216,.46);box-shadow:0 16px 42px rgba(0,0,0,.40),0 0 26px rgba(184,200,216,.10)}
+.cw-direction-card--nails{background:linear-gradient(180deg,rgba(123,45,78,.09),rgba(201,168,124,.035));border-color:rgba(201,168,124,.16)}
+.cw-direction-card--nails:hover{border-color:rgba(201,168,124,.44);box-shadow:0 16px 42px rgba(0,0,0,.38),0 0 24px rgba(123,45,78,.13)}
+.cw-direction-actions{display:flex;flex-direction:column;gap:10px;margin-top:12px}
 .cw-nav{display:flex;align-items:center;gap:10px;margin-bottom:12px}
 .cw-back{background:none;border:none;color:rgba(253,250,248,.35);font-family:'DM Sans',sans-serif;font-size:12px;cursor:pointer;padding:0;transition:color .15s;display:flex;align-items:center;gap:4px}
 .cw-back:hover{color:#c9a87c}
@@ -906,8 +931,53 @@ wrap.innerHTML =
     + '<div id="crocus-body">'
 
 
+      // Step 0 — Bereich
+      + '<div class="cw-step active" id="cw-step0">'
+        + '<h2 class="cw-title">Was möchtest du buchen?</h2>'
+        + '<p class="cw-sub">Wähle zuerst den Bereich — danach zeigen wir dir nur passende Meisterinnen und Behandlungen.</p>'
+        + '<div class="cw-direction-grid">'
+          + '<button class="cw-direction-card cw-direction-card--wimpern" id="cw-dir-wimpern" type="button">'
+            + '<div class="cw-direction-media">'
+              + '<span class="cw-direction-badge">Neu · Albina</span>'
+              + '<img src="https://cdn.jsdelivr.net/gh/chistyartem-blip/crocus-widget@68a8400/assets/lash.webp" alt="Wimpernverlängerung" loading="lazy" onerror="this.onerror=null;this.src=\'https://cdn.jsdelivr.net/gh/chistyartem-blip/crocus-widget@a2499dd/assets/lashes.webp\'">'
+            + '</div>'
+            + '<div class="cw-direction-body">'
+              + '<div class="cw-direction-title">Wimpern</div>'
+              + '<p class="cw-direction-text">Classic 1:1, 2D, 3D, Volume, Mega Volume und Lifting bei Albina.</p>'
+              + '<div class="cw-direction-meta"><span>ab 50 € · 40–90 Min</span><span class="cw-direction-arrow">›</span></div>'
+            + '</div>'
+          + '</button>'
+          + '<button class="cw-direction-card cw-direction-card--nails" id="cw-dir-nails" type="button">'
+            + '<div class="cw-direction-media">'
+              + '<span class="cw-direction-badge">Nägel · Pflege</span>'
+              + '<img src="https://cdn.jsdelivr.net/gh/chistyartem-blip/crocus-widget@68a8400/assets/manicure.webp" alt="Maniküre und Pediküre" loading="lazy" onerror="this.onerror=null;this.src=\'https://static.tildacdn.net/tild3038-3034-4734-a332-616564343331/close-up-image-woman.jpg\'">'
+            + '</div>'
+            + '<div class="cw-direction-body">'
+              + '<div class="cw-direction-title">Maniküre &amp; Pediküre</div>'
+              + '<p class="cw-direction-text">Gepflegte Hände und Füße: Gellack, Verstärkung, Verlängerung und Kombi.</p>'
+              + '<div class="cw-direction-meta"><span>Diana · Nelia · Sofia</span><span class="cw-direction-arrow">›</span></div>'
+            + '</div>'
+          + '</button>'
+        + '</div>'
+        + '<div class="cw-direction-actions">'
+          + '<button class="cw-express-cta" id="cw-btn-express-start" type="button">'
+            + '<span class="cw-express-glow" aria-hidden="true"></span>'
+            + '<span class="cw-express-ico">Spontan</span>'
+            + '<span><span class="cw-express-title">Kurzfristig zum Beauty-Termin</span><span class="cw-express-sub">Freie Zeiten für Nägel &amp; Wimpern.</span></span>'
+          + '</button>'
+          + '<button class="cw-gift-cta" id="cw-btn-gift-start" type="button">'
+            + '<div class="cw-gift-cta-icon">🎁</div>'
+            + '<div class="cw-gift-cta-text">'
+              + '<span class="cw-gift-cta-title">Geschenkgutschein kaufen</span>'
+              + '<span class="cw-gift-cta-sub">30 € · 50 € · 100 € — per E-Mail zugeschickt</span>'
+            + '</div>'
+            + '<span class="cw-gift-cta-arrow">›</span>'
+          + '</button>'
+        + '</div>'
+      + '</div>'
+
       // Step 1 — Master
-      + '<div class="cw-step active" id="cw-step1">'
+      + '<div class="cw-step" id="cw-step1">'
         + '<h2 class="cw-title">Wähle deine Meisterin</h2>'
         + '<p class="cw-sub">Jede Meisterin hat ihre eigene Stärke — lies kurz rein und wähle die Richtige für dich.</p>'
         + '<button class="cw-express-cta" id="cw-btn-express" type="button">'
@@ -1078,7 +1148,8 @@ document.body.appendChild(wrap);
 
 // ── State ──────────────────────────────────────────────────────
 var cw = {
-  step: 1,
+  step: 0,
+  direction: null,    // 'wimpern' | 'nails'
   master: null,       // object from MASTERS_META + API
   category: null,     // CATEGORIES item
   service: null,      // API service object
@@ -1181,15 +1252,16 @@ function resetWidgetScroll() {
 function ensureCrocusHistory() {
   if (!window.history || !window.history.pushState) return;
   var state = window.history.state || {};
+  var currentStep = currentCrocusHistoryStep();
   if (_crocusHistoryActive && state.crocusWidget && state.crocusOpen) {
-    if (window.history.replaceState && state.crocusStep !== (cw.step || 1)) {
-      window.history.replaceState({ crocusWidget: true, crocusOpen: true, crocusStep: cw.step || 1 }, '', window.location.href);
+    if (window.history.replaceState && state.crocusStep !== currentStep) {
+      window.history.replaceState({ crocusWidget: true, crocusOpen: true, crocusStep: currentStep }, '', window.location.href);
     }
     return;
   }
   if (state.crocusWidget && state.crocusOpen) {
-    if (window.history.replaceState && state.crocusStep !== (cw.step || 1)) {
-      window.history.replaceState({ crocusWidget: true, crocusOpen: true, crocusStep: cw.step || 1 }, '', window.location.href);
+    if (window.history.replaceState && state.crocusStep !== currentStep) {
+      window.history.replaceState({ crocusWidget: true, crocusOpen: true, crocusStep: currentStep }, '', window.location.href);
     }
     _crocusHistoryActive = true;
     return;
@@ -1197,20 +1269,25 @@ function ensureCrocusHistory() {
   if (!(state.crocusWidget && state.crocusOpen === false)) {
     window.history.pushState({ crocusWidget: true, crocusOpen: false }, '', window.location.href);
   }
-  window.history.pushState({ crocusWidget: true, crocusOpen: true, crocusStep: cw.step || 1 }, '', window.location.href);
+  window.history.pushState({ crocusWidget: true, crocusOpen: true, crocusStep: currentStep }, '', window.location.href);
   _crocusHistoryActive = true;
+}
+
+function currentCrocusHistoryStep() {
+  return (cw && (cw.step === 0 || cw.step)) ? cw.step : 0;
 }
 
 function pushCrocusStepHistory() {
   if (_crocusApplyingHistory || !isCrocusModalActive()) return;
   if (!window.history || !window.history.pushState) return;
   var state = window.history.state || {};
+  var currentStep = currentCrocusHistoryStep();
   if (!(state.crocusWidget && state.crocusOpen)) {
     ensureCrocusHistory();
     return;
   }
-  if (state.crocusStep === (cw.step || 1)) return;
-  window.history.pushState({ crocusWidget: true, crocusOpen: true, crocusStep: cw.step || 1 }, '', window.location.href);
+  if (state.crocusStep === currentStep) return;
+  window.history.pushState({ crocusWidget: true, crocusOpen: true, crocusStep: currentStep }, '', window.location.href);
   _crocusHistoryActive = true;
 }
 
@@ -1221,7 +1298,7 @@ function keepCrocusHistory() {
     if (!isCrocusModalActive()) return;
     var state = window.history.state || {};
     if (!(state.crocusWidget && state.crocusOpen)) {
-      window.history.pushState({ crocusWidget: true, crocusOpen: true, crocusStep: cw.step || 1 }, '', window.location.href);
+      window.history.pushState({ crocusWidget: true, crocusOpen: true, crocusStep: currentCrocusHistoryStep() }, '', window.location.href);
     }
     _crocusHistoryActive = true;
     requestAnimationFrame(function(){
@@ -1281,6 +1358,7 @@ function crocusOpen() {
   lockPageScroll();
   _crocusHistoryActive = false;
   ensureCrocusHistory();
+  if (cw.step === 0) updateProgress(0);
   requestAnimationFrame(function(){
     document.getElementById('crocus-backdrop').classList.add('visible');
     document.getElementById('crocus-modal').classList.add('open');
@@ -1320,6 +1398,23 @@ function crocusClose() {
 // ── Progress ───────────────────────────────────────────────────
 function updateProgress(n) {
   var total = 6;
+  var progress = document.getElementById('crocus-progress');
+  if (n === 0) {
+    if (progress) progress.style.display = 'none';
+    for (var z = 1; z <= total; z++) {
+      var zEl = document.getElementById('cp'+z);
+      var zLine = document.getElementById('cpline'+z);
+      if (zEl) {
+        zEl.classList.remove('active','done');
+        zEl.onclick = null;
+        var dot = zEl.querySelector('.cp-dot');
+        if (dot) dot.innerHTML = z;
+      }
+      if (zLine) zLine.classList.remove('filled');
+    }
+    return;
+  }
+  if (progress) progress.style.display = (n === 'success') ? 'none' : 'flex';
   for (var i = 1; i <= total; i++) {
     var el = document.getElementById('cp'+i);
     var line = document.getElementById('cpline'+i);
@@ -1450,6 +1545,10 @@ function serviceDurationForStaff(staffId, serviceId, slot, fallback) {
     || 0;
 }
 
+function categoryByKey(key) {
+  return CATEGORIES.filter(function(cat){ return cat.key === key; })[0] || null;
+}
+
 function fallbackMasters() {
   return visibleMasters(Object.keys(MASTERS_META).map(function(id) {
     return {
@@ -1469,6 +1568,17 @@ function visibleMasters(list) {
     if (m.bookable === false && ALWAYS_SHOW_STAFF_IDS.indexOf(Number(m.id)) === -1) return false;
     return true;
   });
+}
+
+function masterIsWimpern(master) {
+  var meta = master ? MASTERS_META[Number(master.id)] : null;
+  return !!(meta && meta.cats && meta.cats.indexOf('wimpern') !== -1);
+}
+
+function masterMatchesCurrentDirection(master) {
+  if (cw.direction === 'wimpern') return masterIsWimpern(master);
+  if (cw.direction === 'nails') return !masterIsWimpern(master);
+  return true;
 }
 
 // ── Load initial data ──────────────────────────────────────────
@@ -1495,7 +1605,8 @@ function loadInitialData(cb) {
     _addonObjs = mergeAddonCatalog(apiAddons);
     _globalAddonObjs = _addonObjs.slice();
     // Иначе оставляем предзаполненные из ADDON_STATIC_DATA
-    if (cb) { cb(); } else { renderMasters(); }
+    if (cb) { cb(); }
+    else if (cw.step === 1) { renderMasters(); }
   }).catch(function(err){
     var msg = err && err.message ? err.message : String(err);
     console.error('[crocus] loadInitialData failed:', msg);
@@ -1510,8 +1621,11 @@ function renderMasters() {
   var list = document.getElementById('cw-masters-list');
   list.innerHTML = '';
 
-  _allMasters = sortMasters(visibleMasters(_allMasters));
-  _allMasters.forEach(function(m) {
+  var masters = sortMasters(visibleMasters(_allMasters)).filter(masterMatchesCurrentDirection);
+  if (!masters.length && cw.direction === 'nails') {
+    masters = sortMasters(fallbackMasters()).filter(masterMatchesCurrentDirection);
+  }
+  masters.forEach(function(m) {
     var meta = MASTERS_META[m.id] || {
       level: 'Master',
       levelColor: '#c9748e',
@@ -1547,13 +1661,50 @@ function renderMasters() {
   });
 
   // Загружаем слоты для каждого мастера
-  _allMasters.forEach(function(m) {
+  masters.forEach(function(m) {
     loadMasterSlot(m.id);
   });
 }
 
+function chooseBookingDirection(direction) {
+  cw.direction = direction;
+  cw.express = false;
+  cw.master = null;
+  cw.category = null;
+  cw.service = null;
+  cw.addons = [];
+  cw.date = null;
+  cw.time = null;
+  cw.datetime = null;
+  cw.comboAppointments = null;
+  cw.comboRoute = null;
+
+  if (!_allMasters || !_allServices) {
+    loadInitialData(function(){ chooseBookingDirection(direction); });
+    return;
+  }
+
+  if (direction === 'wimpern') {
+    var staffId = WIMPER_STAFF_IDS[0];
+    var meta = MASTERS_META[staffId];
+    var master = masterById(staffId) || {
+      id: staffId,
+      name: STATIC_MASTER_NAMES[staffId] || 'Albina',
+      specialization: meta ? meta.tagline : 'Wimpern',
+      avatar: meta ? meta.avatar : '',
+      bookable: true,
+    };
+    selectMaster(master, meta);
+    return;
+  }
+
+  goStep(1);
+  renderMasters();
+}
+
 function openExpressNails() {
   cw.express = true;
+  cw.direction = null;
   cw.master = null;
   cw.category = null;
   cw.service = null;
@@ -1671,9 +1822,19 @@ function selectMaster(m, meta) {
           _globalAddonObjs = _addonObjs.slice();
         }
       }
+      if (cw.direction === 'wimpern') {
+        var wimpernCat = categoryByKey('wimpern');
+        if (wimpernCat) { selectCategory(wimpernCat); return; }
+      }
       renderCategories(m.id);
     })
-    .catch(function(){ renderCategories(m.id); });
+    .catch(function(){
+      if (cw.direction === 'wimpern') {
+        var wimpernCat = categoryByKey('wimpern');
+        if (wimpernCat) { selectCategory(wimpernCat); return; }
+      }
+      renderCategories(m.id);
+    });
 }
 
 // ── Step 2: Categories ─────────────────────────────────────────
@@ -3474,7 +3635,7 @@ function calNext() {
 
 // ── Reset ──────────────────────────────────────────────────────
 function crocusReset() {
-  cw = { step:1, master:null, category:null, service:null, addons:[],
+  cw = { step:0, direction:null, master:null, category:null, service:null, addons:[],
          date:null, time:null, datetime:null, comboAppointments:null, comboRoute:null,
          calY:new Date().getFullYear(), calM:new Date().getMonth(), availDates:[] };
   // Always re-enable submit button in case previous attempt left it disabled
@@ -3495,11 +3656,9 @@ function crocusReset() {
   if (consentEl) { consentEl.checked = true; consentEl.parentElement.classList.remove('invalid'); }
   var remindEl = document.getElementById('cw-email-remind');
   if (remindEl) remindEl.checked = true;
-  document.getElementById('crocus-progress').style.display = 'flex';
   document.querySelectorAll('.cw-step').forEach(function(el){ el.classList.remove('active'); });
-  document.getElementById('cw-step1').classList.add('active');
-  updateProgress(1);
-  if (_allMasters) renderMasters();
+  document.getElementById('cw-step0').classList.add('active');
+  updateProgress(0);
   resetWidgetScroll();
 }
 
@@ -3526,6 +3685,20 @@ function openGiftMode() {
   // Re-enable submit button in case previous attempt disabled it
   var gBtn = document.getElementById('cw-gift-submit');
   if (gBtn) { gBtn.disabled = false; gBtn.textContent = 'Gutschein anfragen →'; }
+}
+
+function returnToStartScreen() {
+  cw.direction = null;
+  cw.master = null;
+  cw.category = null;
+  cw.service = null;
+  cw.addons = [];
+  cw.date = null;
+  cw.time = null;
+  cw.datetime = null;
+  cw.comboAppointments = null;
+  cw.comboRoute = null;
+  goStep(0);
 }
 
 function ensureWimpernHoldStep() {
@@ -3703,13 +3876,7 @@ window.crocusOpenGutschein = function(ctaLocation) {
 window.crocusOpenMasters = function() {
   crocusOpen();
   setTimeout(function() {
-    // Сбрасываем до шага мастеров, игнорируем return screen
-    document.getElementById('crocus-progress').style.display = 'flex';
-    document.querySelectorAll('.cw-step').forEach(function(el){ el.classList.remove('active'); });
-    document.getElementById('cw-step1').classList.add('active');
-    updateProgress(1);
-    if (_allMasters) renderMasters();
-    resetWidgetScroll();
+    chooseBookingDirection('nails');
   }, 80);
 };
 
@@ -3722,7 +3889,7 @@ window.crocusOpenWimpern = function() {
     cta_location: 'goodshine_badge',
   });
   crocusOpen();
-  setTimeout(openWimpernHoldMode, 80);
+  setTimeout(function(){ chooseBookingDirection('wimpern'); }, 80);
 };
 
 // Мобильная кнопка — отдельная верстка
@@ -3802,8 +3969,11 @@ document.getElementById('crocus-backdrop').addEventListener('click', crocusClose
   document.addEventListener('click', trackExternalClick, true);
 })();
 document.getElementById('crocus-close').addEventListener('click', crocusClose);
-document.getElementById('cw-back1').addEventListener('click', function(){ goStep(1); });
-document.getElementById('cw-back2').addEventListener('click', function(){ goStep(2); });
+document.getElementById('cw-back1').addEventListener('click', function(){ returnToStartScreen(); });
+document.getElementById('cw-back2').addEventListener('click', function(){
+  if (cw.direction === 'wimpern' && !cw.express) { returnToStartScreen(); return; }
+  goStep(2);
+});
 document.getElementById('cw-back3').addEventListener('click', function(){ goStep(3); });
 document.getElementById('cw-back4').addEventListener('click', function(){
   // Назад из календаря — если пропускали допы, вернуть к услугам
@@ -3819,13 +3989,13 @@ document.getElementById('cw-form').addEventListener('submit', submitBooking);
 
 // Gift flow events
 document.getElementById('cw-btn-gift').addEventListener('click', openGiftMode);
+document.getElementById('cw-btn-gift-start').addEventListener('click', openGiftMode);
+document.getElementById('cw-btn-express-start').addEventListener('click', openExpressNails);
+document.getElementById('cw-dir-wimpern').addEventListener('click', function(){ chooseBookingDirection('wimpern'); });
+document.getElementById('cw-dir-nails').addEventListener('click', function(){ chooseBookingDirection('nails'); });
 
 document.getElementById('cw-gift-back1').addEventListener('click', function(){
-  document.getElementById('crocus-progress').style.display = 'flex';
-  document.querySelectorAll('.cw-step').forEach(function(el){ el.classList.remove('active'); });
-  document.getElementById('cw-step1').classList.add('active');
-  updateProgress(1);
-  resetWidgetScroll();
+  returnToStartScreen();
 });
 
 document.getElementById('cw-gift-back2').addEventListener('click', function(){
@@ -3998,21 +4168,22 @@ function crocusWidgetBack() {
     return true;
   }
   if (isGiftMode || isGiftSuccess) {
-    document.getElementById('crocus-progress').style.display = 'flex';
-    document.querySelectorAll('.cw-step').forEach(function(el){ el.classList.remove('active'); });
-    document.getElementById('cw-step1').classList.add('active');
-    updateProgress(1);
-    resetWidgetScroll();
+    returnToStartScreen();
     return true;
   }
 
   var step = cw.step;
-  if (step === 'success' || step === 1) {
+  if (step === 'success' || step === 0) {
     crocusClose();
     return false;
   }
+  if (step === 1) { returnToStartScreen(); return true; }
   if (step === 2) { goStep(1); return true; }
-  if (step === 3) { goStep(2); return true; }
+  if (step === 3) {
+    if (cw.direction === 'wimpern' && !cw.express) { returnToStartScreen(); return true; }
+    goStep(2);
+    return true;
+  }
   if (step === 4) { goStep(3); return true; }
   if (step === 5) {
     if (cw.express) { goStep(2); return true; }
@@ -4025,13 +4196,13 @@ function crocusWidgetBack() {
 }
 
 function isCrocusWidgetFirstScreen() {
-  var first = document.getElementById('cw-step1');
-  return cw.step === 1 || !!(first && first.classList.contains('active'));
+  var first = document.getElementById('cw-step0');
+  return cw.step === 0 || !!(first && first.classList.contains('active'));
 }
 
 function showCrocusStepFromHistory(step) {
   var target = step === 'success' ? 'success' : parseInt(step, 10);
-  if (target !== 'success' && (!target || target < 1 || target > 6)) target = 1;
+  if (target !== 'success' && (isNaN(target) || target < 0 || target > 6)) target = 0;
   cw.step = target;
   document.querySelectorAll('.cw-step').forEach(function(el){ el.classList.remove('active'); });
   var id = target === 'success' ? 'cw-success' : 'cw-step' + target;
@@ -4070,7 +4241,7 @@ window.addEventListener('popstate', function(e) {
   }
   if (state.crocusWidget && state.crocusOpen) {
     _crocusApplyingHistory = true;
-    showCrocusStepFromHistory(state.crocusStep || 1);
+    showCrocusStepFromHistory(state.crocusStep != null ? state.crocusStep : 0);
     _crocusApplyingHistory = false;
     _crocusHistoryActive = true;
     return;
@@ -4191,6 +4362,14 @@ if (document.readyState === 'loading') {
     '.cw-title{color:#1a0810!important;}' +
     '.cw-sub{color:rgba(26,8,16,.45)!important;}' +
     '.cw-sub strong{color:#c03468!important;}' +
+    '.cw-direction-card{background:#fff!important;border-color:rgba(26,8,16,.08)!important;box-shadow:0 8px 26px rgba(192,52,104,.10)!important;}' +
+    '.cw-direction-card:hover{border-color:rgba(192,52,104,.34)!important;box-shadow:0 14px 36px rgba(192,52,104,.18)!important;}' +
+    '.cw-direction-title{color:#1a0810!important;}' +
+    '.cw-direction-text{color:rgba(26,8,16,.56)!important;}' +
+    '.cw-direction-meta{border-top-color:rgba(26,8,16,.08)!important;}' +
+    '.cw-direction-meta span{color:rgba(26,8,16,.42)!important;}' +
+    '.cw-direction-badge{background:rgba(255,255,255,.78)!important;border-color:rgba(192,52,104,.20)!important;color:#c03468!important;}' +
+    '.cw-direction-arrow{background:rgba(192,52,104,.08)!important;border-color:rgba(192,52,104,.20)!important;color:#c03468!important;}' +
     '.cw-back{color:rgba(26,8,16,.40)!important;}' +
     '.cw-back:hover{color:#c03468!important;}' +
     '.cw-times-title{color:rgba(26,8,16,.40)!important;}' +
@@ -4822,6 +5001,15 @@ if (document.readyState === 'loading') {
     '.cw-title{color:#f0e8d8!important;}' +
     '.cw-sub{color:rgba(184,200,216,.45)!important;}' +
     '.cw-sub strong{color:#c9a87c!important;}' +
+    '.cw-direction-card{background:linear-gradient(180deg,rgba(184,200,216,.055),rgba(8,6,15,.72))!important;border-color:rgba(184,200,216,.13)!important;box-shadow:0 14px 34px rgba(0,0,0,.42)!important;}' +
+    '.cw-direction-card:hover{border-color:rgba(184,200,216,.42)!important;box-shadow:0 18px 46px rgba(0,0,0,.58),0 0 28px rgba(184,200,216,.11)!important;}' +
+    '.cw-direction-card--nails{background:linear-gradient(180deg,rgba(201,168,124,.075),rgba(8,6,15,.72))!important;}' +
+    '.cw-direction-title{color:#f0e8d8!important;}' +
+    '.cw-direction-text{color:rgba(184,200,216,.52)!important;}' +
+    '.cw-direction-meta{border-top-color:rgba(184,200,216,.11)!important;}' +
+    '.cw-direction-meta span{color:rgba(184,200,216,.47)!important;}' +
+    '.cw-direction-badge{background:rgba(8,6,15,.62)!important;border-color:rgba(184,200,216,.20)!important;color:#c9a87c!important;}' +
+    '.cw-direction-arrow{background:rgba(184,200,216,.08)!important;border-color:rgba(184,200,216,.22)!important;color:#c9a87c!important;}' +
     '.cw-back{color:rgba(184,200,216,.38)!important;}' +
     '.cw-back:hover{color:#c9a87c!important;}' +
     '.cw-times-title{color:rgba(184,200,216,.38)!important;}' +
