@@ -248,7 +248,7 @@ var EXPRESS_CATEGORY_KEYS = ['manikuere', 'pediküre', 'kombi', 'wimpern'];
 // from real book_record checks are blocked below.
 var TEMP_BLOCKED_RECORDS = [];
 var TEMP_BLOCK_GUARD_MS = 15 * 60 * 1000;
-var TIME_SLOT_DISPLAY_STEP_MIN = 30;
+var TIME_SLOT_DISPLAY_STEP_MIN = 15;
 var TEMP_UNBOOKABLE_SINGLE_SLOTS = [
   '3020187|13485753|2026-06-24T13:45:00+02:00',
   '3020187|13485753|2026-06-24T14:00:00+02:00',
@@ -3028,6 +3028,11 @@ function loadComboSlotsForDate(ds) {
     candidates.sort(function(a,b) {
       return String(a.datetime).localeCompare(String(b.datetime)) || routeSortKey(a.comboRoute).localeCompare(routeSortKey(b.comboRoute));
     });
+    var bestByStart = {};
+    candidates.forEach(function(candidate) {
+      putBestCandidate(bestByStart, candidate);
+    });
+    candidates = Object.keys(bestByStart).sort().map(function(key){ return bestByStart[key]; });
     console.log('[crocus] loadComboTimes: candidates='+candidates.length+' date='+ds);
     return batchCheckSlots(candidates, function(slot){ return slot.comboAppointments; }, {
       maxChecks: 48,
