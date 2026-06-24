@@ -105,7 +105,7 @@ var MASTERS_META = {
   },
 };
 
-var HIDDEN_STAFF_IDS = [Number(['3020', '188'].join('')), 3020006];
+var HIDDEN_STAFF_IDS = [Number(['3020', '188'].join('')), 3020006, 3047641];
 function isHiddenStaffId(staffId) {
   return HIDDEN_STAFF_IDS.indexOf(Number(staffId)) !== -1;
 }
