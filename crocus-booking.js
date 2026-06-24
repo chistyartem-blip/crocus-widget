@@ -194,14 +194,17 @@ var CATEGORIES = [
     img: 'https://cdn.jsdelivr.net/gh/chistyartem-blip/crocus-widget@a2499dd/assets/lash.webp',
     fallbackImg: 'https://cdn.jsdelivr.net/gh/chistyartem-blip/crocus-widget@a2499dd/assets/lashes.webp',
     desc: 'Classic · 2D · 3D · Volume · Lifting — natürlich oder dramatisch.',
-    serviceIds: [13485763,13485764,13485765,13485766,13485767,13485768,13485769,13622817,13485770,13485771,13485772,13485773],
+    serviceIds: [13485763,13485764,13485765,13485766,13485767,13485768,13485769,13622817],
   },
 ];
 
 // Все возможные допы (French, Babyboomer, Stiletto, Design, Gel-Lack, Mandel, Lange Nägel)
 // Länge über 2 (13493659) — отключён (inactive), Lange Nägel (13493664) — активен
 // Nageldesign (13485759) — исключён (дубль дороже), оставлен только Design 5€ (13502360)
-var ADDON_IDS = [13485756, 13485757, 13485758, 13502359, 13502360, 13502395, 13493664];
+var NAIL_ADDON_IDS = [13485756, 13485757, 13485758, 13502359, 13502360, 13502395, 13493664];
+var WIMPER_ADDON_IDS = [13485770, 13485771, 13485772, 13485773];
+var WIMPER_MAIN_SERVICE_IDS = [13485763, 13485764, 13485765, 13485766, 13485767, 13485768, 13485769, 13622817];
+var ADDON_IDS = NAIL_ADDON_IDS.concat(WIMPER_ADDON_IDS);
 
 // Услуги БЕЗ допов совсем
 // 13485752 = Гигиенический маникюр
@@ -220,6 +223,9 @@ var ADDON_IDS_BY_SERVICE = {
   13485755: [13485756, 13485758, 13502359, 13502360, 13493664], // Наращивание
   13485762: [13485756], // Комби: French (Hände + Füße) — обрабатывается через KOMBI_VIRTUAL_ADDONS
 };
+WIMPER_MAIN_SERVICE_IDS.forEach(function(id) {
+  ADDON_IDS_BY_SERVICE[id] = WIMPER_ADDON_IDS.slice();
+});
 
 // Для Комби — виртуальные аддоны (French дважды с разными метками)
 var KOMBI_VIRTUAL_ADDONS = [
@@ -230,7 +236,6 @@ var WIMPER_SERVICE_GROUPS = [
   { key: 'neuset', title: 'Neuset', note: '90 Min', ids: [13485763, 13485764, 13485765, 13485766, 13485767] },
   { key: 'korrektur', title: 'Korrektur', note: '60 Min', ids: [13485768, 13485769] },
   { key: 'lifting', title: 'Lifting', note: '40 Min', ids: [13622817] },
-  { key: 'extras', title: 'Extras', note: 'optional', ids: [13485770, 13485771, 13485772, 13485773] },
 ];
 var KOMBI_SERVICE_ID = 13485762;
 var KOMBI_MANI_SERVICE_ID = 13485753;
@@ -286,6 +291,10 @@ var ADDON_NAME_OVERRIDE = {
   13502360: 'Design',
   13502395: 'Mandel-Form',
   13493664: 'Lange Nagel',
+  13485770: 'Farbige Wimpern',
+  13485771: 'Strasssteinchen pro Stück',
+  13485772: 'Wimpern entfernen',
+  13485773: 'Wet Look Effekt',
 };
 
 // Статические данные аддонов — используются как немедленный fallback если API пуст
@@ -297,7 +306,21 @@ var ADDON_STATIC_DATA = [
   { id: 13502360, title: 'Design',            price_min: 5  },
   { id: 13502395, title: 'Mandel-Form',       price_min: 5  },
   { id: 13493664, title: 'Lange Nagel',       price_min: 10 },
+  { id: 13485770, title: 'Farbige Wimpern',             price_min: 10, seance_length: 900  },
+  { id: 13485771, title: 'Strasssteinchen pro Stück',   price_min: 5,  seance_length: 900  },
+  { id: 13485772, title: 'Wimpern entfernen',           price_min: 10, seance_length: 1800 },
+  { id: 13485773, title: 'Wet Look Effekt',             price_min: 10, seance_length: 900  },
 ];
+function mergeAddonCatalog(apiAddons) {
+  var byId = {};
+  ADDON_STATIC_DATA.concat(apiAddons || []).forEach(function(addon) {
+    var id = Number(addon && addon.id);
+    if (!id || ADDON_IDS.indexOf(id) === -1) return;
+    byId[id] = Object.assign({}, byId[id] || {}, addon, { id: id });
+  });
+  return Object.keys(byId).map(function(id){ return byId[id]; })
+    .sort(function(a, b){ return ADDON_IDS.indexOf(a.id) - ADDON_IDS.indexOf(b.id); });
+}
 function addonDisplayName(addon) {
   if (addon._kombiLabel) return addon._kombiLabel;
   return ADDON_NAME_OVERRIDE[addon.id] || addon.title;
@@ -1329,8 +1352,7 @@ function goStepBack(target) {
   if (target >= current) return;
   // Если идём назад на шаг 4 (Extra) но для этой категории допы пропускались — пропускаем
   if (target === 4) {
-    var skipBack = cw.category && cw.category.key === 'wimpern';
-    if (!skipBack) skipBack = !!(cw.service && NO_ADDON_SERVICE_IDS.indexOf(cw.service.id) !== -1);
+    var skipBack = !!(cw.service && NO_ADDON_SERVICE_IDS.indexOf(cw.service.id) !== -1);
     if (skipBack) { goStep(3); return; }
   }
   goStep(target);
@@ -1392,7 +1414,10 @@ function fetchStaffServices(staffId) {
 
 function serviceForStaff(staffId, serviceId) {
   var map = _serviceCacheByStaff[Number(staffId)] || {};
-  return map[serviceId] || (_allServices || []).filter(function(s){ return s.id === serviceId; })[0] || {};
+  return map[serviceId]
+    || (_allServices || []).filter(function(s){ return s.id === serviceId; })[0]
+    || ADDON_STATIC_DATA.filter(function(s){ return s.id === Number(serviceId); })[0]
+    || {};
 }
 
 function servicePriceForStaff(staffId, serviceId) {
@@ -1456,11 +1481,8 @@ function loadInitialData(cb) {
     _allServices = (svcRes.data && svcRes.data.services) ? svcRes.data.services : [];
     // cache addon objects — глобальный кэш без staff_id, используется всегда
     var apiAddons = _allServices.filter(function(s){ return ADDON_IDS.indexOf(s.id) !== -1; });
-    // Мержим: берём API данные если есть, иначе оставляем статику
-    if (apiAddons.length) {
-      _addonObjs = apiAddons;
-      _globalAddonObjs = apiAddons.slice();
-    }
+    _addonObjs = mergeAddonCatalog(apiAddons);
+    _globalAddonObjs = _addonObjs.slice();
     // Иначе оставляем предзаполненные из ADDON_STATIC_DATA
     if (cb) { cb(); } else { renderMasters(); }
   }).catch(function(err){
@@ -1634,7 +1656,8 @@ function selectMaster(m, meta) {
         } else {
           // fallback: если глобальный кэш пустой — берём из текущего ответа
           var fromCurrent = _allServices.filter(function(s){ return ADDON_IDS.indexOf(s.id) !== -1; });
-          if (fromCurrent.length) { _addonObjs = fromCurrent; _globalAddonObjs = fromCurrent.slice(); }
+          _addonObjs = mergeAddonCatalog(fromCurrent);
+          _globalAddonObjs = _addonObjs.slice();
         }
       }
       renderCategories(m.id);
@@ -1880,7 +1903,7 @@ function renderServices(cat) {
       '<img src="'+img+'" alt="Albina" loading="lazy" onerror="this.remove()">'
       + '<div>'
         + '<div class="cw-wimp-visual-title">Albina &middot; Lash Artistin</div>'
-        + '<div class="cw-wimp-visual-sub">Neuset, Korrektur, Lifting und Extras klar sortiert.</div>'
+        + '<div class="cw-wimp-visual-sub">Neuset, Korrektur und Lifting. Extras wählst du im nächsten Schritt.</div>'
       + '</div>';
     list.appendChild(visual);
   }
@@ -1999,14 +2022,6 @@ function selectService(s) {
   // Tracking
   window.dataLayer = window.dataLayer || [];
   window.dataLayer.push({ event: 'booking_service_selected', service_name: s.title, category: cw.category ? cw.category.label : '', master_name: cw.master ? cw.master.name : '', page_location: window.location.href });
-  // Для ресниц — всегда пропускаем допы
-  if (cw.category.key === 'wimpern') {
-    buildStep5Sub();
-    goStep(5);
-    renderCalendar();
-    loadAvailDates();
-    return;
-  }
   // Для услуг без допов — пропускаем шаг 4
   console.log('[crocus] selectService id='+s.id+' NO_ADDON_check='+(NO_ADDON_SERVICE_IDS.indexOf(s.id)!==-1)+' _addonObjs.length='+_addonObjs.length);
   if (NO_ADDON_SERVICE_IDS.indexOf(s.id) !== -1) {
@@ -2083,12 +2098,12 @@ function renderAddons() {
 
     var kombiById = {};
     ADDON_STATIC_DATA.concat(_addonObjs).forEach(function(s) {
-      if (ADDON_IDS.indexOf(s.id) === -1) return;
+      if (NAIL_ADDON_IDS.indexOf(s.id) === -1) return;
       if (s.id === 13485756) return;
       kombiById[s.id] = Object.assign({}, kombiById[s.id] || {}, s);
     });
     var kombiExtraAddons = Object.keys(kombiById).map(function(id){ return kombiById[id]; });
-    kombiExtraAddons.sort(function(a, b){ return ADDON_IDS.indexOf(a.id) - ADDON_IDS.indexOf(b.id); });
+    kombiExtraAddons.sort(function(a, b){ return NAIL_ADDON_IDS.indexOf(a.id) - NAIL_ADDON_IDS.indexOf(b.id); });
     kombiExtraAddons.forEach(function(s) {
       var priceStr = s.price_min ? '+ '+s.price_min+' €' : '';
       var btn = document.createElement('button');
@@ -3757,8 +3772,7 @@ document.getElementById('cw-back2').addEventListener('click', function(){ goStep
 document.getElementById('cw-back3').addEventListener('click', function(){ goStep(3); });
 document.getElementById('cw-back4').addEventListener('click', function(){
   // Назад из календаря — если пропускали допы, вернуть к услугам
-  var skipBack = (cw.category && cw.category.key === 'wimpern')
-    || (cw.service && NO_ADDON_SERVICE_IDS.indexOf(cw.service.id) !== -1);
+  var skipBack = !!(cw.service && NO_ADDON_SERVICE_IDS.indexOf(cw.service.id) !== -1);
   goStep(skipBack ? 3 : 4);
 });
 document.getElementById('cw-back5').addEventListener('click', function(){ goStep(5); });
@@ -3967,8 +3981,7 @@ function crocusWidgetBack() {
   if (step === 4) { goStep(3); return true; }
   if (step === 5) {
     if (cw.express) { goStep(2); return true; }
-    var skipBack = (cw.category && cw.category.key === 'wimpern')
-      || (cw.service && NO_ADDON_SERVICE_IDS.indexOf(cw.service.id) !== -1);
+    var skipBack = !!(cw.service && NO_ADDON_SERVICE_IDS.indexOf(cw.service.id) !== -1);
     goStep(skipBack ? 3 : 4);
     return true;
   }
