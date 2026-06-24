@@ -205,24 +205,9 @@ var KOMBI_MANI_SERVICE_ID = 13485753;
 var KOMBI_PEDI_SERVICE_ID = 13485761;
 var KOMBI_STAFF_IDS = [3020185, 3020186, 3020187];
 
-// Temporary guard for CODEx test records created during live booking checks.
-// Remove these after the records with phone +4915700000616 are deleted in Altegio.
-var TEMP_BLOCKED_RECORDS = [
-  { staffId: 3020186, datetime: '2026-06-24T11:15:00+02:00', duration: 1800 },
-  { staffId: 3020186, datetime: '2026-06-24T16:25:00+02:00', duration: 6300 },
-  { staffId: 3020187, datetime: '2026-06-24T13:45:00+02:00', duration: 1800 },
-  { staffId: 3020187, datetime: '2026-06-24T11:15:00+02:00', duration: 2700 },
-  { staffId: 3020187, datetime: '2026-06-24T16:30:00+02:00', duration: 5400 },
-  { staffId: 3020185, datetime: '2026-06-25T18:45:00+02:00', duration: 1800 },
-  { staffId: 3020185, datetime: '2026-06-25T19:20:00+02:00', duration: 2700 },
-  { staffId: 3020186, datetime: '2026-06-25T09:00:00+02:00', duration: 1800 },
-  { staffId: 3020186, datetime: '2026-06-25T15:35:00+02:00', duration: 6300 },
-  { staffId: 3020186, datetime: '2026-06-25T09:45:00+02:00', duration: 2700 },
-  { staffId: 3020187, datetime: '2026-06-25T13:15:00+02:00', duration: 1800 },
-  { staffId: 3020185, datetime: '2026-06-26T11:30:00+02:00', duration: 1800 },
-  { staffId: 3020186, datetime: '2026-06-26T09:00:00+02:00', duration: 1800 },
-  { staffId: 3020186, datetime: '2026-06-26T14:55:00+02:00', duration: 2700 },
-];
+// Stale test reservations are not hard-coded here. Only proven 409 slots
+// from real book_record checks are blocked below.
+var TEMP_BLOCKED_RECORDS = [];
 var TEMP_BLOCK_GUARD_MS = 15 * 60 * 1000;
 var TEMP_UNBOOKABLE_SINGLE_SLOTS = [
   '3020187|13485753|2026-06-24T13:45:00+02:00',
