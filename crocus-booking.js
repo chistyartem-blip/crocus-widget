@@ -2466,6 +2466,7 @@ function loadSingleExpressSlotsForDate(serviceId, ds, target) {
         }));
       });
     });
+    candidates = filterTestBlockedSlots(candidates, serviceId);
     candidates.sort(function(a,b){ return String(a.datetime).localeCompare(String(b.datetime)); });
     return batchCheckSlots(candidates, function(slot){ return [slot.expressAppointment]; }, {
       maxChecks: 24,
