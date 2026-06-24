@@ -224,6 +224,31 @@ var TEMP_BLOCKED_RECORDS = [
   { staffId: 3020186, datetime: '2026-06-26T14:55:00+02:00', duration: 2700 },
 ];
 var TEMP_BLOCK_GUARD_MS = 15 * 60 * 1000;
+var TEMP_UNBOOKABLE_SINGLE_SLOTS = [
+  '3020187|13485753|2026-06-24T13:45:00+02:00',
+  '3020187|13485753|2026-06-24T14:00:00+02:00',
+  '3020187|13485753|2026-06-24T14:15:00+02:00',
+  '3020187|13485754|2026-06-24T13:45:00+02:00',
+  '3020187|13485754|2026-06-24T14:00:00+02:00',
+  '3020187|13485754|2026-06-24T14:15:00+02:00',
+  '3020187|13485755|2026-06-24T13:45:00+02:00',
+  '3020187|13485755|2026-06-24T14:00:00+02:00',
+  '3020187|13485755|2026-06-24T14:15:00+02:00',
+  '3020187|13485753|2026-06-25T14:30:00+02:00',
+  '3020187|13485753|2026-06-25T14:45:00+02:00',
+  '3020187|13485753|2026-06-25T15:00:00+02:00',
+  '3020187|13485753|2026-06-25T15:15:00+02:00',
+  '3020187|13485753|2026-06-25T15:30:00+02:00',
+  '3020187|13485754|2026-06-25T14:30:00+02:00',
+  '3020187|13485754|2026-06-25T14:45:00+02:00',
+  '3020187|13485754|2026-06-25T15:00:00+02:00',
+  '3020187|13485754|2026-06-25T15:15:00+02:00',
+  '3020187|13485754|2026-06-25T15:30:00+02:00',
+  '3020187|13485755|2026-06-25T14:30:00+02:00',
+  '3020187|13485755|2026-06-25T14:45:00+02:00',
+  '3020187|13485755|2026-06-25T15:00:00+02:00',
+  '3020187|13485755|2026-06-25T15:15:00+02:00',
+];
 
 // Mandel-Form (13502395) — только для Nelia и Sofia
 var MANDEL_STAFF_IDS = [3020186, 3020187];
@@ -2545,9 +2570,16 @@ function isSlotBlockedByTest(slot) {
   return staffId && duration && isIntervalBlockedByTest(staffId, slot.datetime, duration);
 }
 
+function isSingleSlotMarkedUnbookable(slot) {
+  if (!slot || !cw.service || Number(cw.service.id) === KOMBI_SERVICE_ID) return false;
+  var staffId = Number(slot.staff_id || (slot.expressMaster && slot.expressMaster.id) || (cw.master && cw.master.id));
+  var key = staffId + '|' + Number(cw.service.id) + '|' + String(slot.datetime || '');
+  return TEMP_UNBOOKABLE_SINGLE_SLOTS.indexOf(key) !== -1;
+}
+
 function filterTestBlockedSlots(slots) {
   return (slots || []).filter(function(slot) {
-    return !isSlotBlockedByTest(slot);
+    return !isSlotBlockedByTest(slot) && !isSingleSlotMarkedUnbookable(slot);
   });
 }
 
@@ -2884,7 +2916,7 @@ function makeComboCandidate(opts) {
 }
 
 function chooseTimeSlot(slot, slots) {
-  if (isSlotBlockedByTest(slot)) {
+  if (isSlotBlockedByTest(slot) || isSingleSlotMarkedUnbookable(slot)) {
     showSelectedSlotError(slots, 'Dieser Termin wurde gerade belegt. Bitte wÃ¤hlen Sie eine andere Zeit.', String(slot.datetime || slot.time || ''));
     return;
   }
