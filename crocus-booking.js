@@ -226,6 +226,12 @@ var KOMBI_VIRTUAL_ADDONS = [
   { _variantKey: 'french_hands', id: 13485756, title: 'French (Hände)', _kombiLabel: 'French (Hände)' },
   { _variantKey: 'french_feet',  id: 13485756, title: 'French (Füße)',  _kombiLabel: 'French (Füße)' },
 ];
+var WIMPER_SERVICE_GROUPS = [
+  { key: 'neuset', title: 'Neuset', note: '90 Min', ids: [13485763, 13485764, 13485765, 13485766, 13485767] },
+  { key: 'korrektur', title: 'Korrektur', note: '60 Min', ids: [13485768, 13485769] },
+  { key: 'lifting', title: 'Lifting', note: '40 Min', ids: [13622817] },
+  { key: 'extras', title: 'Extras', note: 'optional', ids: [13485770, 13485771, 13485772, 13485773] },
+];
 var KOMBI_SERVICE_ID = 13485762;
 var KOMBI_MANI_SERVICE_ID = 13485753;
 var KOMBI_PEDI_SERVICE_ID = 13485761;
@@ -647,6 +653,16 @@ var css = `
 
 /* ── Step 3: Services ── */
 .cw-services{display:flex;flex-direction:column;gap:8px}
+.cw-wimp-visual{display:flex;align-items:center;gap:12px;background:linear-gradient(135deg,rgba(184,200,216,.08),rgba(201,168,124,.06));border:1px solid rgba(184,200,216,.14);border-radius:14px;padding:10px 12px;margin:0 0 4px;overflow:hidden}
+.cw-wimp-visual img{width:54px;height:54px;border-radius:12px;object-fit:cover;flex-shrink:0;border:1px solid rgba(255,255,255,.12)}
+.cw-wimp-visual-title{font-family:'Cormorant Garamond',Georgia,serif;font-size:18px;font-weight:300;color:#fdfaf8;line-height:1.1}
+.cw-wimp-visual-sub{font-family:'DM Sans',sans-serif;font-size:10.5px;color:rgba(253,250,248,.45);line-height:1.45;margin-top:3px}
+.cw-svc-group{display:flex;align-items:center;gap:9px;margin:8px 2px 0}
+.cw-svc-group::after{content:'';height:1px;flex:1;background:linear-gradient(to right,rgba(201,168,124,.18),transparent)}
+.cw-svc-group-title{font-family:'DM Sans',sans-serif;font-size:9.5px;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:rgba(201,168,124,.70)}
+.cw-svc-group-note{font-family:'DM Sans',sans-serif;font-size:9px;color:rgba(253,250,248,.32)}
+.cw-svc-btn--extra .cw-svc-price::before{content:'+ '}
+.cw-svc-btn--extra .cw-svc-name{color:rgba(253,250,248,.86)}
 .cw-svc-btn{display:flex;align-items:center;justify-content:space-between;gap:10px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:13px;padding:13px 14px;cursor:pointer;text-align:left;color:inherit;width:100%;font-family:inherit;transition:all .2s;-webkit-tap-highlight-color:transparent;outline:none}
 .cw-svc-btn:focus{outline:none;background:rgba(255,255,255,.03);border-color:rgba(255,255,255,.07)}
 .cw-svc-btn:focus:not(:focus-visible){background:rgba(255,255,255,.03);border-color:rgba(255,255,255,.07)}
@@ -1851,7 +1867,37 @@ function renderServices(cat) {
     return;
   }
 
-  svcs.forEach(function(s) {
+  var byId = {};
+  svcs.forEach(function(s){ byId[s.id] = s; });
+
+  function appendWimperVisual() {
+    var visual = document.createElement('div');
+    var img = cw.master && cw.master.avatar
+      ? cw.master.avatar
+      : 'https://cdn.jsdelivr.net/gh/chistyartem-blip/crocus-widget@0df00f6/assets/albina.webp';
+    visual.className = 'cw-wimp-visual';
+    visual.innerHTML =
+      '<img src="'+img+'" alt="Albina" loading="lazy" onerror="this.remove()">'
+      + '<div>'
+        + '<div class="cw-wimp-visual-title">Albina &middot; Lash Artistin</div>'
+        + '<div class="cw-wimp-visual-sub">Neuset, Korrektur, Lifting und Extras klar sortiert.</div>'
+      + '</div>';
+    list.appendChild(visual);
+  }
+
+  function appendServiceGroup(group) {
+    var groupSvcs = group.ids.map(function(id){ return byId[id]; }).filter(Boolean);
+    if (!groupSvcs.length) return;
+    var heading = document.createElement('div');
+    heading.className = 'cw-svc-group';
+    heading.innerHTML =
+      '<span class="cw-svc-group-title">'+group.title+'</span>'
+      + '<span class="cw-svc-group-note">'+group.note+'</span>';
+    list.appendChild(heading);
+    groupSvcs.forEach(function(s){ appendServiceButton(s, group.key); });
+  }
+
+  function appendServiceButton(s, groupKey) {
     // Цена конкретного мастера из staff[], иначе общий price_min/max
     var minP = s.price_min || 0;
     var maxP = s.price_max || 0;
@@ -1882,13 +1928,12 @@ function renderServices(cat) {
         minP = Math.min.apply(Math, staffPrices);
         maxP = Math.max.apply(Math, staffPrices);
         priceStr = minP === maxP ? minP+' &euro;' : 'ab '+minP+' &euro;';
-        priceStr = minP === maxP ? minP+' â‚¬' : 'ab '+minP+' â‚¬';
       }
     }
 
     var btn = document.createElement('button');
     if (cw.express) priceStr = minP === maxP ? minP+' &euro;' : 'ab '+minP+' &euro;';
-    btn.className = 'cw-svc-btn';
+    btn.className = 'cw-svc-btn' + (groupKey === 'extras' ? ' cw-svc-btn--extra' : '');
     if (cw.express) {
       btn.disabled = true;
       btn.dataset.serviceId = s.id;
@@ -1903,7 +1948,15 @@ function renderServices(cat) {
     btn.addEventListener('click', function(){ selectService(s); });
     list.appendChild(btn);
     if (cw.express) hydrateExpressServiceStatus(s, btn);
-  });
+  }
+
+  if (cat.key === 'wimpern') {
+    appendWimperVisual();
+    WIMPER_SERVICE_GROUPS.forEach(appendServiceGroup);
+    return;
+  }
+
+  svcs.forEach(function(s){ appendServiceButton(s); });
 }
 
 function loadExpressServicePreview(serviceId) {
