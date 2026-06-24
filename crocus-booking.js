@@ -2548,6 +2548,27 @@ function filterTestBlockedSlots(slots) {
   });
 }
 
+function blockCurrentSelection() {
+  if (!cw.datetime || !cw.master || !cw.service || cw.service.id === KOMBI_SERVICE_ID) return;
+  var duration = currentSingleDurationForStaff(cw.master.id, cw.service.id)
+    || serviceDurationForStaff(cw.master.id, cw.service.id, null, 0);
+  if (!duration) return;
+  TEMP_BLOCKED_RECORDS.push({
+    staffId: Number(cw.master.id),
+    datetime: cw.datetime,
+    duration: duration,
+  });
+}
+
+function isAvailabilityMessage(msg) {
+  msg = String(msg || '').toLowerCase();
+  return msg.indexOf('not available') !== -1
+    || msg.indexOf('choose a different time') !== -1
+    || msg.indexOf('belegt') !== -1
+    || msg.indexOf('andere zeit') !== -1
+    || msg.indexOf('unavailable') !== -1;
+}
+
 function comboAppointment(serviceId, staffId, datetime) {
   return { id: serviceId, services: [serviceId], staff_id: Number(staffId), datetime: datetime };
 }
@@ -3195,7 +3216,12 @@ function submitBooking(e) {
     })
     .then(function(res){
       console.log('[Crocus] Booking response:', res);
-      if (!res.success) throw new Error((res.meta && res.meta.message) || res.message || 'Buchungsfehler');
+      if (!res.success) {
+        var bookingMsg = (res.meta && res.meta.message) || res.message || 'Buchungsfehler';
+        var bookingErr = new Error(bookingMsg);
+        if (isAvailabilityMessage(bookingMsg)) bookingErr.isAvailability = true;
+        throw bookingErr;
+      }
       var dateStr = cw.date
         ? new Date(cw.date+'T12:00:00').toLocaleDateString('de-DE',{weekday:'long',day:'numeric',month:'long'})
         : '';
@@ -3282,12 +3308,14 @@ function submitBooking(e) {
     .catch(function(err){
       console.error('[Crocus] Booking error:', err);
       if (err && err.isAvailability) {
+        blockCurrentSelection();
         cw.time = null;
         cw.datetime = null;
         cw.comboAppointments = null;
         cw.comboRoute = null;
         goStep(5);
         loadTimes();
+        return;
       }
       btn.disabled = false; btn.textContent = 'Termin bestätigen →';
       var old = document.getElementById('cw-form').querySelector('.cw-err-msg');
