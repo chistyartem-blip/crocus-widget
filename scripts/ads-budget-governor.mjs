@@ -39,7 +39,7 @@ const CONFIG = {
 };
 
 const CAMPAIGNS = {
-  pmax: { id: '23833205018', name: '[PMax] Crocus Beauty Studio - Goeppingen', minBudget: 4, maxBudget: 15 },
+  pmax: { id: '23833205018', name: '[PMax] Crocus Beauty Studio - Goeppingen', minBudget: 3, maxBudget: 15 },
   pedikuere: { id: '23873203584', name: '[Slim] Pedikuere - Goeppingen', minBudget: 2, maxBudget: 12 },
   manikuere: { id: '23878434401', name: '[Slim] Manikuere - Goeppingen', minBudget: 2, maxBudget: 14 },
 };
@@ -67,7 +67,7 @@ const WIDGET_SLOT_MASTERS = [
 
 const SEARCH_BID_RULES = {
   manikuere: {
-    hard_push: { exact: 0.95, phrase: 0.55 },
+    hard_push: { exact: 0.75, phrase: 0.55 },
     push: { exact: 0.75, phrase: 0.45 },
     push_next_72h: { exact: 0.95, phrase: 0.55 },
     push_mobile_today: { exact: 0.65, phrase: 0.40 },
@@ -75,7 +75,7 @@ const SEARCH_BID_RULES = {
     protect_budget: { exact: 0.20, phrase: 0.15 },
   },
   pedikuere: {
-    hard_push: { exact: 0.55, phrase: 0.34 },
+    hard_push: { exact: 0.72, phrase: 0.34 },
     push: { exact: 0.42, phrase: 0.28 },
     push_next_72h: { exact: 0.55, phrase: 0.34 },
     push_mobile_today: { exact: 0.38, phrase: 0.25 },
@@ -92,10 +92,10 @@ const KEYWORD_RULES = {
       'manikure pedikure termin goppingen',
       'manikure und pedikure goppingen',
       'manikure termin goppingen',
-      'nagelstudio online termin',
-      'nagelstudio termin goppingen',
     ],
     cautious: [
+      'nagelstudio online termin',
+      'nagelstudio termin goppingen',
       'nagelstudio goppingen',
       'nagel goppingen',
       'nagelstudio eislingen',
@@ -829,9 +829,9 @@ function allocateBudgets(byCategory, guard, performanceRisk) {
 
   let budgets = { pmax: 8, manikuere: 8, pedikuere: 6 };
 
-  if (manMode === 'hard_push' && pedMode === 'hard_push') budgets = { pmax: 6, manikuere: 14, pedikuere: 8 };
-  else if (manMode === 'hard_push') budgets = { pmax: 6, manikuere: 14, pedikuere: 4 };
-  else if (pedMode === 'hard_push') budgets = { pmax: 7, manikuere: 6, pedikuere: 10 };
+  if (manMode === 'hard_push' && pedMode === 'hard_push') budgets = { pmax: 3, manikuere: 9, pedikuere: 8 };
+  else if (manMode === 'hard_push') budgets = { pmax: 3, manikuere: 12, pedikuere: 5 };
+  else if (pedMode === 'hard_push') budgets = { pmax: 3, manikuere: 6, pedikuere: 11 };
   else if (manMode === 'push_mobile_today' && pedMode === 'push_mobile_today') budgets = { pmax: 6, manikuere: 14, pedikuere: 5 };
   else if (manMode === 'push_mobile_today' && pedMode === 'hold') budgets = { pmax: 6, manikuere: 14, pedikuere: 5 };
   else if (manMode === 'push_next_72h' && ['hold', 'protect_budget'].includes(pedMode)) budgets = { pmax: 7, manikuere: 13, pedikuere: 4 };
@@ -852,12 +852,12 @@ function allocateBudgets(byCategory, guard, performanceRisk) {
   for (const [key, risk] of Object.entries(performanceRisk || {})) {
     if (risk.level === 'poor' && key in budgets) {
       const hasNearTermPedCapacity = key === 'pedikuere' &&
-        pedMode === 'push_next_72h' &&
-        (byCategory.pedikuere?.next_3_days_slots || 0) > 0;
+        ['hard_push', 'push', 'push_next_72h', 'push_mobile_today'].includes(pedMode) &&
+        ((byCategory.pedikuere?.today_slots || 0) > 0 || (byCategory.pedikuere?.next_3_days_slots || 0) > 0);
       const hasNearTermManCapacity = key === 'manikuere' &&
-        manMode === 'push_next_72h' &&
-        (byCategory.manikuere?.next_3_days_slots || 0) > 0;
-      const floor = hasNearTermPedCapacity ? 6 : hasNearTermManCapacity ? 10 : 0;
+        ['hard_push', 'push', 'push_next_72h', 'push_mobile_today'].includes(manMode) &&
+        ((byCategory.manikuere?.today_slots || 0) > 0 || (byCategory.manikuere?.next_3_days_slots || 0) > 0);
+      const floor = hasNearTermPedCapacity ? 8 : hasNearTermManCapacity ? 8 : 0;
       budgets[key] = Math.max(floor, Math.min(budgets[key], risk.current_budget_hint_eur || 5));
     }
   }
@@ -887,7 +887,8 @@ function desiredKeywordBid(row, byCategory, performanceRisk) {
 
   const current = Number(row.adGroupCriterion.effectiveCpcBidMicros || 0) / 1_000_000;
   const risk = performanceRisk?.[category];
-  const effectiveMode = risk?.level === 'poor' && isPushMode(mode)
+  const hasBookableCapacity = ((byCategory[category]?.today_slots || 0) > 0 || (byCategory[category]?.next_3_days_slots || 0) > 0);
+  const effectiveMode = risk?.level === 'poor' && isPushMode(mode) && !(mode === 'hard_push' && hasBookableCapacity)
     ? category === 'pedikuere' && ['push', 'push_next_72h'].includes(mode)
       ? 'push_next_72h'
       : 'hold'
@@ -932,7 +933,7 @@ function keywordTargetBid(category, keyword, match, mode, baseTarget) {
   }
 
   if (isWinner && isExact) {
-    if (mode === 'hard_push') return Math.max(baseTarget, category === 'manikuere' ? 0.95 : 0.55);
+    if (mode === 'hard_push') return Math.max(baseTarget, category === 'manikuere' ? 1.05 : 0.72);
     if (mode === 'push_mobile_today') return Math.max(baseTarget, category === 'manikuere' ? 0.75 : 0.42);
     if (mode === 'push') return Math.max(baseTarget, category === 'manikuere' ? 0.85 : 0.48);
     if (mode === 'push_next_72h') return Math.max(baseTarget, category === 'manikuere' ? 1.3 : 0.7);
