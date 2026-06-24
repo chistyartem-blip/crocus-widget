@@ -110,7 +110,7 @@ var MASTERS_META = {
     levelBorder: 'rgba(201,168,124,0.35)',
     tagline: 'Wimpernverlängerung & Lifting',
     bio: 'Albina ist spezialisiert auf individuelle Lash-Looks — von natürlich bis ausdrucksstark.',
-    skills: ['Classic Lashes', '3D–6D Volumen', 'Wispy', 'Wet-Look'],
+    skills: ['Classic 1:1', '2D · 3D', 'Volume', 'Lifting'],
     cats: ['wimpern'],
     avatar: 'https://cdn.jsdelivr.net/gh/chistyartem-blip/crocus-widget@0df00f6/assets/albina.webp',
   },
