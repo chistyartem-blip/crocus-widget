@@ -2486,7 +2486,9 @@ function loadSingleExpressSlotsForDate(serviceId, ds, target) {
       maxChecks: 24,
       target: target || 16,
       concurrency: 4,
-    }).then(dedupeTimeSlots);
+    }).then(function(slots) {
+      return filterTestBlockedSlots(dedupeTimeSlots(slots), serviceId);
+    });
   });
 }
 
@@ -2570,16 +2572,17 @@ function isSlotBlockedByTest(slot) {
   return staffId && duration && isIntervalBlockedByTest(staffId, slot.datetime, duration);
 }
 
-function isSingleSlotMarkedUnbookable(slot) {
-  if (!slot || !cw.service || Number(cw.service.id) === KOMBI_SERVICE_ID) return false;
+function isSingleSlotMarkedUnbookable(slot, serviceId) {
+  serviceId = Number(serviceId || (cw.service && cw.service.id));
+  if (!slot || !serviceId || serviceId === KOMBI_SERVICE_ID) return false;
   var staffId = Number(slot.staff_id || (slot.expressMaster && slot.expressMaster.id) || (cw.master && cw.master.id));
-  var key = staffId + '|' + Number(cw.service.id) + '|' + String(slot.datetime || '');
+  var key = staffId + '|' + serviceId + '|' + String(slot.datetime || '');
   return TEMP_UNBOOKABLE_SINGLE_SLOTS.indexOf(key) !== -1;
 }
 
-function filterTestBlockedSlots(slots) {
+function filterTestBlockedSlots(slots, serviceId) {
   return (slots || []).filter(function(slot) {
-    return !isSlotBlockedByTest(slot) && !isSingleSlotMarkedUnbookable(slot);
+    return !isSlotBlockedByTest(slot) && !isSingleSlotMarkedUnbookable(slot, serviceId);
   });
 }
 
