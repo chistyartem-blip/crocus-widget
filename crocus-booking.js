@@ -105,12 +105,42 @@ var MASTERS_META = {
   },
 };
 
-var HIDDEN_STAFF_IDS = [Number(['3020', '188'].join(''))];
+var HIDDEN_STAFF_IDS = [Number(['3020', '188'].join('')), 3020006];
 function isHiddenStaffId(staffId) {
   return HIDDEN_STAFF_IDS.indexOf(Number(staffId)) !== -1;
 }
 
 // ── Категории и маппинг услуг ──────────────────────────────────
+var HIDDEN_STAFF_NAME_RE = /(^|[\s._-])(art|artem|artyom|artur|artsiom|арт|артем|артём)([\s._-]|$)/i;
+var STATIC_MASTER_NAMES = {
+  3020185: 'Diana',
+  3020186: 'Nelia',
+  3020187: 'Sofia',
+  3020188: 'Karina',
+};
+
+function isHiddenStaff(staff) {
+  if (!staff) return false;
+  var id = Number(staff.id || staff.staff_id || staff.master_id || 0);
+  if (HIDDEN_STAFF_IDS.indexOf(id) !== -1) return true;
+  var name = [
+    staff.name,
+    staff.fullname,
+    staff.firstname,
+    staff.lastname,
+    staff.title,
+    staff.login,
+    staff.email,
+  ].filter(Boolean).join(' ');
+  return HIDDEN_STAFF_NAME_RE.test(name);
+}
+
+function visibleMasters(list) {
+  return (list || []).filter(function(master) {
+    return !isHiddenStaff(master);
+  });
+}
+
 var CATEGORIES = [
   {
     key: 'manikuere',
@@ -1258,12 +1288,14 @@ function showError(id, msg) {
 
 function masterById(staffId) {
   staffId = Number(staffId);
-  return (_allMasters || []).filter(function(m){ return Number(m.id) === staffId; })[0]
-    || { id: staffId, name: 'Master' };
+  if (HIDDEN_STAFF_IDS.indexOf(staffId) !== -1) return null;
+  return visibleMasters(_allMasters || []).filter(function(m){ return Number(m.id) === staffId; })[0]
+    || (MASTERS_META[staffId] ? { id: staffId, name: STATIC_MASTER_NAMES[staffId] || 'Master' } : null);
 }
 
 function masterName(staffId) {
-  return masterById(staffId).name || 'Master';
+  var master = masterById(staffId);
+  return (master && master.name) || STATIC_MASTER_NAMES[Number(staffId)] || 'Master';
 }
 
 function fetchStaffServices(staffId) {
@@ -1311,15 +1343,15 @@ function serviceDurationForStaff(staffId, serviceId, slot, fallback) {
 }
 
 function fallbackMasters() {
-  return Object.keys(MASTERS_META).map(function(id) {
+  return visibleMasters(Object.keys(MASTERS_META).map(function(id) {
     return {
       id: Number(id),
-      name: masterName(Number(id)),
+      name: STATIC_MASTER_NAMES[Number(id)] || masterName(Number(id)),
       specialization: MASTERS_META[id].tagline || '',
       avatar: MASTERS_META[id].avatar || '',
       bookable: true,
     };
-  });
+  }));
 }
 
 function visibleMasters(list) {
@@ -2389,10 +2421,12 @@ function loadSingleExpressSlotsForDate(serviceId, ds, target) {
   })).then(function(results) {
     var candidates = [];
     results.forEach(function(item) {
+      var expressMaster = masterById(item.staffId);
+      if (!expressMaster) return;
       item.slots.forEach(function(slot) {
         candidates.push(Object.assign({}, slot, {
           staff_id: item.staffId,
-          expressMaster: masterById(item.staffId) || fallbackMasters().filter(function(m){ return Number(m.id) === Number(item.staffId); })[0],
+          expressMaster: expressMaster,
           expressAppointment: comboAppointment(serviceId, item.staffId, slot.datetime),
         }));
       });
@@ -2768,15 +2802,76 @@ function chooseTimeSlot(slot, slots) {
   cw.comboAppointments = slot.comboAppointments || null;
   cw.comboRoute = slot.comboRoute || null;
   if (slots) renderTimesLoaded(slots);
+
+  var appointments = buildBookingAppointmentsFromState();
+  if (!appointments.length) {
+    showSelectedSlotError(slots, 'Bitte wählen Sie die Zeit erneut aus.');
+    return;
+  }
+
+  checkAppointments(appointments)
+    .then(function(res) {
+      if (!res || !res.success) throw new Error('slot_unavailable');
+      setTimeout(function(){
+        renderSummary();
+        goStep(6);
+        prefillClientFields();
+      }, 120);
+    })
+    .catch(function() {
+      var badSlotKey = String(cw.datetime || cw.time || '');
+      cw.time = null;
+      cw.datetime = null;
+      cw.comboAppointments = null;
+      cw.comboRoute = null;
+      showSelectedSlotError(slots, 'Dieser Termin wurde gerade belegt. Bitte wählen Sie eine andere Zeit.', badSlotKey);
+    });
+}
+
+function buildBookingAppointmentsFromState() {
+  if (!cw.service || !cw.datetime) return [];
+  if (cw.service.id === KOMBI_SERVICE_ID) {
+    return (cw.comboAppointments && cw.comboAppointments.length === 2) ? cw.comboAppointments : [];
+  }
+  if (!cw.master || !cw.master.id) return [];
+  var svcIds = [cw.service.id].concat(cw.addons.map(function(a){ return a.id; }));
+  return [{
+    id: cw.service.id,
+    services: svcIds,
+    staff_id: cw.master.id,
+    datetime: cw.datetime,
+  }];
+}
+
+function prefillClientFields() {
+  try {
+    var saved = JSON.parse(localStorage.getItem('crocus_client') || '{}');
+    if (saved.name)  { var fn = document.getElementById('cw-name');  if (fn && !fn.dataset.dirty) fn.value = saved.name; }
+    if (saved.phone) { var fp = document.getElementById('cw-phone'); if (fp && !fp.dataset.dirty) { var _pp = parseStoredPhone(saved.phone); fp.value = _pp.local; var _ds = document.getElementById('cw-dial'); if (_ds && !_ds.dataset.dirty) _ds.value = _pp.dial; } }
+    if (saved.email) { var fe = document.getElementById('cw-email'); if (fe && !fe.dataset.dirty) fe.value = saved.email; }
+  } catch(ex) {}
+}
+
+function showSelectedSlotError(slots, message, badSlotKey) {
+  var filtered = (slots || []).filter(function(item) {
+    return String(item.datetime || item.time) !== String(badSlotKey || cw.datetime || cw.time);
+  });
+  renderTimesLoaded(filtered);
+  var grid = document.getElementById('cw-time-grid');
+  if (grid) {
+    var err = document.createElement('div');
+    err.className = 'cw-error';
+    err.style.gridColumn = 'span 4';
+    err.textContent = message;
+    grid.insertBefore(err, grid.firstChild);
+  }
+}
+
+function goContactWithoutSlotCheck() {
   setTimeout(function(){
     renderSummary();
     goStep(6);
-    try {
-      var saved = JSON.parse(localStorage.getItem('crocus_client') || '{}');
-      if (saved.name)  { var fn = document.getElementById('cw-name');  if (fn && !fn.dataset.dirty) fn.value = saved.name; }
-      if (saved.phone) { var fp = document.getElementById('cw-phone'); if (fp && !fp.dataset.dirty) { var _pp = parseStoredPhone(saved.phone); fp.value = _pp.local; var _ds = document.getElementById('cw-dial'); if (_ds && !_ds.dataset.dirty) _ds.value = _pp.dial; } }
-      if (saved.email) { var fe = document.getElementById('cw-email'); if (fe && !fe.dataset.dirty) fe.value = saved.email; }
-    } catch(ex) {}
+    prefillClientFields();
   }, 120);
 }
 
@@ -2794,6 +2889,8 @@ function renderTimesLoaded(slots) {
     btn.className = 'cw-time free'+(isSel?' sel':'');
     btn.textContent = slot.time;
     btn.addEventListener('click', function(){
+      chooseTimeSlot(slot, slots);
+      return;
       if (cw.express && slot.expressMaster) {
         cw.master = slot.expressMaster;
         cw.master._meta = MASTERS_META[cw.master.id] || {};
@@ -2962,18 +3059,7 @@ function submitBooking(e) {
   btn.disabled = true; btn.textContent = 'Wird gesendet…';
 
   // Addon must be in the same appointment — но для Комби (13485762) аддоны только UI, не в API
-  var svcIds = [cw.service.id];
-  if (cw.service.id !== KOMBI_SERVICE_ID) {
-    svcIds = svcIds.concat(cw.addons.map(function(a){return a.id;}));
-  }
-  var appointments = cw.service.id === KOMBI_SERVICE_ID && cw.comboAppointments
-    ? cw.comboAppointments
-    : [{
-    id: cw.service.id,
-    services: svcIds,
-    staff_id: cw.master.id,
-    datetime: cw.datetime,
-  }];
+  var appointments = buildBookingAppointmentsFromState();
   var bookingBody = {
     phone: phone,
     fullname: name,
