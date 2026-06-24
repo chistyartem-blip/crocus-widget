@@ -2739,6 +2739,7 @@ function loadSingleExpressSlotsForDate(serviceId, ds, target) {
     });
     candidates = filterTestBlockedSlots(candidates, serviceId);
     candidates.sort(function(a,b){ return String(a.datetime).localeCompare(String(b.datetime)); });
+    candidates = spreadCandidatesByTime(candidates);
     return batchCheckSlots(candidates, function(slot){ return [slot.expressAppointment]; }, {
       maxChecks: 24,
       target: target || 16,
@@ -2756,6 +2757,32 @@ function dedupeTimeSlots(slots) {
     if (!byTime[key]) byTime[key] = slot;
   });
   return Object.keys(byTime).sort().map(function(key){ return byTime[key]; });
+}
+
+function spreadCandidatesByTime(candidates) {
+  var groups = {};
+  var order = [];
+  (candidates || []).forEach(function(slot) {
+    var key = String((slot && (slot.datetime || slot.time)) || '');
+    if (!key) key = 'slot_' + order.length;
+    if (!groups[key]) {
+      groups[key] = [];
+      order.push(key);
+    }
+    groups[key].push(slot);
+  });
+
+  var out = [];
+  for (var depth = 0, added = true; added; depth++) {
+    added = false;
+    order.forEach(function(key) {
+      if (groups[key][depth]) {
+        out.push(groups[key][depth]);
+        added = true;
+      }
+    });
+  }
+  return out;
 }
 
 function loadExpressTimes() {
@@ -3028,11 +3055,7 @@ function loadComboSlotsForDate(ds) {
     candidates.sort(function(a,b) {
       return String(a.datetime).localeCompare(String(b.datetime)) || routeSortKey(a.comboRoute).localeCompare(routeSortKey(b.comboRoute));
     });
-    var bestByStart = {};
-    candidates.forEach(function(candidate) {
-      putBestCandidate(bestByStart, candidate);
-    });
-    candidates = Object.keys(bestByStart).sort().map(function(key){ return bestByStart[key]; });
+    candidates = spreadCandidatesByTime(candidates);
     console.log('[crocus] loadComboTimes: candidates='+candidates.length+' date='+ds);
     return batchCheckSlots(candidates, function(slot){ return slot.comboAppointments; }, {
       maxChecks: 48,
