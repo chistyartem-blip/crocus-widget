@@ -205,6 +205,25 @@ var KOMBI_MANI_SERVICE_ID = 13485753;
 var KOMBI_PEDI_SERVICE_ID = 13485761;
 var KOMBI_STAFF_IDS = [3020185, 3020186, 3020187];
 
+// Temporary guard for CODEx test records created during live booking checks.
+// Remove these after the records with phone +4915700000616 are deleted in Altegio.
+var TEMP_BLOCKED_RECORDS = [
+  { staffId: 3020186, datetime: '2026-06-24T11:15:00+02:00', duration: 1800 },
+  { staffId: 3020186, datetime: '2026-06-24T16:25:00+02:00', duration: 6300 },
+  { staffId: 3020187, datetime: '2026-06-24T13:45:00+02:00', duration: 1800 },
+  { staffId: 3020187, datetime: '2026-06-24T11:15:00+02:00', duration: 2700 },
+  { staffId: 3020187, datetime: '2026-06-24T16:30:00+02:00', duration: 5400 },
+  { staffId: 3020185, datetime: '2026-06-25T18:45:00+02:00', duration: 1800 },
+  { staffId: 3020185, datetime: '2026-06-25T19:20:00+02:00', duration: 2700 },
+  { staffId: 3020186, datetime: '2026-06-25T09:00:00+02:00', duration: 1800 },
+  { staffId: 3020186, datetime: '2026-06-25T15:35:00+02:00', duration: 6300 },
+  { staffId: 3020186, datetime: '2026-06-25T09:45:00+02:00', duration: 2700 },
+  { staffId: 3020187, datetime: '2026-06-25T13:15:00+02:00', duration: 1800 },
+  { staffId: 3020185, datetime: '2026-06-26T11:30:00+02:00', duration: 1800 },
+  { staffId: 3020186, datetime: '2026-06-26T09:00:00+02:00', duration: 1800 },
+  { staffId: 3020186, datetime: '2026-06-26T14:55:00+02:00', duration: 2700 },
+];
+
 // Mandel-Form (13502395) — только для Nelia и Sofia
 var MANDEL_STAFF_IDS = [3020186, 3020187];
 // Stiletto (13485758) — Diana, Nelia, Sofia (все мастера маникюра)
@@ -2479,6 +2498,56 @@ function addSecondsToAltegioDatetime(datetime, seconds) {
     +'T'+pad(local.getUTCHours())+':'+pad(local.getUTCMinutes())+':'+pad(local.getUTCSeconds())+suffix;
 }
 
+function datetimeMs(datetime) {
+  var ms = new Date(datetime).getTime();
+  return isNaN(ms) ? 0 : ms;
+}
+
+function intervalOverlaps(startA, durationA, startB, durationB) {
+  var a0 = datetimeMs(startA);
+  var b0 = datetimeMs(startB);
+  if (!a0 || !b0 || !durationA || !durationB) return false;
+  var a1 = a0 + durationA * 1000;
+  var b1 = b0 + durationB * 1000;
+  return a0 < b1 && b0 < a1;
+}
+
+function isIntervalBlockedByTest(staffId, datetime, duration) {
+  staffId = Number(staffId);
+  return TEMP_BLOCKED_RECORDS.some(function(blocked) {
+    return Number(blocked.staffId) === staffId
+      && intervalOverlaps(datetime, duration, blocked.datetime, blocked.duration);
+  });
+}
+
+function slotDurationForStaff(slot, staffId) {
+  if (!cw.service) return 0;
+  if (cw.service.id === KOMBI_SERVICE_ID) return 0;
+  return currentSingleDurationForStaff(staffId, cw.service.id)
+    || serviceDurationForStaff(staffId, cw.service.id, slot, 0);
+}
+
+function isSlotBlockedByTest(slot) {
+  if (!slot || !slot.datetime || !cw.service) return false;
+  if (slot.comboAppointments && slot.comboAppointments.length) {
+    return slot.comboAppointments.some(function(appt) {
+      var duration = serviceDurationForStaff(appt.staff_id, appt.id, null, 0);
+      return isIntervalBlockedByTest(appt.staff_id, appt.datetime, duration);
+    });
+  }
+  var staffId = slot.staff_id
+    || (slot.expressMaster && slot.expressMaster.id)
+    || (cw.master && cw.master.id);
+  var duration = slotDurationForStaff(slot, staffId);
+  return staffId && duration && isIntervalBlockedByTest(staffId, slot.datetime, duration);
+}
+
+function filterTestBlockedSlots(slots) {
+  return (slots || []).filter(function(slot) {
+    return !isSlotBlockedByTest(slot);
+  });
+}
+
 function comboAppointment(serviceId, staffId, datetime) {
   return { id: serviceId, services: [serviceId], staff_id: Number(staffId), datetime: datetime };
 }
@@ -2812,6 +2881,10 @@ function makeComboCandidate(opts) {
 }
 
 function chooseTimeSlot(slot, slots) {
+  if (isSlotBlockedByTest(slot)) {
+    showSelectedSlotError(slots, 'Dieser Termin wurde gerade belegt. Bitte wÃ¤hlen Sie eine andere Zeit.', String(slot.datetime || slot.time || ''));
+    return;
+  }
   if (cw.express && slot.expressMaster) {
     cw.master = slot.expressMaster;
     cw.master._meta = MASTERS_META[cw.master.id] || {};
@@ -2905,6 +2978,7 @@ function goContactWithoutSlotCheck() {
 function renderTimesLoaded(slots) {
   var grid = document.getElementById('cw-time-grid');
   if (!slots) return;
+  slots = filterTestBlockedSlots(slots);
   if (!slots.length) {
     grid.innerHTML = '<div class="cw-error" style="grid-column:span 4">Keine freien Zeiten.</div>';
     return;
