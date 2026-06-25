@@ -96,7 +96,6 @@ const KEYWORD_RULES = {
       'manikure termin goppingen',
     ],
     cautious: [
-      'nagelstudio online termin',
       'nagelstudio termin goppingen',
       'nagelstudio goppingen',
       'nagel goppingen',
@@ -107,7 +106,10 @@ const KEYWORD_RULES = {
       'gel nails goppingen',
     ],
     weak: [
+      'nagelstudio online termin',
       'russian manicure',
+      'russian manicure goppingen',
+      'russian manicure goeppingen',
       'nail salon goppingen',
       'nagelstudio uhingen',
       'nails goppingen',
@@ -946,20 +948,13 @@ function keywordTargetBid(category, keyword, match, mode, baseTarget) {
     return Math.max(baseTarget, category === 'manikuere' ? 0.55 : 0.28);
   }
 
-  if (isRussianManicureExact && mode === 'push_next_72h') {
+  if (isRussianManicureExact && !isWeak && mode === 'push_next_72h') {
     return Math.max(baseTarget, 1.1);
   }
 
   if (isCautious && category === 'pedikuere' && normalized.includes('fusspflege')) {
     const cap = 0.22;
     return Math.min(baseTarget, cap);
-  }
-
-  if (isNearTermIntent && mode === 'push_next_72h') {
-    if (category === 'manikuere') {
-      return Math.max(baseTarget, isExact ? (hasTerminIntent ? 1.25 : 1.05) : hasTerminIntent ? 0.7 : 0.6);
-    }
-    return Math.max(baseTarget, isExact ? (hasTerminIntent ? 0.65 : 0.6) : hasTerminIntent ? 0.45 : 0.4);
   }
 
   if (isCautious) {
@@ -970,6 +965,13 @@ function keywordTargetBid(category, keyword, match, mode, baseTarget) {
   if (isWeak) {
     const cap = category === 'manikuere' ? 0.24 : 0.14;
     return Math.min(baseTarget, cap);
+  }
+
+  if (isNearTermIntent && mode === 'push_next_72h') {
+    if (category === 'manikuere') {
+      return Math.max(baseTarget, isExact ? (hasTerminIntent ? 1.25 : 1.05) : hasTerminIntent ? 0.7 : 0.6);
+    }
+    return Math.max(baseTarget, isExact ? (hasTerminIntent ? 0.65 : 0.6) : hasTerminIntent ? 0.45 : 0.4);
   }
 
   return baseTarget;

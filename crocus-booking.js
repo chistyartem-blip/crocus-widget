@@ -33,6 +33,71 @@ function trackingAttribution() {
 
 var CRO_ATTR = trackingAttribution();
 
+var ADS_CONVERSION_SEND_TO = {
+  manikure: 'AW-18106748478/djK5CLmjzagcEL6c_LlD',
+  pedikure: 'AW-18106748478/jYelCMSetqgcEL6c_LlD',
+  wimpern: 'AW-18106748478/NAsSCJektqgcEL6c_LlD',
+};
+
+var SERVICE_TRACKING_CATEGORY_BY_ID = {
+  13485752: 'manikure',
+  13485753: 'manikure',
+  13485754: 'manikure',
+  13485755: 'manikure',
+  13485760: 'pedikure',
+  13485761: 'pedikure',
+  13485762: 'kombi',
+  13485763: 'wimpern',
+  13485764: 'wimpern',
+  13485765: 'wimpern',
+  13485766: 'wimpern',
+  13485767: 'wimpern',
+  13485768: 'wimpern',
+  13485769: 'wimpern',
+  13622817: 'wimpern',
+  13485770: 'wimpern',
+  13485771: 'wimpern',
+  13485772: 'wimpern',
+  13485773: 'wimpern',
+};
+
+function bookingTrackingCategory() {
+  var serviceId = cw.service ? Number(cw.service.id) : 0;
+  if (SERVICE_TRACKING_CATEGORY_BY_ID[serviceId]) return SERVICE_TRACKING_CATEGORY_BY_ID[serviceId];
+  var categoryKey = String((cw.category && cw.category.key) || '').toLowerCase();
+  if (categoryKey.indexOf('wimper') !== -1) return 'wimpern';
+  if (categoryKey.indexOf('pedi') !== -1 || categoryKey.indexOf('fu') !== -1) return 'pedikure';
+  if (categoryKey.indexOf('kombi') !== -1) return 'kombi';
+  return 'manikure';
+}
+
+function adsConversionCategory(category) {
+  if (category === 'kombi') return 'manikure';
+  return ADS_CONVERSION_SEND_TO[category] ? category : '';
+}
+
+function bookingGtagParams(payload) {
+  return {
+    event_id: payload.event_id,
+    booking_id: payload.booking_id,
+    altegio_record_id: payload.altegio_record_id,
+    service_name: payload.service_name,
+    service_id: payload.service_id,
+    service_category: payload.service_category,
+    category: payload.category,
+    master_name: payload.master_name,
+    master_id: payload.master_id,
+    addon_name: payload.addon_name,
+    booking_date: payload.booking_date,
+    booking_time: payload.booking_time,
+    value: payload.value,
+    currency: payload.currency,
+    source: payload.source,
+    page_location: payload.page_location,
+    landing_page: payload.landing_page,
+  };
+}
+
 function servicePriceForTracking(svc) {
   if (!svc) return 0;
   if (svc.staff && svc.staff.length && cw.master) {
@@ -3568,14 +3633,15 @@ function submitBooking(e) {
       ).then(function(emailHash) {
         var bookingEventId = makeBookingEventId(res);
         var bookingValue = bookingValueForTracking();
+        var bookingCategory = bookingTrackingCategory();
         var bookingPayload = {
-          event: 'booking_success',
+          event: 'booking_success_detail',
           event_id: bookingEventId,
           booking_id: bookingEventId,
           altegio_record_id: extractAltegioRecordId(res),
           service_name: cw.service ? cw.service.title : '',
           service_id: cw.service ? cw.service.id : '',
-          service_category: cw.category ? cw.category.key : '',
+          service_category: bookingCategory,
           category: cw.category ? cw.category.label : '',
           master_name: cw.master ? cw.master.name : '',
           master_id: cw.master ? cw.master.id : '',
@@ -3598,14 +3664,24 @@ function submitBooking(e) {
           bookingPayload[key] = CRO_ATTR[key];
         });
         window.dataLayer.push(bookingPayload);
-        // Google Ads conversion — Запись на встречу
+        if (bookingCategory) {
+          window.dataLayer.push(Object.assign({}, bookingPayload, {
+            event: 'booking_success_' + bookingCategory,
+          }));
+        }
+        // Google Ads category conversion.
         if (typeof gtag === 'function') {
-          gtag('event', 'conversion', {
-            send_to: 'AW-18106748478/gz_1CILgxKgcEL6c_LlD',
-            value: bookingValue,
-            currency: 'EUR',
-            transaction_id: bookingEventId,
-          });
+          var gtagPayload = bookingGtagParams(bookingPayload);
+          gtag('event', 'booking_success', gtagPayload);
+          var adsCategory = adsConversionCategory(bookingCategory);
+          if (adsCategory && ADS_CONVERSION_SEND_TO[adsCategory]) {
+            gtag('event', 'conversion', {
+              send_to: ADS_CONVERSION_SEND_TO[adsCategory],
+              value: bookingValue,
+              currency: 'EUR',
+              transaction_id: bookingEventId,
+            });
+          }
         }
         // Meta Pixel — Schedule event (реальное бронирование)
         if (typeof fbq === 'function') {
