@@ -302,6 +302,38 @@ var WIMPER_SERVICE_GROUPS = [
   { key: 'korrektur', title: 'Korrektur', note: '60 Min', ids: [13485768, 13485769] },
   { key: 'lifting', title: 'Lifting', note: '40 Min', ids: [13622817] },
 ];
+var SERVICE_ASSET_BASE = 'https://cdn.jsdelivr.net/gh/chistyartem-blip/crocus-widget@473c282/assets/';
+var SERVICE_IMAGE_BASE = 'https://cdn.jsdelivr.net/gh/chistyartem-blip/crocus-widget@473c282/images/';
+var SERVICE_THUMBS = {
+  // Manikuere / Pedikuere
+  13485752: { src: SERVICE_IMAGE_BASE + 'manikure-basis.webp', pos: 'center' },
+  13485753: { src: SERVICE_IMAGE_BASE + 'manikure-gel-lack.webp', pos: 'center' },
+  13485754: { src: SERVICE_IMAGE_BASE + 'nagelkorrektur.webp', pos: 'center' },
+  13485755: { src: SERVICE_IMAGE_BASE + 'nagel-verlaengerung.webp', pos: 'center' },
+  13485760: { src: SERVICE_IMAGE_BASE + 'pedikure-service.webp', pos: 'center' },
+  13485761: { src: SERVICE_IMAGE_BASE + 'pedikure-gel.webp', pos: 'center' },
+  13485762: { src: SERVICE_IMAGE_BASE + 'kombi-service.webp', pos: 'center' },
+
+  // Wimpern
+  13485763: { src: SERVICE_ASSET_BASE + 'lash-classic.webp', pos: 'center' },
+  13485764: { src: SERVICE_ASSET_BASE + 'lash-2d.webp', pos: 'center' },
+  13485765: { src: SERVICE_ASSET_BASE + 'lash-3d.webp', pos: 'center' },
+  13485766: { src: SERVICE_ASSET_BASE + 'lash-wispy.webp', pos: 'center' },
+  13485767: { src: SERVICE_ASSET_BASE + 'lash-6d.webp', pos: 'center' },
+  13485768: { src: SERVICE_ASSET_BASE + 'lash-classic.webp', pos: 'center' },
+  13485769: { src: SERVICE_ASSET_BASE + 'lash-2d.webp', pos: 'center' },
+  13622817: { src: SERVICE_ASSET_BASE + 'lash.webp', pos: 'center' },
+};
+function cwAttr(value) {
+  return String(value || '')
+    .replace(/&/g, '&amp;')
+    .replace(/"/g, '&quot;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+}
+function serviceThumbFor(service) {
+  return SERVICE_THUMBS[Number(service && service.id)] || null;
+}
 var KOMBI_SERVICE_ID = 13485762;
 var KOMBI_MANI_SERVICE_ID = 13485753;
 var KOMBI_PEDI_SERVICE_ID = 13485761;
@@ -780,11 +812,15 @@ var css = `
 .cw-svc-btn--extra .cw-svc-price::before{content:'+ '}
 .cw-svc-btn--extra .cw-svc-name{color:rgba(253,250,248,.86)}
 .cw-svc-btn{display:flex;align-items:center;justify-content:space-between;gap:10px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:13px;padding:13px 14px;cursor:pointer;text-align:left;color:inherit;width:100%;font-family:inherit;transition:all .2s;-webkit-tap-highlight-color:transparent;outline:none}
+.cw-svc-btn--with-thumb{padding:9px 12px 9px 9px;gap:12px;min-height:76px}
 .cw-svc-btn:focus{outline:none;background:rgba(255,255,255,.03);border-color:rgba(255,255,255,.07)}
 .cw-svc-btn:focus:not(:focus-visible){background:rgba(255,255,255,.03);border-color:rgba(255,255,255,.07)}
 .cw-svc-btn:hover{border-color:rgba(123,45,78,.40);background:rgba(123,45,78,.06);transform:translateY(-1px)}
 .cw-svc-btn[disabled]{cursor:not-allowed;opacity:.62;transform:none!important;background:rgba(255,255,255,.025)}
 .cw-svc-btn[disabled] .cw-svc-name{color:rgba(253,250,248,.62)}
+.cw-svc-main{display:flex;align-items:center;gap:12px;min-width:0;flex:1}
+.cw-svc-thumb{width:58px;height:58px;border-radius:12px;overflow:hidden;flex:0 0 58px;background:rgba(255,255,255,.045);border:1px solid rgba(255,255,255,.11);box-shadow:0 8px 22px rgba(0,0,0,.22)}
+.cw-svc-thumb img{width:100%;height:100%;object-fit:cover;display:block;transform:none!important;filter:saturate(1.02) contrast(1.02)}
 .cw-svc-left{flex:1;min-width:0}
 .cw-svc-name{font-family:'DM Sans',sans-serif;font-size:13.5px;font-weight:500;color:#fdfaf8;margin-bottom:2px}
 .cw-svc-dur{font-family:'DM Sans',sans-serif;font-size:10.5px;color:rgba(253,250,248,.30)}
@@ -797,6 +833,13 @@ var css = `
 .cw-svc-status.bad{color:rgba(253,250,248,.43);border-color:rgba(255,255,255,.10);background:rgba(255,255,255,.03)}
 .cw-svc-status.bad::before{background:rgba(255,255,255,.28)}
 .cw-svc-price{font-family:'Cormorant Garamond',Georgia,serif;font-size:20px;font-weight:300;color:#c9a87c;white-space:nowrap;flex-shrink:0}
+@media(max-width:480px){
+  .cw-svc-btn--with-thumb{min-height:68px;padding:8px 10px 8px 8px;gap:9px}
+  .cw-svc-main{gap:9px}
+  .cw-svc-thumb{width:50px;height:50px;flex-basis:50px;border-radius:11px}
+  .cw-svc-name{font-size:12.6px;line-height:1.25}
+  .cw-svc-price{font-size:18px}
+}
 
 /* ── Step 4: Addons ── */
 .cw-addons{display:flex;flex-direction:column;gap:8px;margin-bottom:16px}
@@ -2193,7 +2236,8 @@ function renderServices(cat) {
 
     var btn = document.createElement('button');
     if (cw.express) priceStr = minP === maxP ? minP+' &euro;' : 'ab '+minP+' &euro;';
-    btn.className = 'cw-svc-btn' + (groupKey === 'extras' ? ' cw-svc-btn--extra' : '');
+    var thumb = serviceThumbFor(s);
+    btn.className = 'cw-svc-btn' + (thumb ? ' cw-svc-btn--with-thumb' : '') + (groupKey === 'extras' ? ' cw-svc-btn--extra' : '');
     if (cw.express) {
       btn.disabled = true;
       btn.dataset.serviceId = s.id;
@@ -2205,6 +2249,12 @@ function renderServices(cat) {
         + (cw.express ? '<span class="cw-svc-status bad" id="cw-svc-status-'+s.id+'">prüfe freie Slots</span>' : '')
       + '</div>'
       + '<div class="cw-svc-price">'+priceStr+'</div>';
+    if (thumb) {
+      var thumbEl = document.createElement('span');
+      thumbEl.className = 'cw-svc-thumb';
+      thumbEl.innerHTML = '<img src="'+thumb.src+'" alt="'+cwAttr(s.title)+'" loading="lazy" style="object-position:'+cwAttr(thumb.pos || 'center')+'" onerror="this.parentNode.remove()">';
+      btn.insertBefore(thumbEl, btn.firstChild);
+    }
     btn.addEventListener('click', function(){ selectService(s); });
     list.appendChild(btn);
     if (cw.express) hydrateExpressServiceStatus(s, btn);
