@@ -2676,6 +2676,7 @@ function loadAvailDates() {
       } else {
         console.warn('[crocus] loadAvailDates: no dates in response', res);
       }
+      autoJumpToFirstAvailMonth();
       renderCalendar();
     })
     .catch(function(e){ console.error('[crocus] loadAvailDates error:', e); renderCalendar(); });
@@ -2700,6 +2701,7 @@ function loadExpressAvailDates() {
       list.forEach(function(ds){ dates[ds] = true; });
     });
     cw.availDates = Object.keys(dates).sort();
+    autoJumpToFirstAvailMonth();
     renderCalendar();
   }).catch(function(e) {
     console.error('[crocus] loadExpressAvailDates error:', e);
@@ -2741,17 +2743,30 @@ function loadComboAvailDates() {
     if (cw.express) {
       cw.availDates = dates;
       console.log('[crocus] loadComboAvailDates quick: '+cw.availDates.length+' dates: '+JSON.stringify(cw.availDates.slice(0,5)));
+      autoJumpToFirstAvailMonth();
       renderCalendar();
       warmComboCalendarDates(dates);
       return;
     }
     cw.availDates = dates;
     console.log('[crocus] loadComboAvailDates: got '+cw.availDates.length+' dates: '+JSON.stringify(cw.availDates.slice(0,5)));
+    autoJumpToFirstAvailMonth();
     renderCalendar();
   }).catch(function(e) {
     console.error('[crocus] loadComboAvailDates error:', e);
     renderCalendar();
   });
+}
+
+function autoJumpToFirstAvailMonth() {
+  if (!cw.availDates || !cw.availDates.length) return;
+  var first = cw.availDates[0];
+  var fy = parseInt(first.slice(0,4), 10);
+  var fm = parseInt(first.slice(5,7), 10) - 1;
+  // Проверяем есть ли хоть одна доступная дата в текущем отображаемом месяце
+  var prefix = cw.calY+'-'+String(cw.calM+1).padStart(2,'0');
+  var hasInCurrent = cw.availDates.some(function(ds){ return ds.indexOf(prefix) === 0; });
+  if (!hasInCurrent) { cw.calY = fy; cw.calM = fm; }
 }
 
 function renderCalendar() {
