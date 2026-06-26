@@ -2052,7 +2052,7 @@ function renderCategories(masterId) {
             return p;
           })(masterId);
         }).filter(function(p){ return p > 0; });
-        return comboPrices.length ? 'ab '+Math.min.apply(Math, comboPrices)+' €' : '';
+        return comboPrices.length ? 'ab '+(Math.min.apply(Math, comboPrices)-5)+' €' : '';
       }
       var allPrices = [];
       expressStaffIdsForCategory(cat.key).forEach(function(staffId) {
@@ -2069,11 +2069,11 @@ function renderCategories(masterId) {
     if (cat.key === 'kombi') {
       // Сначала пробуем прямую цену комби-сервиса (13485762) у мастера
       var directComboPrice = priceForStaff(KOMBI_SERVICE_ID);
-      if (directComboPrice) return 'ab '+directComboPrice+' €';
+      if (directComboPrice) return 'ab '+(directComboPrice-5)+' €';
       // Фолбэк: сумма отдельных услуг
       var maniPrice = priceForStaff(KOMBI_MANI_SERVICE_ID);
       var pediPrice = priceForStaff(KOMBI_PEDI_SERVICE_ID);
-      var comboPrice = maniPrice != null && pediPrice != null ? maniPrice + pediPrice : 0;
+      var comboPrice = maniPrice != null && pediPrice != null ? maniPrice + pediPrice - 5 : 0;
       return comboPrice ? 'ab '+comboPrice+' €' : '';
     }
     var prices = cat.serviceIds.map(priceForStaff).filter(function(p){ return p > 0; });
@@ -3380,7 +3380,7 @@ function routeTotalPrice(route) {
   var maniPrice = servicePriceForStaff(route.maniStaffId, KOMBI_MANI_SERVICE_ID, true);
   var pediPrice = servicePriceForStaff(route.pediStaffId, KOMBI_PEDI_SERVICE_ID, true);
   if (maniPrice == null || pediPrice == null) return null;
-  return maniPrice + pediPrice;
+  return maniPrice + pediPrice - 5;
 }
 
 function routeTotalDuration(route) {
