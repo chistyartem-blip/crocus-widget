@@ -3657,7 +3657,7 @@ function renderTimesLoaded(slots, _fromToggle) {
   if (isKombi && filterWrap) {
     var selMId = Number(cw.master.id);
     var hasMixedMasters = slots.some(function(s) {
-      return s.comboRoute && Number(s.comboRoute.maniStaffId) !== selMId;
+      return s.comboRoute && (Number(s.comboRoute.maniStaffId) !== selMId || Number(s.comboRoute.pediStaffId) !== selMId);
     });
     if (hasMixedMasters) {
       filterWrap.classList.add('visible');
@@ -3681,7 +3681,7 @@ function renderTimesLoaded(slots, _fromToggle) {
     var onlyMine = filterToggle ? filterToggle.checked : false;
     slots = slots.filter(function(slot) {
       if (!slot.comboRoute) return true;
-      if (onlyMine) return Number(slot.comboRoute.maniStaffId) === selMId;
+      if (onlyMine) return Number(slot.comboRoute.maniStaffId) === selMId && Number(slot.comboRoute.pediStaffId) === selMId;
       return Number(slot.comboRoute.maniStaffId) === selMId || Number(slot.comboRoute.pediStaffId) === selMId;
     });
     if (!slots.length) {
