@@ -1235,7 +1235,7 @@ wrap.innerHTML =
           + '<div class="cw-times-title">Verfügbare Zeiten</div>'
           + '<div class="cw-master-filter" id="cw-master-filter">'
             + '<div class="cw-master-filter__text"><strong id="cw-mf-name"></strong>Nur Termine mit meiner Meisterin</div>'
-            + '<label class="cw-master-filter__toggle"><input type="checkbox" id="cw-mf-toggle" checked><div class="cw-mf-track"><div class="cw-mf-thumb"></div></div></label>'
+            + '<label class="cw-master-filter__toggle"><input type="checkbox" id="cw-mf-toggle"><div class="cw-mf-track"><div class="cw-mf-thumb"></div></div></label>'
           + '</div>'
           + '<div class="cw-time-grid" id="cw-time-grid"></div>'
         + '</div>'
@@ -2923,7 +2923,7 @@ function renderCalendar() {
 
 function selectDate(ds) {
   cw.date = ds; cw.time = null; cw.datetime = null; cw.comboAppointments = null; cw.comboRoute = null;
-  var mfToggle = document.getElementById('cw-mf-toggle'); if (mfToggle) mfToggle.checked = true;
+  var mfToggle = document.getElementById('cw-mf-toggle'); if (mfToggle) mfToggle.checked = false;
   document.getElementById('cw-times-wrap').style.display = 'block';
   renderCalendar();
   loadTimes();
@@ -3626,23 +3626,28 @@ function renderTimesLoaded(slots) {
   slots = filterTestBlockedSlots(slots);
   slots = filterDisplayTimeSlots(slots);
 
-  // --- Kombi master filter UI ---
-  var isKombi = cw.service && cw.service.id === KOMBI_SERVICE_ID && cw.master && !cw.express;
+  var isKombi = !!(cw.service && cw.service.id === KOMBI_SERVICE_ID && cw.master && !cw.express);
+
+  // Save RAW slots before any filtering — for toggle re-render
+  if (grid) grid._cwAllSlots = slots.slice();
+
+  // Attach toggle listener once
+  if (filterToggle && !filterToggle._cwBound) {
+    filterToggle._cwBound = true;
+    filterToggle.addEventListener('change', function() {
+      var saved = grid._cwAllSlots;
+      if (saved) renderTimesLoaded(saved);
+    });
+  }
+
+  // --- Show/hide filter UI ---
   if (isKombi && filterWrap) {
-    // Check if there are slots with a different mani master
     var hasMixedMasters = slots.some(function(s) {
       return s.comboRoute && Number(s.comboRoute.maniStaffId) !== Number(cw.master.id);
     });
     if (hasMixedMasters) {
       filterWrap.classList.add('visible');
       if (filterName) filterName.textContent = cw.master.name;
-      // Attach toggle listener only once
-      if (!filterToggle._cwBound) {
-        filterToggle._cwBound = true;
-        filterToggle.addEventListener('change', function() {
-          renderTimesLoaded(grid._cwAllSlots || slots);
-        });
-      }
     } else {
       filterWrap.classList.remove('visible');
     }
@@ -3650,32 +3655,21 @@ function renderTimesLoaded(slots) {
     filterWrap.classList.remove('visible');
   }
 
-  // Store all slots for re-render on toggle
-  if (grid) grid._cwAllSlots = slots;
-
   if (!slots.length) {
     grid.innerHTML = '<div class="cw-error" style="grid-column:span 4">Keine freien Zeiten.</div>';
     return;
   }
   grid.innerHTML = '';
 
-  // For combo: always filter to slots where selected master participates
+  // Apply filter for kombi: toggle ON = only mani master matches; toggle OFF = all with master
   if (isKombi) {
     var selMId = Number(cw.master.id);
-    // Only master's own slots when toggle is ON (default)
-    var onlyMine = filterToggle ? filterToggle.checked : true;
-    if (onlyMine) {
-      slots = slots.filter(function(slot) {
-        if (!slot.comboRoute) return true;
-        return Number(slot.comboRoute.maniStaffId) === selMId;
-      });
-    } else {
-      // All slots but still only where selected master participates (mani or pedi)
-      slots = slots.filter(function(slot) {
-        if (!slot.comboRoute) return true;
-        return Number(slot.comboRoute.maniStaffId) === selMId || Number(slot.comboRoute.pediStaffId) === selMId;
-      });
-    }
+    var onlyMine = filterToggle ? filterToggle.checked : false;
+    slots = slots.filter(function(slot) {
+      if (!slot.comboRoute) return true;
+      if (onlyMine) return Number(slot.comboRoute.maniStaffId) === selMId;
+      return Number(slot.comboRoute.maniStaffId) === selMId || Number(slot.comboRoute.pediStaffId) === selMId;
+    });
     if (!slots.length) {
       grid.innerHTML = '<div class="cw-error" style="grid-column:span 4">Keine freien Zeiten für '+cw.master.name+' an diesem Tag.</div>';
       return;
