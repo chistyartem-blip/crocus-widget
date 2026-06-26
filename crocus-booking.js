@@ -675,7 +675,10 @@ var css = `
   .cw-master-card{border-radius:11px}
 
   /* Addon buttons */
-  .cw-addon-btn{padding:11px 12px}
+  .cw-addons{grid-template-columns:1fr 1fr}
+  .cw-addon-btn{padding:9px 10px;min-height:58px}
+  .cw-addon-name{font-size:11px}
+  .cw-addon-price{font-size:14px}
 
   /* Summary */
   .cw-summary{padding:11px 12px}
@@ -838,15 +841,15 @@ var css = `
 }
 
 /* ── Step 4: Addons ── */
-.cw-addons{display:flex;flex-direction:column;gap:8px;margin-bottom:16px}
-.cw-addon-btn{display:flex;align-items:center;gap:11px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:13px;padding:12px 14px;cursor:pointer;text-align:left;color:inherit;width:100%;font-family:inherit;transition:all .2s;box-sizing:border-box}
+.cw-addons{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px}
+.cw-addon-btn{position:relative;display:flex;flex-direction:column;justify-content:space-between;gap:6px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:13px;padding:10px 12px 10px 12px;cursor:pointer;text-align:left;color:inherit;width:100%;font-family:inherit;transition:all .2s;box-sizing:border-box;min-height:64px}
 .cw-addon-btn:hover{border-color:rgba(201,168,124,.28);background:rgba(201,168,124,.04)}
 .cw-addon-btn.sel{border-color:rgba(201,168,124,.55);background:rgba(201,168,124,.08)}
-.cw-addon-check{width:20px;height:20px;border-radius:6px;border:1.5px solid rgba(255,255,255,.15);background:rgba(255,255,255,.04);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:11px;transition:all .18s}
+.cw-addon-check{position:absolute;top:8px;right:8px;width:18px;height:18px;border-radius:5px;border:1.5px solid rgba(255,255,255,.15);background:rgba(255,255,255,.04);display:flex;align-items:center;justify-content:center;font-size:10px;transition:all .18s;flex-shrink:0}
 .cw-addon-btn.sel .cw-addon-check{background:#c9a87c;border-color:#c9a87c;color:#0f0a0d}
-.cw-addon-info{flex:1}
-.cw-addon-name{font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;color:#fdfaf8;margin-bottom:1px}
-.cw-addon-price{font-family:'Cormorant Garamond',Georgia,serif;font-size:16px;color:rgba(201,168,124,.75)}
+.cw-addon-info{flex:1;padding-right:22px}
+.cw-addon-name{font-family:'DM Sans',sans-serif;font-size:12px;font-weight:500;color:#fdfaf8;margin-bottom:2px;line-height:1.3}
+.cw-addon-price{font-family:'Cormorant Garamond',Georgia,serif;font-size:15px;color:rgba(201,168,124,.75)}
 .cw-skip-btn{width:100%;padding:11px;background:none;border:1px dashed rgba(255,255,255,.28);border-radius:11px;color:rgba(253,250,248,.68);font-family:'DM Sans',sans-serif;font-size:12.5px;cursor:pointer;transition:all .18s;box-sizing:border-box}
 .cw-skip-btn:hover{border-color:rgba(255,255,255,.50);color:#fdfaf8}
 
