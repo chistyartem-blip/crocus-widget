@@ -675,10 +675,7 @@ var css = `
   .cw-master-card{border-radius:11px}
 
   /* Addon buttons */
-  .cw-addons{grid-template-columns:1fr 1fr}
-  .cw-addon-btn{padding:9px 10px;min-height:58px}
-  .cw-addon-name{font-size:11px}
-  .cw-addon-price{font-size:14px}
+  .cw-addon-btn{padding:11px 12px}
 
   /* Summary */
   .cw-summary{padding:11px 12px}
@@ -841,15 +838,15 @@ var css = `
 }
 
 /* ── Step 4: Addons ── */
-.cw-addons{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px}
-.cw-addon-btn{position:relative;display:flex;flex-direction:column;justify-content:space-between;gap:6px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:13px;padding:10px 12px 10px 12px;cursor:pointer;text-align:left;color:inherit;width:100%;font-family:inherit;transition:all .2s;box-sizing:border-box;min-height:64px}
+.cw-addons{display:flex;flex-direction:column;gap:8px;margin-bottom:16px}
+.cw-addon-btn{display:flex;align-items:center;gap:11px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:13px;padding:12px 14px;cursor:pointer;text-align:left;color:inherit;width:100%;font-family:inherit;transition:all .2s;box-sizing:border-box}
 .cw-addon-btn:hover{border-color:rgba(201,168,124,.28);background:rgba(201,168,124,.04)}
 .cw-addon-btn.sel{border-color:rgba(201,168,124,.55);background:rgba(201,168,124,.08)}
-.cw-addon-check{position:absolute;top:8px;right:8px;width:18px;height:18px;border-radius:5px;border:1.5px solid rgba(255,255,255,.15);background:rgba(255,255,255,.04);display:flex;align-items:center;justify-content:center;font-size:10px;transition:all .18s;flex-shrink:0}
+.cw-addon-check{width:20px;height:20px;border-radius:6px;border:1.5px solid rgba(255,255,255,.15);background:rgba(255,255,255,.04);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:11px;transition:all .18s}
 .cw-addon-btn.sel .cw-addon-check{background:#c9a87c;border-color:#c9a87c;color:#0f0a0d}
-.cw-addon-info{flex:1;padding-right:22px}
-.cw-addon-name{font-family:'DM Sans',sans-serif;font-size:12px;font-weight:500;color:#fdfaf8;margin-bottom:2px;line-height:1.3}
-.cw-addon-price{font-family:'Cormorant Garamond',Georgia,serif;font-size:15px;color:rgba(201,168,124,.75)}
+.cw-addon-info{flex:1}
+.cw-addon-name{font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;color:#fdfaf8;margin-bottom:1px}
+.cw-addon-price{font-family:'Cormorant Garamond',Georgia,serif;font-size:16px;color:rgba(201,168,124,.75)}
 .cw-skip-btn{width:100%;padding:11px;background:none;border:1px dashed rgba(255,255,255,.28);border-radius:11px;color:rgba(253,250,248,.68);font-family:'DM Sans',sans-serif;font-size:12.5px;cursor:pointer;transition:all .18s;box-sizing:border-box}
 .cw-skip-btn:hover{border-color:rgba(255,255,255,.50);color:#fdfaf8}
 
@@ -869,16 +866,6 @@ var css = `
 .cw-day.avail::after{content:'';position:absolute;bottom:2px;left:50%;transform:translateX(-50%);width:3px;height:3px;border-radius:50%;background:#7B2D4E;opacity:.55}
 .cw-day.sel::after{background:#fff}
 .cw-times-title{font-family:'DM Sans',sans-serif;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:rgba(253,250,248,.60);margin:15px 0 8px}
-.cw-master-filter{display:none;align-items:center;justify-content:space-between;gap:10px;margin:0 0 12px;background:rgba(201,168,124,.06);border:1px solid rgba(201,168,124,.18);border-radius:13px;padding:10px 14px}
-.cw-master-filter.visible{display:flex}
-.cw-master-filter__text{font-family:'DM Sans',sans-serif;font-size:12px;color:rgba(253,250,248,.75);line-height:1.35}
-.cw-master-filter__text strong{display:block;font-size:13px;font-weight:600;color:#fdfaf8;margin-bottom:1px}
-.cw-master-filter__toggle{position:relative;width:42px;height:24px;flex-shrink:0;cursor:pointer}
-.cw-master-filter__toggle input{opacity:0;width:0;height:0;position:absolute}
-.cw-mf-track{position:absolute;inset:0;border-radius:12px;background:rgba(255,255,255,.10);border:1px solid rgba(255,255,255,.12);transition:all .22s}
-.cw-master-filter__toggle input:checked~.cw-mf-track{background:#c9a87c;border-color:#c9a87c}
-.cw-mf-thumb{position:absolute;top:3px;left:3px;width:16px;height:16px;border-radius:50%;background:#fff;box-shadow:0 1px 4px rgba(0,0,0,.3);transition:transform .22s}
-.cw-master-filter__toggle input:checked~.cw-mf-track .cw-mf-thumb{transform:translateX(18px)}
 .cw-time-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
 .cw-time{padding:8px 4px;border-radius:9px;border:1px solid rgba(255,255,255,.20);background:rgba(255,255,255,.08);color:rgba(253,250,248,.90);font-family:'DM Sans',sans-serif;font-size:12px;cursor:pointer;transition:all .15s;text-align:center;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
 .cw-time.free:hover{border-color:rgba(123,45,78,.42);background:rgba(123,45,78,.14);color:#fdfaf8}
@@ -1233,10 +1220,6 @@ wrap.innerHTML =
         + '</div>'
         + '<div id="cw-times-wrap" style="display:none">'
           + '<div class="cw-times-title">Verfügbare Zeiten</div>'
-          + '<div class="cw-master-filter" id="cw-master-filter">'
-            + '<div class="cw-master-filter__text"><strong id="cw-mf-name"></strong>Nur Termine mit meiner Meisterin</div>'
-            + '<label class="cw-master-filter__toggle"><input type="checkbox" id="cw-mf-toggle"><div class="cw-mf-track"><div class="cw-mf-thumb"></div></div></label>'
-          + '</div>'
           + '<div class="cw-time-grid" id="cw-time-grid"></div>'
         + '</div>'
       + '</div>'
@@ -1300,8 +1283,6 @@ var _seanceCache = {}; // кэш seance_length: ключ = staffId+'_'+serviceId
 var _serviceCacheByStaff = {};
 var _expressPreviewCache = {};
 var _comboSlotsCache = {};
-var _rawTimeSlotsForFilter = []; // все слоты до фильтра мастера — для toggle
-var _expressKombiActiveStaff = []; // staff_id у которых реально есть слоты в express kombi
 
 // Gift state
 var gift = {
@@ -1626,9 +1607,7 @@ function fetchStaffServices(staffId) {
   }
   return apiGet('/book_services/'+CONFIG.locationId, { staff_id: staffId })
     .then(function(res) {
-      var list = (res && res.success && res.data && res.data.services)
-        ? res.data.services
-        : (res && Array.isArray(res.services) ? res.services : []);
+      var list = res && res.success && res.data && res.data.services ? res.data.services : [];
       var map = {};
       list.forEach(function(svc) {
         map[svc.id] = svc;
@@ -1733,8 +1712,7 @@ function ensureSummaryPricingReady() {
   return Promise.all(loads).then(function() {
     if (cw.service && cw.service.id === KOMBI_SERVICE_ID && cw.comboRoute) {
       requireStaffServicePrice(cw.comboRoute.maniStaffId, KOMBI_MANI_PRICE_SERVICE_ID);
-      var _pediSvcForPrice = cw.comboRoute.pediServiceId || _SLOT_PEDI_SERVICE[cw.comboRoute.pediStaffId] || KOMBI_PEDI_SERVICE_ID;
-      requireStaffServicePrice(cw.comboRoute.pediStaffId, _pediSvcForPrice);
+      requireStaffServicePrice(cw.comboRoute.pediStaffId, KOMBI_PEDI_SERVICE_ID);
     } else if (cw.master && cw.master.id && cw.service) {
       requireStaffServicePrice(cw.master.id, cw.service.id);
     }
@@ -1922,19 +1900,15 @@ function openExpressNails() {
   var list = document.getElementById('cw-cats-list');
   list.innerHTML = '<div class="cw-loader"><div class="cw-spinner"></div><span class="cw-loader-text">Schnellste Termine werden geladen…</span></div>';
   goStep(2);
-  // Загружаем персональные цены для каждого мастера комби, потом рендерим
-  Promise.all(KOMBI_STAFF_IDS.map(function(sid) {
-    return fetchStaffServices(sid).catch(function(){ return {}; });
-  })).then(function() {
-    renderCategories(KOMBI_STAFF_IDS[0]);
-  }).catch(function() {
-    renderCategories(KOMBI_STAFF_IDS[0]);
-  });
+  apiGet('/book_services/'+CONFIG.locationId)
+    .then(function(res) {
+      if (res.success && res.data && res.data.services) _allServices = res.data.services;
+      renderCategories(KOMBI_STAFF_IDS[0]);
+    })
+    .catch(function(){ renderCategories(KOMBI_STAFF_IDS[0]); });
 }
 
-var _SLOT_MANI_SERVICE = { 3020185: 13485754, 3020186: 13485753, 3020187: 13485753, 3047989: 13485763 };
-var _SLOT_SERVICE = _SLOT_MANI_SERVICE; // backward compat alias
-var _SLOT_PEDI_SERVICE = { 3020185: 13485761, 3020186: 13485761, 3020187: 13485761 };
+var _SLOT_SERVICE = { 3020185: 13485754, 3020186: 13485753, 3020187: 13485753, 3047989: 13485763 };
 
 function loadMasterSlot(staffId) {
   var serviceId = _SLOT_SERVICE[staffId];
@@ -2011,28 +1985,28 @@ function selectMaster(m, meta) {
   list.innerHTML = '<div class="cw-loader"><div class="cw-spinner"></div><span class="cw-loader-text">Laden…</span></div>';
   apiGet('/book_services/'+CONFIG.locationId, { staff_id: m.id })
     .then(function(res) {
-      var svcs = (res && res.success && res.data && res.data.services && res.data.services.length)
-        ? res.data.services
-        : (res && Array.isArray(res.services) && res.services.length ? res.services : null);
-      if (!svcs) throw new Error('staff_services_load_failed_' + m.id);
-      _allServices = svcs;
-      _serviceCacheByStaff[Number(m.id)] = {};
-      // Кэшируем seance_length per staff+service
-      _allServices.forEach(function(svc) {
-        _serviceCacheByStaff[Number(m.id)][svc.id] = svc;
-        if (svc.seance_length) {
-          _seanceCache[m.id + '_' + svc.id] = svc.seance_length;
+      if (res.success && res.data && res.data.services && res.data.services.length) {
+        _allServices = res.data.services;
+        _serviceCacheByStaff[Number(m.id)] = {};
+        // Кэшируем seance_length per staff+service
+        _allServices.forEach(function(svc) {
+          _serviceCacheByStaff[Number(m.id)][svc.id] = svc;
+          if (svc.seance_length) {
+            _seanceCache[m.id + '_' + svc.id] = svc.seance_length;
+          }
+        });
+        // НЕ перезаписываем _addonObjs — у staff_id запроса аддоны могут не вернуться
+        // Используем _globalAddonObjs из начального запроса без staff_id
+        if (_globalAddonObjs.length) {
+          _addonObjs = _globalAddonObjs;
+        } else {
+          // fallback: если глобальный кэш пустой — берём из текущего ответа
+          var fromCurrent = _allServices.filter(function(s){ return ADDON_IDS.indexOf(s.id) !== -1; });
+          _addonObjs = mergeAddonCatalog(fromCurrent);
+          _globalAddonObjs = _addonObjs.slice();
         }
-      });
-      // НЕ перезаписываем _addonObjs — у staff_id запроса аддоны могут не вернуться
-      // Используем _globalAddonObjs из начального запроса без staff_id
-      if (_globalAddonObjs.length) {
-        _addonObjs = _globalAddonObjs;
       } else {
-        // fallback: если глобальный кэш пустой — берём из текущего ответа
-        var fromCurrent = _allServices.filter(function(s){ return ADDON_IDS.indexOf(s.id) !== -1; });
-        _addonObjs = mergeAddonCatalog(fromCurrent);
-        _globalAddonObjs = _addonObjs.slice();
+        throw new Error('staff_services_load_failed_' + m.id);
       }
       if (cw.direction === 'wimpern') {
         var wimpernCat = categoryByKey('wimpern');
@@ -2074,8 +2048,7 @@ function renderCategories(masterId) {
         var comboPrices = KOMBI_STAFF_IDS.map(function(staffId) {
           return (function(oldMasterId) {
             masterId = staffId;
-            var pediSvcExpr = _SLOT_PEDI_SERVICE[staffId] || KOMBI_PEDI_SERVICE_ID;
-            var p = priceForStaff(KOMBI_MANI_PRICE_SERVICE_ID) + servicePriceForStaff(staffId, pediSvcExpr, false);
+            var p = priceForStaff(KOMBI_MANI_PRICE_SERVICE_ID) + priceForStaff(KOMBI_PEDI_SERVICE_ID);
             masterId = oldMasterId;
             return p;
           })(masterId);
@@ -2095,16 +2068,14 @@ function renderCategories(masterId) {
       return allPrices.length ? 'ab '+Math.min.apply(Math, allPrices)+' €' : '';
     }
     if (cat.key === 'kombi') {
-      // Цена = Nagelkorrektur (13485754) + Pediküre+Gellack per-staff - 5€ скидка
-      var _pediSvcCat = _SLOT_PEDI_SERVICE[masterId] || KOMBI_PEDI_SERVICE_ID;
-      var maniPrice = priceForStaff(KOMBI_MANI_PRICE_SERVICE_ID);
-      var pediPrice = priceForStaff(_pediSvcCat);
-      if (maniPrice != null && maniPrice > 0 && pediPrice != null && pediPrice > 0) {
-        return 'ab '+(maniPrice + pediPrice - 5)+' €';
-      }
-      // Фолбэк: прямая цена комби-сервиса из Altegio
+      // Сначала пробуем прямую цену комби-сервиса (13485762) у мастера
       var directComboPrice = priceForStaff(KOMBI_SERVICE_ID);
-      return directComboPrice ? 'ab '+directComboPrice+' €' : '';
+      if (directComboPrice) return 'ab '+(directComboPrice-5)+' €';
+      // Фолбэк: сумма отдельных услуг
+      var maniPrice = priceForStaff(KOMBI_MANI_PRICE_SERVICE_ID);
+      var pediPrice = priceForStaff(KOMBI_PEDI_SERVICE_ID);
+      var comboPrice = maniPrice != null && pediPrice != null ? maniPrice + pediPrice - 5 : 0;
+      return comboPrice ? 'ab '+comboPrice+' €' : '';
     }
     var prices = cat.serviceIds.map(priceForStaff).filter(function(p){ return p > 0; });
     if (!prices.length) return '';
@@ -2815,16 +2786,14 @@ function loadComboAvailDates() {
   var serviceLoads = KOMBI_STAFF_IDS.map(function(staffId){ return fetchStaffServices(staffId); });
   var dateLoads = [];
   KOMBI_STAFF_IDS.forEach(function(staffId) {
-    var _maniSvcIdDate = _SLOT_MANI_SERVICE[staffId] || KOMBI_MANI_SERVICE_ID;
-    var _pediSvcIdDate = _SLOT_PEDI_SERVICE[staffId] || KOMBI_PEDI_SERVICE_ID;
     dateLoads.push(apiGet('/book_dates/'+CONFIG.locationId, {
       staff_id: staffId,
-      service_ids: [_maniSvcIdDate],
+      service_ids: [KOMBI_MANI_SERVICE_ID],
       date: firstDay,
     }).catch(function(){ return null; }));
     dateLoads.push(apiGet('/book_dates/'+CONFIG.locationId, {
       staff_id: staffId,
-      service_ids: [_pediSvcIdDate],
+      service_ids: [KOMBI_PEDI_SERVICE_ID],
       date: firstDay,
     }).catch(function(){ return null; }));
   });
@@ -2937,8 +2906,6 @@ function renderCalendar() {
 
 function selectDate(ds) {
   cw.date = ds; cw.time = null; cw.datetime = null; cw.comboAppointments = null; cw.comboRoute = null;
-  var mfToggle = document.getElementById('cw-mf-toggle'); if (mfToggle) mfToggle.checked = false;
-  _rawTimeSlotsForFilter = [];
   document.getElementById('cw-times-wrap').style.display = 'block';
   renderCalendar();
   loadTimes();
@@ -3290,10 +3257,8 @@ function loadComboSlotsForDate(ds) {
   var timeLoads = [];
   KOMBI_STAFF_IDS.forEach(function(staffId) {
     timeLoads.push(fetchStaffServices(staffId));
-    var _maniSvcId = _SLOT_MANI_SERVICE[staffId] || KOMBI_MANI_SERVICE_ID;
-    var _pediSvcId = _SLOT_PEDI_SERVICE[staffId] || KOMBI_PEDI_SERVICE_ID;
-    timeLoads.push(apiGet('/book_times/'+CONFIG.locationId+'/'+staffId+'/'+ds, { service_ids: [_maniSvcId] }).catch(function(){ return null; }));
-    timeLoads.push(apiGet('/book_times/'+CONFIG.locationId+'/'+staffId+'/'+ds, { service_ids: [_pediSvcId] }).catch(function(){ return null; }));
+    timeLoads.push(apiGet('/book_times/'+CONFIG.locationId+'/'+staffId+'/'+ds, { service_ids: [KOMBI_MANI_SERVICE_ID] }).catch(function(){ return null; }));
+    timeLoads.push(apiGet('/book_times/'+CONFIG.locationId+'/'+staffId+'/'+ds, { service_ids: [KOMBI_PEDI_SERVICE_ID] }).catch(function(){ return null; }));
   });
 
   _comboSlotsCache[cacheKey] = Promise.all(timeLoads).then(function(results) {
@@ -3413,11 +3378,8 @@ function comboStaffComment(route) {
 
 function routeTotalPrice(route) {
   if (!route) return 0;
-  // маникюр: всегда считаем по Nagelkorrektur (13485754) — эталонная цена
-  var maniPriceSvc = KOMBI_MANI_PRICE_SERVICE_ID;
-  var pediPriceSvc = (route.pediServiceId) || _SLOT_PEDI_SERVICE[route.pediStaffId] || KOMBI_PEDI_SERVICE_ID;
-  var maniPrice = servicePriceForStaff(route.maniStaffId, maniPriceSvc, true);
-  var pediPrice = servicePriceForStaff(route.pediStaffId, pediPriceSvc, true);
+  var maniPrice = servicePriceForStaff(route.maniStaffId, KOMBI_MANI_PRICE_SERVICE_ID, true);
+  var pediPrice = servicePriceForStaff(route.pediStaffId, KOMBI_PEDI_SERVICE_ID, true);
   if (maniPrice == null || pediPrice == null) return null;
   return maniPrice + pediPrice - 5;
 }
@@ -3464,15 +3426,13 @@ function buildComboPairCandidates(byStaff, maniStaffId, pediStaffId, candidates)
   var pediData = byStaff[pediStaffId];
   if (!maniData || !pediData) return;
 
-  var maniSvcId = _SLOT_MANI_SERVICE[maniStaffId] || KOMBI_MANI_SERVICE_ID;
-  var pediSvcId = _SLOT_PEDI_SERVICE[pediStaffId] || KOMBI_PEDI_SERVICE_ID;
   maniData.mani.forEach(function(maniSlot) {
-    var maniDuration = serviceDurationForStaff(maniStaffId, maniSvcId, maniSlot, 0);
+    var maniDuration = serviceDurationForStaff(maniStaffId, KOMBI_MANI_SERVICE_ID, maniSlot, 0);
     if (!maniDuration) return;
     var pediStart = addSecondsToAltegioDatetime(maniSlot.datetime, maniDuration);
     var pediSlot = pediData.pediMap[pediStart];
     if (!pediSlot) return;
-    var pediDuration = serviceDurationForStaff(pediStaffId, pediSvcId, pediSlot, 0);
+    var pediDuration = serviceDurationForStaff(pediStaffId, KOMBI_PEDI_SERVICE_ID, pediSlot, 0);
     if (!pediDuration) return;
     addComboCandidate(candidates, makeComboCandidate({
       startSlot: maniSlot,
@@ -3483,18 +3443,16 @@ function buildComboPairCandidates(byStaff, maniStaffId, pediStaffId, candidates)
       pediDatetime: pediStart,
       maniDuration: maniDuration,
       pediDuration: pediDuration,
-      maniServiceId: maniSvcId,
-      pediServiceId: pediSvcId,
     }));
   });
 
   pediData.pedi.forEach(function(pediSlot) {
-    var pediDuration = serviceDurationForStaff(pediStaffId, pediSvcId, pediSlot, 0);
+    var pediDuration = serviceDurationForStaff(pediStaffId, KOMBI_PEDI_SERVICE_ID, pediSlot, 0);
     if (!pediDuration) return;
     var maniStart = addSecondsToAltegioDatetime(pediSlot.datetime, pediDuration);
     var maniSlot = maniData.maniMap[maniStart];
     if (!maniSlot) return;
-    var maniDuration = serviceDurationForStaff(maniStaffId, maniSvcId, maniSlot, 0);
+    var maniDuration = serviceDurationForStaff(maniStaffId, KOMBI_MANI_SERVICE_ID, maniSlot, 0);
     if (!maniDuration) return;
     addComboCandidate(candidates, makeComboCandidate({
       startSlot: pediSlot,
@@ -3505,15 +3463,11 @@ function buildComboPairCandidates(byStaff, maniStaffId, pediStaffId, candidates)
       pediDatetime: pediSlot.datetime,
       maniDuration: maniDuration,
       pediDuration: pediDuration,
-      maniServiceId: maniSvcId,
-      pediServiceId: pediSvcId,
     }));
   });
 }
 
 function makeComboCandidate(opts) {
-  var maniSvc = opts.maniServiceId || _SLOT_MANI_SERVICE[opts.maniStaffId] || KOMBI_MANI_SERVICE_ID;
-  var pediSvc = opts.pediServiceId || _SLOT_PEDI_SERVICE[opts.pediStaffId] || KOMBI_PEDI_SERVICE_ID;
   var route = {
     order: opts.order,
     maniStaffId: Number(opts.maniStaffId),
@@ -3522,8 +3476,6 @@ function makeComboCandidate(opts) {
     pediDatetime: opts.pediDatetime,
     maniDuration: opts.maniDuration,
     pediDuration: opts.pediDuration,
-    maniServiceId: maniSvc,
-    pediServiceId: pediSvc,
     priority: comboPriority(opts.maniStaffId, opts.pediStaffId),
   };
   route.endDatetime = addSecondsToAltegioDatetime(
@@ -3533,12 +3485,12 @@ function makeComboCandidate(opts) {
   var candidate = Object.assign({}, opts.startSlot);
   candidate.comboAppointments = opts.order === 'mani_first'
     ? [
-        comboAppointment(maniSvc, opts.maniStaffId, opts.maniDatetime),
-        comboAppointment(pediSvc, opts.pediStaffId, opts.pediDatetime),
+        comboAppointment(KOMBI_MANI_SERVICE_ID, opts.maniStaffId, opts.maniDatetime),
+        comboAppointment(KOMBI_PEDI_SERVICE_ID, opts.pediStaffId, opts.pediDatetime),
       ]
     : [
-        comboAppointment(pediSvc, opts.pediStaffId, opts.pediDatetime),
-        comboAppointment(maniSvc, opts.maniStaffId, opts.maniDatetime),
+        comboAppointment(KOMBI_PEDI_SERVICE_ID, opts.pediStaffId, opts.pediDatetime),
+        comboAppointment(KOMBI_MANI_SERVICE_ID, opts.maniStaffId, opts.maniDatetime),
       ];
   candidate.comboRoute = route;
   return candidate;
@@ -3647,62 +3599,21 @@ function goContactWithoutSlotCheck() {
   }, 120);
 }
 
-function renderTimesLoaded(slots, _fromToggle) {
+function renderTimesLoaded(slots) {
   var grid = document.getElementById('cw-time-grid');
-  var filterWrap = document.getElementById('cw-master-filter');
-  var filterToggle = document.getElementById('cw-mf-toggle');
-  var filterName = document.getElementById('cw-mf-name');
-  // From toggle: slots=null is OK, we use _rawTimeSlotsForFilter
-  if (!slots && !_fromToggle) return;
-
-  var isKombi = !!(cw.service && cw.service.id === KOMBI_SERVICE_ID && cw.master && !cw.express);
-
-  // On fresh load (not from toggle) — filter base slots and save globally
-  if (!_fromToggle) {
-    slots = filterTestBlockedSlots(slots);
-    slots = filterDisplayTimeSlots(slots);
-    _rawTimeSlotsForFilter = slots.slice();
-  } else {
-    slots = _rawTimeSlotsForFilter.slice();
-  }
-
-  // Attach toggle listener once
-  if (filterToggle && !filterToggle._cwBound) {
-    filterToggle._cwBound = true;
-    filterToggle.addEventListener('change', function() {
-      renderTimesLoaded(null, true);
-    });
-  }
-
-  // --- Show/hide filter UI ---
-  if (isKombi && filterWrap) {
-    var selMId = Number(cw.master.id);
-    var hasMixedMasters = slots.some(function(s) {
-      return s.comboRoute && (Number(s.comboRoute.maniStaffId) !== selMId || Number(s.comboRoute.pediStaffId) !== selMId);
-    });
-    if (hasMixedMasters) {
-      filterWrap.classList.add('visible');
-      if (filterName) filterName.textContent = cw.master.name;
-    } else {
-      filterWrap.classList.remove('visible');
-    }
-  } else if (filterWrap) {
-    filterWrap.classList.remove('visible');
-  }
-
+  if (!slots) return;
+  slots = filterTestBlockedSlots(slots);
+  slots = filterDisplayTimeSlots(slots);
   if (!slots.length) {
     grid.innerHTML = '<div class="cw-error" style="grid-column:span 4">Keine freien Zeiten.</div>';
     return;
   }
   grid.innerHTML = '';
-
-  // Apply filter for kombi
-  if (isKombi) {
+  // For combo: filter slots where selected master doesn't participate at all
+  if (cw.service && cw.service.id === KOMBI_SERVICE_ID && cw.master && !cw.express) {
     var selMId = Number(cw.master.id);
-    var onlyMine = filterToggle ? filterToggle.checked : false;
     slots = slots.filter(function(slot) {
       if (!slot.comboRoute) return true;
-      if (onlyMine) return Number(slot.comboRoute.maniStaffId) === selMId && Number(slot.comboRoute.pediStaffId) === selMId;
       return Number(slot.comboRoute.maniStaffId) === selMId || Number(slot.comboRoute.pediStaffId) === selMId;
     });
     if (!slots.length) {
@@ -3710,7 +3621,6 @@ function renderTimesLoaded(slots, _fromToggle) {
       return;
     }
   }
-
   // Mark grid if any slot has a master label (2-column layout)
   var hasMasterLabels = slots.some(function(s){
     if (!s.comboRoute) return false;
@@ -3785,19 +3695,17 @@ function renderTimesLoaded(slots, _fromToggle) {
     });
     grid.appendChild(btn);
   });
-  // Скролл до слотов только при первом рендере (не при toggle)
-  if (!_fromToggle) {
-    requestAnimationFrame(function() {
-      var timesWrap = document.getElementById('cw-times-wrap');
-      var body = document.getElementById('crocus-body');
-      if (timesWrap && body) {
-        var bodyRect = body.getBoundingClientRect();
-        var wrapRect = timesWrap.getBoundingClientRect();
-        var scrollTarget = body.scrollTop + (wrapRect.top - bodyRect.top) - 12;
-        body.scrollTo({ top: scrollTarget, behavior: 'smooth' });
-      }
-    });
-  }
+  // Скролл до слотов после рендера
+  requestAnimationFrame(function() {
+    var timesWrap = document.getElementById('cw-times-wrap');
+    var body = document.getElementById('crocus-body');
+    if (timesWrap && body) {
+      var bodyRect = body.getBoundingClientRect();
+      var wrapRect = timesWrap.getBoundingClientRect();
+      var scrollTarget = body.scrollTop + (wrapRect.top - bodyRect.top) - 12;
+      body.scrollTo({ top: scrollTarget, behavior: 'smooth' });
+    }
+  });
 }
 
 // ── Step 6: Summary + Submit ───────────────────────────────────
