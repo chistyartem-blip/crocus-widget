@@ -3245,7 +3245,11 @@ function warmComboCalendarDates(dates) {
 }
 
 function loadComboSlotsForDate(ds) {
-  if (_comboSlotsCache[ds]) return _comboSlotsCache[ds];
+  // Кэш по ключу: дата + выбранный мастер (если есть)
+  var selId = cw.master && !cw.express ? Number(cw.master.id) : 0;
+  var cacheKey = ds + (selId ? '|' + selId : '');
+  if (_comboSlotsCache[cacheKey]) return _comboSlotsCache[cacheKey];
+
   var timeLoads = [];
   KOMBI_STAFF_IDS.forEach(function(staffId) {
     timeLoads.push(fetchStaffServices(staffId));
@@ -3253,7 +3257,7 @@ function loadComboSlotsForDate(ds) {
     timeLoads.push(apiGet('/book_times/'+CONFIG.locationId+'/'+staffId+'/'+ds, { service_ids: [KOMBI_PEDI_SERVICE_ID] }).catch(function(){ return null; }));
   });
 
-  _comboSlotsCache[ds] = Promise.all(timeLoads).then(function(results) {
+  _comboSlotsCache[cacheKey] = Promise.all(timeLoads).then(function(results) {
     var byStaff = {};
     KOMBI_STAFF_IDS.forEach(function(staffId, idx) {
       var maniRes = results[idx * 3 + 1];
@@ -3277,18 +3281,29 @@ function loadComboSlotsForDate(ds) {
       });
     });
 
-    candidates.sort(function(a,b) {
-      return String(a.datetime).localeCompare(String(b.datetime)) || routeSortKey(a.comboRoute).localeCompare(routeSortKey(b.comboRoute));
-    });
+    // Если выбран мастер — его слоты идут первыми в очередь на проверку
+    if (selId) {
+      candidates.sort(function(a, b) {
+        var aHas = (a.comboRoute && (Number(a.comboRoute.maniStaffId) === selId || Number(a.comboRoute.pediStaffId) === selId)) ? 0 : 1;
+        var bHas = (b.comboRoute && (Number(b.comboRoute.maniStaffId) === selId || Number(b.comboRoute.pediStaffId) === selId)) ? 0 : 1;
+        if (aHas !== bHas) return aHas - bHas;
+        return String(a.datetime).localeCompare(String(b.datetime)) || routeSortKey(a.comboRoute).localeCompare(routeSortKey(b.comboRoute));
+      });
+    } else {
+      candidates.sort(function(a,b) {
+        return String(a.datetime).localeCompare(String(b.datetime)) || routeSortKey(a.comboRoute).localeCompare(routeSortKey(b.comboRoute));
+      });
+    }
+
     candidates = spreadCandidatesByTime(candidates);
-    console.log('[crocus] loadComboTimes: candidates='+candidates.length+' date='+ds);
+    console.log('[crocus] loadComboSlotsForDate: candidates='+candidates.length+' date='+ds+' master='+selId);
     return batchCheckSlots(candidates, function(slot){ return slot.comboAppointments; }, {
       maxChecks: 48,
       target: 16,
       concurrency: 4,
     });
   });
-  return _comboSlotsCache[ds];
+  return _comboSlotsCache[cacheKey];
 }
 
 function dedupeComboSlotsForMaster(slots) {
