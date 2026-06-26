@@ -1301,6 +1301,7 @@ var _serviceCacheByStaff = {};
 var _expressPreviewCache = {};
 var _comboSlotsCache = {};
 var _rawTimeSlotsForFilter = []; // все слоты до фильтра мастера — для toggle
+var _expressKombiActiveStaff = []; // staff_id у которых реально есть слоты в express kombi
 
 // Gift state
 var gift = {
@@ -3630,7 +3631,8 @@ function renderTimesLoaded(slots, _fromToggle) {
   var filterWrap = document.getElementById('cw-master-filter');
   var filterToggle = document.getElementById('cw-mf-toggle');
   var filterName = document.getElementById('cw-mf-name');
-  if (!slots) return;
+  // From toggle: slots=null is OK, we use _rawTimeSlotsForFilter
+  if (!slots && !_fromToggle) return;
 
   var isKombi = !!(cw.service && cw.service.id === KOMBI_SERVICE_ID && cw.master && !cw.express);
 
