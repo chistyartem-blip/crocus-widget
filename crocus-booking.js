@@ -2984,7 +2984,7 @@ function loadSingleExpressSlotsForDate(serviceId, ds, target) {
       if (duration) params.duration = duration;
       return apiGet('/book_times/'+CONFIG.locationId+'/'+staffId+'/'+ds, params);
     }).then(function(res) {
-      return { staffId: staffId, slots: res && res.success ? (res.data || []) : [] };
+      return { staffId: staffId, slots: Array.isArray(res) ? res : (res && res.success && Array.isArray(res.data)) ? res.data : [] };
     }).catch(function(){ return { staffId: staffId, slots: [] }; });
   })).then(function(results) {
     var candidates = [];
@@ -3301,8 +3301,8 @@ function loadComboSlotsForDate(ds) {
     KOMBI_STAFF_IDS.forEach(function(staffId, idx) {
       var maniRes = results[idx * 3 + 1];
       var pediRes = results[idx * 3 + 2];
-      var maniSlots = maniRes && maniRes.success ? (maniRes.data || []) : [];
-      var pediSlots = pediRes && pediRes.success ? (pediRes.data || []) : [];
+      var maniSlots = Array.isArray(maniRes) ? maniRes : (maniRes && maniRes.success && Array.isArray(maniRes.data)) ? maniRes.data : [];
+      var pediSlots = Array.isArray(pediRes) ? pediRes : (pediRes && pediRes.success && Array.isArray(pediRes.data)) ? pediRes.data : [];
       byStaff[staffId] = {
         mani: maniSlots,
         pedi: pediSlots,
