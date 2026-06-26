@@ -2193,7 +2193,21 @@ function expressServiceShortTitle(svc) {
 }
 
 function expressPreviewDates() {
-  return [localDateString(0), localDateString(1), localDateString(2)];
+  return expressWorkDates(3);
+}
+
+// Возвращает n рабочих дат начиная с сегодня, пропуская воскресенья (getDay()===0)
+function expressWorkDates(n) {
+  var result = [];
+  var offset = 0;
+  while (result.length < n) {
+    var ds = localDateString(offset);
+    var dow = new Date(ds + 'T12:00:00').getDay(); // 0=Sonntag
+    if (dow !== 0) result.push(ds);
+    offset++;
+    if (offset > 14) break; // защита от бесконечного цикла
+  }
+  return result;
 }
 
 function cachedSingleExpressSlots(serviceId, ds, target) {
@@ -2668,8 +2682,7 @@ function renderExpressTwoDayPicker() {
   document.getElementById('cw-times-wrap').style.display = 'none';
   cal.classList.add('express');
   grid.innerHTML = '';
-  [0, 1, 2].forEach(function(offset) {
-    var ds = localDateString(offset);
+  expressWorkDates(3).forEach(function(ds, offset) {
     var card = document.createElement('div');
     card.className = 'cw-express-day-card';
     card.id = 'cw-express-day-' + offset;
