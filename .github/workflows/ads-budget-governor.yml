@@ -79,7 +79,7 @@ jobs:
           GOOGLE_ADS_CUSTOMER_ID: ${{ secrets.GOOGLE_ADS_CUSTOMER_ID }}
           GOOGLE_ADS_LOGIN_CUSTOMER_ID: ${{ secrets.GOOGLE_ADS_LOGIN_CUSTOMER_ID }}
           CPC_GUARD_APPLY: "true"
-          CPC_GUARD_MAX_EUR: ${{ vars.CPC_GUARD_MAX_EUR || '0.95' }}
+          CPC_GUARD_MAX_EUR: ${{ vars.CPC_GUARD_MAX_EUR || '0.50' }}
           CPC_GUARD_DISABLE_AUTO_APPLY: "true"
         run: node scripts/enforce-man-ped-cpc-guard.mjs
 
