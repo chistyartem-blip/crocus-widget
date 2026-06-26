@@ -177,7 +177,7 @@ var MASTERS_META = {
 
 var HIDDEN_STAFF_IDS = [Number(['3020', '188'].join('')), 3020006, 3047641];
 var ALWAYS_SHOW_STAFF_IDS = [3047989];
-var MASTER_ORDER = { 3020185: 10, 3020186: 20, 3020187: 30, 3047989: 999 };
+var MASTER_ORDER = { 3020185: 10, 3020186: 20, 3020187: 30, 3047989: 40 };
 function isHiddenStaffId(staffId) {
   return HIDDEN_STAFF_IDS.indexOf(Number(staffId)) !== -1;
 }
