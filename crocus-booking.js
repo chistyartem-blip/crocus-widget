@@ -3287,20 +3287,44 @@ function loadComboSlotsForDate(ds) {
       target: 16,
       concurrency: 4,
     });
-  }).then(function(verifiedSlots) {
-    return dedupeComboSlots(verifiedSlots);
   });
   return _comboSlotsCache[ds];
 }
 
+function dedupeComboSlotsForMaster(slots) {
+  // Дедупликация с учётом выбранного мастера:
+  // для каждого времени храним лучший слот где мастер участвует,
+  // и лучший слот без мастера (фолбэк если мастер не выбран)
+  var selId = cw.master && !cw.express ? Number(cw.master.id) : 0;
+  var bestWithMaster = {};
+  var bestAny = {};
+  (slots || []).forEach(function(slot) {
+    var key = slot.datetime;
+    var mId = slot.comboRoute ? Number(slot.comboRoute.maniStaffId) : 0;
+    var pId = slot.comboRoute ? Number(slot.comboRoute.pediStaffId) : 0;
+    var hasMaster = selId && (mId === selId || pId === selId);
+    if (hasMaster) {
+      if (!bestWithMaster[key] || routeSortKey(slot.comboRoute) < routeSortKey(bestWithMaster[key].comboRoute)) {
+        bestWithMaster[key] = slot;
+      }
+    }
+    if (!bestAny[key] || routeSortKey(slot.comboRoute) < routeSortKey(bestAny[key].comboRoute)) {
+      bestAny[key] = slot;
+    }
+  });
+  var pool = selId && Object.keys(bestWithMaster).length ? bestWithMaster : bestAny;
+  return Object.keys(pool).sort().map(function(key){ return pool[key]; }).slice(0, 16);
+}
+
 function loadComboTimes() {
   loadComboSlotsForDate(cw.date).then(function(verifiedSlots) {
-    if (!verifiedSlots || !verifiedSlots.length) {
+    var deduped = dedupeComboSlotsForMaster(verifiedSlots);
+    if (!deduped || !deduped.length) {
       var grid = document.getElementById('cw-time-grid');
       grid.innerHTML = '<div class="cw-error" style="grid-column:span 4">Für diesen Tag gibt es leider keinen passenden Kombi-Slot. Bitte wähle ein anderes Datum.</div>';
       return;
     }
-    renderTimesLoaded(verifiedSlots);
+    renderTimesLoaded(deduped);
   }).catch(function(err) {
     console.error('[crocus] loadComboTimes error:', err);
     renderTimesLoaded([]);
