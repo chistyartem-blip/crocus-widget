@@ -99,7 +99,7 @@ function bookingGtagParams(payload) {
 }
 
 function servicePriceForTracking(svc) {
-  return servicePriceForCurrentMaster(svc);
+  return servicePriceForCurrentMaster(svc, true) || 0;
 }
 
 function bookingValueForTracking() {
@@ -1594,7 +1594,9 @@ function masterName(staffId) {
 
 function fetchStaffServices(staffId) {
   staffId = Number(staffId);
-  if (_serviceCacheByStaff[staffId]) return Promise.resolve(_serviceCacheByStaff[staffId]);
+  if (_serviceCacheByStaff[staffId] && Object.keys(_serviceCacheByStaff[staffId]).length) {
+    return Promise.resolve(_serviceCacheByStaff[staffId]);
+  }
   return apiGet('/book_services/'+CONFIG.locationId, { staff_id: staffId })
     .then(function(res) {
       var list = res && res.success && res.data && res.data.services ? res.data.services : [];
@@ -1606,10 +1608,35 @@ function fetchStaffServices(staffId) {
       _serviceCacheByStaff[staffId] = map;
       return map;
     })
-    .catch(function() {
-      _serviceCacheByStaff[staffId] = {};
-      return _serviceCacheByStaff[staffId];
+    .catch(function(err) {
+      delete _serviceCacheByStaff[staffId];
+      throw err;
     });
+}
+
+function fetchStaffServicesRequired(staffId, attempts) {
+  attempts = attempts || 3;
+  staffId = Number(staffId);
+  return fetchStaffServices(staffId).then(function(map) {
+    if (map && Object.keys(map).length) return map;
+    throw new Error('empty_staff_services_' + staffId);
+  }).catch(function(err) {
+    delete _serviceCacheByStaff[staffId];
+    if (attempts > 1) {
+      return new Promise(function(resolve){ setTimeout(resolve, 180); })
+        .then(function(){ return fetchStaffServicesRequired(staffId, attempts - 1); });
+    }
+    err.isPricing = true;
+    throw err;
+  });
+}
+
+function requireStaffServicePrice(staffId, serviceId) {
+  var price = servicePriceForStaff(staffId, serviceId, true);
+  if (price != null) return price;
+  var err = new Error('missing_staff_price_' + staffId + '_' + serviceId);
+  err.isPricing = true;
+  throw err;
 }
 
 function serviceForStaff(staffId, serviceId) {
@@ -1628,10 +1655,21 @@ function expressStaffIdsForService(serviceId) {
   return WIMPER_MAIN_SERVICE_IDS.indexOf(Number(serviceId)) !== -1 ? WIMPER_STAFF_IDS : KOMBI_STAFF_IDS;
 }
 
-function servicePriceForStaff(staffId, serviceId) {
+function isAddonServiceId(serviceId) {
+  serviceId = Number(serviceId);
+  return ADDON_IDS.indexOf(serviceId) !== -1
+    || ADDON_STATIC_DATA.some(function(addon){ return Number(addon.id) === serviceId; });
+}
+
+function servicePriceForStaff(staffId, serviceId, strict) {
   staffId = Number(staffId);
   serviceId = Number(serviceId);
-  var svc = serviceForStaff(staffId, serviceId);
+  var staffMap = _serviceCacheByStaff[staffId] || null;
+  var svc = (staffMap && staffMap[serviceId]) || serviceForStaff(staffId, serviceId);
+  if (staffMap && staffMap[serviceId]) {
+    if (svc.price_min != null) return Number(svc.price_min) || 0;
+    if (svc.price_max != null) return Number(svc.price_max) || 0;
+  }
   if (svc.staff && svc.staff.length) {
     for (var i = 0; i < svc.staff.length; i++) {
       if (Number(svc.staff[i].id) === Number(staffId)) {
@@ -1639,23 +1677,17 @@ function servicePriceForStaff(staffId, serviceId) {
       }
     }
   }
+  if (strict && !isAddonServiceId(serviceId)) return null;
   if (svc.price_min != null) return Number(svc.price_min) || 0;
   return Number(svc.price_max || 0) || 0;
 }
 
-function servicePriceForCurrentMaster(svc) {
+function servicePriceForCurrentMaster(svc, strict) {
   if (!svc) return 0;
   if (cw.master && cw.master.id) {
-    var staffId = Number(cw.master.id);
-    var cached = (_serviceCacheByStaff[staffId] || {})[Number(svc.id)];
-    if (cached && cached.price_min != null) return Number(cached.price_min) || 0;
-    if (svc.staff && svc.staff.length) {
-      for (var i = 0; i < svc.staff.length; i++) {
-        if (Number(svc.staff[i].id) === staffId) {
-          return Number(svc.staff[i].price_min || svc.price_min || 0) || 0;
-        }
-      }
-    }
+    var price = servicePriceForStaff(cw.master.id, svc.id, true);
+    if (price != null) return price;
+    if (strict) return null;
   }
   return Number(svc.price_min || svc.price_max || 0) || 0;
 }
@@ -1663,14 +1695,19 @@ function servicePriceForCurrentMaster(svc) {
 function ensureSummaryPricingReady() {
   var loads = [];
   if (cw.service && cw.service.id === KOMBI_SERVICE_ID && cw.comboRoute) {
-    loads.push(fetchStaffServices(cw.comboRoute.maniStaffId));
-    loads.push(fetchStaffServices(cw.comboRoute.pediStaffId));
+    loads.push(fetchStaffServicesRequired(cw.comboRoute.maniStaffId));
+    loads.push(fetchStaffServicesRequired(cw.comboRoute.pediStaffId));
   } else if (cw.master && cw.master.id) {
-    loads.push(fetchStaffServices(cw.master.id));
+    loads.push(fetchStaffServicesRequired(cw.master.id));
   }
   if (!loads.length) return Promise.resolve();
-  return Promise.all(loads).catch(function(err) {
-    console.warn('[crocus] summary pricing fallback:', err && err.message ? err.message : err);
+  return Promise.all(loads).then(function() {
+    if (cw.service && cw.service.id === KOMBI_SERVICE_ID && cw.comboRoute) {
+      requireStaffServicePrice(cw.comboRoute.maniStaffId, KOMBI_MANI_SERVICE_ID);
+      requireStaffServicePrice(cw.comboRoute.pediStaffId, KOMBI_PEDI_SERVICE_ID);
+    } else if (cw.master && cw.master.id && cw.service) {
+      requireStaffServicePrice(cw.master.id, cw.service.id);
+    }
   });
 }
 
@@ -1960,6 +1997,8 @@ function selectMaster(m, meta) {
           _addonObjs = mergeAddonCatalog(fromCurrent);
           _globalAddonObjs = _addonObjs.slice();
         }
+      } else {
+        throw new Error('staff_services_load_failed_' + m.id);
       }
       if (cw.direction === 'wimpern') {
         var wimpernCat = categoryByKey('wimpern');
@@ -1967,12 +2006,15 @@ function selectMaster(m, meta) {
       }
       renderCategories(m.id);
     })
-    .catch(function(){
-      if (cw.direction === 'wimpern') {
-        var wimpernCat = categoryByKey('wimpern');
-        if (wimpernCat) { selectCategory(wimpernCat); return; }
-      }
-      renderCategories(m.id);
+    .catch(function(err){
+      console.warn('[crocus] staff services load failed:', err && err.message ? err.message : err);
+      list.innerHTML =
+        '<div class="cw-error" style="display:flex;flex-direction:column;gap:10px;align-items:center;padding:20px;text-align:center">'
+        + '<div>Preise konnten nicht geladen werden. Bitte erneut versuchen.</div>'
+        + '<button type="button" id="cw-retry-staff-services" style="background:rgba(201,168,124,0.15);border:1px solid rgba(201,168,124,0.35);color:#c9a87c;padding:8px 18px;border-radius:8px;cursor:pointer;font-family:DM Sans,sans-serif;font-size:12px">↺ Erneut versuchen</button>'
+        + '</div>';
+      var retry = document.getElementById('cw-retry-staff-services');
+      if (retry) retry.addEventListener('click', function(){ selectMaster(m, meta); });
     });
 }
 
@@ -1989,7 +2031,7 @@ function renderCategories(masterId) {
   var hasStaffFilter = _allServices.length && _allServices[0].staff && _allServices[0].staff.length > 0;
 
   function priceForStaff(serviceId) {
-    return servicePriceForStaff(masterId, serviceId);
+    return servicePriceForStaff(masterId, serviceId, !cw.express);
   }
 
   function categoryPriceFromAltegio(cat) {
@@ -2018,7 +2060,9 @@ function renderCategories(masterId) {
       return allPrices.length ? 'ab '+Math.min.apply(Math, allPrices)+' €' : '';
     }
     if (cat.key === 'kombi') {
-      var comboPrice = priceForStaff(KOMBI_MANI_SERVICE_ID) + priceForStaff(KOMBI_PEDI_SERVICE_ID);
+      var maniPrice = priceForStaff(KOMBI_MANI_SERVICE_ID);
+      var pediPrice = priceForStaff(KOMBI_PEDI_SERVICE_ID);
+      var comboPrice = maniPrice != null && pediPrice != null ? maniPrice + pediPrice : 0;
       return comboPrice ? 'ab '+comboPrice+' €' : '';
     }
     var prices = cat.serviceIds.map(priceForStaff).filter(function(p){ return p > 0; });
@@ -2226,7 +2270,7 @@ function renderServices(cat) {
     var minP = s.price_min || 0;
     var maxP = s.price_max || 0;
     if (!cw.express && cw.master) {
-      minP = servicePriceForCurrentMaster(s);
+      minP = servicePriceForCurrentMaster(s, true);
       maxP = minP;
     }
     var priceStr = minP === maxP ? (minP ? minP+' €' : '—') : 'ab '+minP+' €';
@@ -3255,8 +3299,10 @@ function comboStaffComment(route) {
 
 function routeTotalPrice(route) {
   if (!route) return 0;
-  return servicePriceForStaff(route.maniStaffId, KOMBI_MANI_SERVICE_ID)
-    + servicePriceForStaff(route.pediStaffId, KOMBI_PEDI_SERVICE_ID);
+  var maniPrice = servicePriceForStaff(route.maniStaffId, KOMBI_MANI_SERVICE_ID, true);
+  var pediPrice = servicePriceForStaff(route.pediStaffId, KOMBI_PEDI_SERVICE_ID, true);
+  if (maniPrice == null || pediPrice == null) return null;
+  return maniPrice + pediPrice;
 }
 
 function routeTotalDuration(route) {
@@ -3412,13 +3458,16 @@ function chooseTimeSlot(slot, slots) {
         prefillClientFields();
       }, 120);
     })
-    .catch(function() {
+    .catch(function(err) {
       var badSlotKey = String(cw.datetime || cw.time || '');
       cw.time = null;
       cw.datetime = null;
       cw.comboAppointments = null;
       cw.comboRoute = null;
-      showSelectedSlotError(slots, 'Dieser Termin wurde gerade belegt. Bitte wählen Sie eine andere Zeit.', badSlotKey);
+      var msg = err && err.isPricing
+        ? 'Preis konnte nicht geladen werden. Bitte wählen Sie die Zeit erneut aus.'
+        : 'Dieser Termin wurde gerade belegt. Bitte wählen Sie eine andere Zeit.';
+      showSelectedSlotError(slots, msg, badSlotKey);
     });
 }
 
@@ -3542,11 +3591,17 @@ function renderSummary() {
     : '';
   // Цена мастера из staff[], иначе общий price_min
   function getMasterPrice(svc) {
-    return servicePriceForCurrentMaster(svc);
+    return servicePriceForCurrentMaster(svc, true);
   }
-  var totalPrice = getMasterPrice(cw.service) + cw.addons.reduce(function(sum,a){ return sum+getMasterPrice(a); }, 0);
+  var basePrice = getMasterPrice(cw.service);
+  var addonTotal = cw.addons.reduce(function(sum,a){
+    var addonPrice = getMasterPrice(a);
+    return sum + (addonPrice == null ? 0 : addonPrice);
+  }, 0);
+  var totalPrice = basePrice == null ? 0 : basePrice + addonTotal;
   if (cw.service.id === KOMBI_SERVICE_ID && cw.comboRoute) {
-    totalPrice = routeTotalPrice(cw.comboRoute) + cw.addons.reduce(function(sum,a){ return sum + Number(a.price_min || a.price || 0); }, 0);
+    var routePrice = routeTotalPrice(cw.comboRoute);
+    totalPrice = routePrice == null ? 0 : routePrice + cw.addons.reduce(function(sum,a){ return sum + Number(a.price_min || a.price || 0); }, 0);
   }
   var priceStr = totalPrice ? totalPrice+' €' : '—';
   var svcStr = cw.service.title + (cw.addons.length ? ' + '+cw.addons.map(addonDisplayName).join(' + ') : '');
