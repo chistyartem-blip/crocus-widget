@@ -869,6 +869,16 @@ var css = `
 .cw-day.avail::after{content:'';position:absolute;bottom:2px;left:50%;transform:translateX(-50%);width:3px;height:3px;border-radius:50%;background:#7B2D4E;opacity:.55}
 .cw-day.sel::after{background:#fff}
 .cw-times-title{font-family:'DM Sans',sans-serif;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:rgba(253,250,248,.60);margin:15px 0 8px}
+.cw-master-filter{display:none;align-items:center;justify-content:space-between;gap:10px;margin:0 0 12px;background:rgba(201,168,124,.06);border:1px solid rgba(201,168,124,.18);border-radius:13px;padding:10px 14px}
+.cw-master-filter.visible{display:flex}
+.cw-master-filter__text{font-family:'DM Sans',sans-serif;font-size:12px;color:rgba(253,250,248,.75);line-height:1.35}
+.cw-master-filter__text strong{display:block;font-size:13px;font-weight:600;color:#fdfaf8;margin-bottom:1px}
+.cw-master-filter__toggle{position:relative;width:42px;height:24px;flex-shrink:0;cursor:pointer}
+.cw-master-filter__toggle input{opacity:0;width:0;height:0;position:absolute}
+.cw-mf-track{position:absolute;inset:0;border-radius:12px;background:rgba(255,255,255,.10);border:1px solid rgba(255,255,255,.12);transition:all .22s}
+.cw-master-filter__toggle input:checked~.cw-mf-track{background:#c9a87c;border-color:#c9a87c}
+.cw-mf-thumb{position:absolute;top:3px;left:3px;width:16px;height:16px;border-radius:50%;background:#fff;box-shadow:0 1px 4px rgba(0,0,0,.3);transition:transform .22s}
+.cw-master-filter__toggle input:checked~.cw-mf-track .cw-mf-thumb{transform:translateX(18px)}
 .cw-time-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
 .cw-time{padding:8px 4px;border-radius:9px;border:1px solid rgba(255,255,255,.20);background:rgba(255,255,255,.08);color:rgba(253,250,248,.90);font-family:'DM Sans',sans-serif;font-size:12px;cursor:pointer;transition:all .15s;text-align:center;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
 .cw-time.free:hover{border-color:rgba(123,45,78,.42);background:rgba(123,45,78,.14);color:#fdfaf8}
@@ -1223,6 +1233,10 @@ wrap.innerHTML =
         + '</div>'
         + '<div id="cw-times-wrap" style="display:none">'
           + '<div class="cw-times-title">Verfügbare Zeiten</div>'
+          + '<div class="cw-master-filter" id="cw-master-filter">'
+            + '<div class="cw-master-filter__text"><strong id="cw-mf-name"></strong>Nur Termine mit meiner Meisterin</div>'
+            + '<label class="cw-master-filter__toggle"><input type="checkbox" id="cw-mf-toggle" checked><div class="cw-mf-track"><div class="cw-mf-thumb"></div></div></label>'
+          + '</div>'
           + '<div class="cw-time-grid" id="cw-time-grid"></div>'
         + '</div>'
       + '</div>'
@@ -2909,6 +2923,7 @@ function renderCalendar() {
 
 function selectDate(ds) {
   cw.date = ds; cw.time = null; cw.datetime = null; cw.comboAppointments = null; cw.comboRoute = null;
+  var mfToggle = document.getElementById('cw-mf-toggle'); if (mfToggle) mfToggle.checked = true;
   document.getElementById('cw-times-wrap').style.display = 'block';
   renderCalendar();
   loadTimes();
@@ -3604,26 +3619,69 @@ function goContactWithoutSlotCheck() {
 
 function renderTimesLoaded(slots) {
   var grid = document.getElementById('cw-time-grid');
+  var filterWrap = document.getElementById('cw-master-filter');
+  var filterToggle = document.getElementById('cw-mf-toggle');
+  var filterName = document.getElementById('cw-mf-name');
   if (!slots) return;
   slots = filterTestBlockedSlots(slots);
   slots = filterDisplayTimeSlots(slots);
+
+  // --- Kombi master filter UI ---
+  var isKombi = cw.service && cw.service.id === KOMBI_SERVICE_ID && cw.master && !cw.express;
+  if (isKombi && filterWrap) {
+    // Check if there are slots with a different mani master
+    var hasMixedMasters = slots.some(function(s) {
+      return s.comboRoute && Number(s.comboRoute.maniStaffId) !== Number(cw.master.id);
+    });
+    if (hasMixedMasters) {
+      filterWrap.classList.add('visible');
+      if (filterName) filterName.textContent = cw.master.name;
+      // Attach toggle listener only once
+      if (!filterToggle._cwBound) {
+        filterToggle._cwBound = true;
+        filterToggle.addEventListener('change', function() {
+          renderTimesLoaded(grid._cwAllSlots || slots);
+        });
+      }
+    } else {
+      filterWrap.classList.remove('visible');
+    }
+  } else if (filterWrap) {
+    filterWrap.classList.remove('visible');
+  }
+
+  // Store all slots for re-render on toggle
+  if (grid) grid._cwAllSlots = slots;
+
   if (!slots.length) {
     grid.innerHTML = '<div class="cw-error" style="grid-column:span 4">Keine freien Zeiten.</div>';
     return;
   }
   grid.innerHTML = '';
-  // For combo: filter slots where selected master doesn't participate at all
-  if (cw.service && cw.service.id === KOMBI_SERVICE_ID && cw.master && !cw.express) {
+
+  // For combo: always filter to slots where selected master participates
+  if (isKombi) {
     var selMId = Number(cw.master.id);
-    slots = slots.filter(function(slot) {
-      if (!slot.comboRoute) return true;
-      return Number(slot.comboRoute.maniStaffId) === selMId || Number(slot.comboRoute.pediStaffId) === selMId;
-    });
+    // Only master's own slots when toggle is ON (default)
+    var onlyMine = filterToggle ? filterToggle.checked : true;
+    if (onlyMine) {
+      slots = slots.filter(function(slot) {
+        if (!slot.comboRoute) return true;
+        return Number(slot.comboRoute.maniStaffId) === selMId;
+      });
+    } else {
+      // All slots but still only where selected master participates (mani or pedi)
+      slots = slots.filter(function(slot) {
+        if (!slot.comboRoute) return true;
+        return Number(slot.comboRoute.maniStaffId) === selMId || Number(slot.comboRoute.pediStaffId) === selMId;
+      });
+    }
     if (!slots.length) {
       grid.innerHTML = '<div class="cw-error" style="grid-column:span 4">Keine freien Zeiten für '+cw.master.name+' an diesem Tag.</div>';
       return;
     }
   }
+
   // Mark grid if any slot has a master label (2-column layout)
   var hasMasterLabels = slots.some(function(s){
     if (!s.comboRoute) return false;
