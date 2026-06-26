@@ -1300,6 +1300,7 @@ var _seanceCache = {}; // кэш seance_length: ключ = staffId+'_'+serviceId
 var _serviceCacheByStaff = {};
 var _expressPreviewCache = {};
 var _comboSlotsCache = {};
+var _rawTimeSlotsForFilter = []; // все слоты до фильтра мастера — для toggle
 
 // Gift state
 var gift = {
@@ -2924,6 +2925,7 @@ function renderCalendar() {
 function selectDate(ds) {
   cw.date = ds; cw.time = null; cw.datetime = null; cw.comboAppointments = null; cw.comboRoute = null;
   var mfToggle = document.getElementById('cw-mf-toggle'); if (mfToggle) mfToggle.checked = false;
+  _rawTimeSlotsForFilter = [];
   document.getElementById('cw-times-wrap').style.display = 'block';
   renderCalendar();
   loadTimes();
@@ -3617,33 +3619,37 @@ function goContactWithoutSlotCheck() {
   }, 120);
 }
 
-function renderTimesLoaded(slots) {
+function renderTimesLoaded(slots, _fromToggle) {
   var grid = document.getElementById('cw-time-grid');
   var filterWrap = document.getElementById('cw-master-filter');
   var filterToggle = document.getElementById('cw-mf-toggle');
   var filterName = document.getElementById('cw-mf-name');
   if (!slots) return;
-  slots = filterTestBlockedSlots(slots);
-  slots = filterDisplayTimeSlots(slots);
 
   var isKombi = !!(cw.service && cw.service.id === KOMBI_SERVICE_ID && cw.master && !cw.express);
 
-  // Save RAW slots before any filtering — for toggle re-render
-  if (grid) grid._cwAllSlots = slots.slice();
+  // On fresh load (not from toggle) — filter base slots and save globally
+  if (!_fromToggle) {
+    slots = filterTestBlockedSlots(slots);
+    slots = filterDisplayTimeSlots(slots);
+    _rawTimeSlotsForFilter = slots.slice();
+  } else {
+    slots = _rawTimeSlotsForFilter.slice();
+  }
 
   // Attach toggle listener once
   if (filterToggle && !filterToggle._cwBound) {
     filterToggle._cwBound = true;
     filterToggle.addEventListener('change', function() {
-      var saved = grid._cwAllSlots;
-      if (saved) renderTimesLoaded(saved);
+      renderTimesLoaded(null, true);
     });
   }
 
   // --- Show/hide filter UI ---
   if (isKombi && filterWrap) {
+    var selMId = Number(cw.master.id);
     var hasMixedMasters = slots.some(function(s) {
-      return s.comboRoute && Number(s.comboRoute.maniStaffId) !== Number(cw.master.id);
+      return s.comboRoute && Number(s.comboRoute.maniStaffId) !== selMId;
     });
     if (hasMixedMasters) {
       filterWrap.classList.add('visible');
@@ -3661,7 +3667,7 @@ function renderTimesLoaded(slots) {
   }
   grid.innerHTML = '';
 
-  // Apply filter for kombi: toggle ON = only mani master matches; toggle OFF = all with master
+  // Apply filter for kombi
   if (isKombi) {
     var selMId = Number(cw.master.id);
     var onlyMine = filterToggle ? filterToggle.checked : false;
@@ -3750,17 +3756,19 @@ function renderTimesLoaded(slots) {
     });
     grid.appendChild(btn);
   });
-  // Скролл до слотов после рендера
-  requestAnimationFrame(function() {
-    var timesWrap = document.getElementById('cw-times-wrap');
-    var body = document.getElementById('crocus-body');
-    if (timesWrap && body) {
-      var bodyRect = body.getBoundingClientRect();
-      var wrapRect = timesWrap.getBoundingClientRect();
-      var scrollTarget = body.scrollTop + (wrapRect.top - bodyRect.top) - 12;
-      body.scrollTo({ top: scrollTarget, behavior: 'smooth' });
-    }
-  });
+  // Скролл до слотов только при первом рендере (не при toggle)
+  if (!_fromToggle) {
+    requestAnimationFrame(function() {
+      var timesWrap = document.getElementById('cw-times-wrap');
+      var body = document.getElementById('crocus-body');
+      if (timesWrap && body) {
+        var bodyRect = body.getBoundingClientRect();
+        var wrapRect = timesWrap.getBoundingClientRect();
+        var scrollTarget = body.scrollTop + (wrapRect.top - bodyRect.top) - 12;
+        body.scrollTo({ top: scrollTarget, behavior: 'smooth' });
+      }
+    });
+  }
 }
 
 // ── Step 6: Summary + Submit ───────────────────────────────────
