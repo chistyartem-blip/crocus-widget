@@ -26,11 +26,11 @@ const TARGET_BUDGETS_EUR = {
 };
 
 const TOP_QS_BIDS = [
-  { campaignId: CAMPAIGNS.pedikuere, text: 'pediküre göppingen', matchType: 'EXACT', bidEur: 0.75 },
-  { campaignId: CAMPAIGNS.pedikuere, text: 'pediküre termin göppingen', matchType: 'EXACT', bidEur: 0.65 },
-  { campaignId: CAMPAIGNS.manikuere, text: 'maniküre göppingen', matchType: 'EXACT', bidEur: 0.85 },
-  { campaignId: CAMPAIGNS.manikuere, text: 'russische maniküre göppingen', matchType: 'EXACT', bidEur: 0.75 },
-  { campaignId: CAMPAIGNS.manikuere, text: 'gelnägel göppingen', matchType: 'EXACT', bidEur: 0.70 },
+  { campaignId: CAMPAIGNS.pedikuere, text: 'pediküre göppingen', matchType: 'EXACT', bidEur: 0.50 },
+  { campaignId: CAMPAIGNS.pedikuere, text: 'pediküre termin göppingen', matchType: 'EXACT', bidEur: 0.50 },
+  { campaignId: CAMPAIGNS.manikuere, text: 'maniküre göppingen', matchType: 'EXACT', bidEur: 0.50 },
+  { campaignId: CAMPAIGNS.manikuere, text: 'russische maniküre göppingen', matchType: 'EXACT', bidEur: 0.50 },
+  { campaignId: CAMPAIGNS.manikuere, text: 'gelnägel göppingen', matchType: 'EXACT', bidEur: 0.50 },
 ];
 
 const REPORT_DIR = path.join(ROOT, 'reports');

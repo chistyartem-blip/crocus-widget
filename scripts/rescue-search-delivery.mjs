@@ -20,23 +20,23 @@ fs.mkdirSync(REPORT_DIR, { recursive: true });
 
 const TARGET_BIDS = [
   // Manicure: regain rank on booking/local-intent terms, not generic nail browsing.
-  bid(CAMPAIGNS.manikuere, 'maniküre göppingen', 'EXACT', 0.95),
-  bid(CAMPAIGNS.manikuere, 'maniküre termin göppingen', 'EXACT', 0.85),
-  bid(CAMPAIGNS.manikuere, 'nagelstudio göppingen', 'EXACT', 0.75),
-  bid(CAMPAIGNS.manikuere, 'russische maniküre göppingen', 'EXACT', 0.75),
-  bid(CAMPAIGNS.manikuere, 'gelnägel göppingen', 'EXACT', 0.65),
+  bid(CAMPAIGNS.manikuere, 'maniküre göppingen', 'EXACT', 0.50),
+  bid(CAMPAIGNS.manikuere, 'maniküre termin göppingen', 'EXACT', 0.50),
+  bid(CAMPAIGNS.manikuere, 'nagelstudio göppingen', 'EXACT', 0.50),
+  bid(CAMPAIGNS.manikuere, 'russische maniküre göppingen', 'EXACT', 0.50),
+  bid(CAMPAIGNS.manikuere, 'gelnägel göppingen', 'EXACT', 0.50),
 
   // Pedicure: exact local terms need more rank; podology/fuss terms stay conservative.
-  bid(CAMPAIGNS.pedikuere, 'pediküre göppingen', 'EXACT', 0.85),
-  bid(CAMPAIGNS.pedikuere, 'pediküre termin göppingen', 'EXACT', 0.75),
-  bid(CAMPAIGNS.pedikuere, 'pediküre in der nähe', 'PHRASE', 0.55),
+  bid(CAMPAIGNS.pedikuere, 'pediküre göppingen', 'EXACT', 0.50),
+  bid(CAMPAIGNS.pedikuere, 'pediküre termin göppingen', 'EXACT', 0.50),
+  bid(CAMPAIGNS.pedikuere, 'pediküre in der nähe', 'PHRASE', 0.50),
 
   // Wimpern: keep alive, but avoid broad far-city leakage.
-  bid(CAMPAIGNS.wimpern, 'wimpern göppingen', 'EXACT', 0.95),
-  bid(CAMPAIGNS.wimpern, 'wimpern termin', 'PHRASE', 0.90),
-  bid(CAMPAIGNS.wimpern, 'wimpernverlängerung', 'EXACT', 0.95),
-  bid(CAMPAIGNS.wimpern, 'wimpernverlängerung', 'PHRASE', 0.85),
-  bid(CAMPAIGNS.wimpern, 'lash extensions', 'PHRASE', 0.92),
+  bid(CAMPAIGNS.wimpern, 'wimpern göppingen', 'EXACT', 0.50),
+  bid(CAMPAIGNS.wimpern, 'wimpern termin', 'PHRASE', 0.50),
+  bid(CAMPAIGNS.wimpern, 'wimpernverlängerung', 'EXACT', 0.50),
+  bid(CAMPAIGNS.wimpern, 'wimpernverlängerung', 'PHRASE', 0.50),
+  bid(CAMPAIGNS.wimpern, 'lash extensions', 'PHRASE', 0.50),
 ];
 
 const CITY_NEGATIVES = [
