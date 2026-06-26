@@ -7,8 +7,8 @@ import { fileURLToPath } from 'node:url';
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const TRANSFER_MD = 'C:/Users/akaza/Downloads/CROCUS_TRANSFER_FULL.md';
 const API_VERSION = 'v22';
-const APPLY = process.env.SEARCH_050_PMAX_APPLY === 'true';
-const SEARCH_CPC_MICROS = Math.round(Number(process.env.SEARCH_CPC_EUR || '0.50') * 1_000_000);
+const APPLY = process.env.TOP_QS_PULL_APPLY === 'true';
+const SEARCH_CPC_MICROS = 500_000;
 
 const CAMPAIGNS = {
   pmax: '23833205018',
@@ -18,6 +18,7 @@ const CAMPAIGNS = {
 };
 
 const TARGET_BUDGETS_EUR = {
+  // Keep cheap PMax reach, but let high-QS Man/Ped Search breathe.
   [CAMPAIGNS.pmax]: 12,
   [CAMPAIGNS.wimpern]: 3,
   [CAMPAIGNS.pedikuere]: 5,
@@ -28,7 +29,7 @@ const REPORT_DIR = path.join(ROOT, 'reports');
 fs.mkdirSync(REPORT_DIR, { recursive: true });
 
 main().catch((error) => {
-  console.error(`[search-050-pmax] ${error.message}`);
+  console.error(`[top-qs-pull] ${error.message}`);
   process.exit(1);
 });
 
@@ -37,165 +38,181 @@ async function main() {
   const token = await googleAccessToken(env);
   const ids = Object.values(CAMPAIGNS).join(',');
   const searchIds = [CAMPAIGNS.wimpern, CAMPAIGNS.pedikuere, CAMPAIGNS.manikuere].join(',');
+  const [campaigns, keywords] = await Promise.all([
+    q(env, token, `
+      SELECT campaign.id, campaign.name, campaign.primary_status, campaign.primary_status_reasons,
+        campaign.advertising_channel_type, campaign.bidding_strategy_type,
+        campaign_budget.resource_name, campaign_budget.amount_micros,
+        metrics.impressions, metrics.clicks, metrics.cost_micros, metrics.conversions,
+        metrics.search_impression_share,
+        metrics.search_rank_lost_impression_share,
+        metrics.search_budget_lost_impression_share
+      FROM campaign
+      WHERE campaign.id IN (${ids})
+        AND segments.date DURING TODAY
+    `),
+    q(env, token, `
+      SELECT campaign.id, campaign.name, ad_group.id, ad_group.name,
+        ad_group_criterion.resource_name, ad_group_criterion.status,
+        ad_group_criterion.keyword.text, ad_group_criterion.keyword.match_type,
+        ad_group_criterion.cpc_bid_micros,
+        ad_group_criterion.effective_cpc_bid_micros,
+        ad_group_criterion.quality_info.quality_score,
+        ad_group_criterion.quality_info.creative_quality_score,
+        ad_group_criterion.quality_info.post_click_quality_score,
+        ad_group_criterion.quality_info.search_predicted_ctr,
+        metrics.impressions, metrics.clicks, metrics.cost_micros, metrics.conversions
+      FROM keyword_view
+      WHERE campaign.id IN (${searchIds})
+        AND ad_group_criterion.status = ENABLED
+        AND segments.date DURING LAST_7_DAYS
+      ORDER BY ad_group_criterion.quality_info.quality_score DESC, metrics.impressions DESC
+    `),
+  ]);
 
-  const before = await snapshot(env, token, ids, searchIds);
-  const plan = buildPlan(env, before);
-  const mutations = APPLY ? await executePlan(env, token, plan) : dryRun(plan);
-  const after = await snapshot(env, token, ids, searchIds);
+  const plan = buildPlan(campaigns, keywords);
+  const mutations = APPLY ? await execute(env, token, plan) : dryRun(plan);
+  const afterCampaigns = await q(env, token, `
+    SELECT campaign.id, campaign.name, campaign.primary_status,
+      campaign_budget.amount_micros,
+      metrics.impressions, metrics.clicks, metrics.cost_micros, metrics.conversions,
+      metrics.search_impression_share,
+      metrics.search_rank_lost_impression_share,
+      metrics.search_budget_lost_impression_share
+    FROM campaign
+    WHERE campaign.id IN (${ids})
+      AND segments.date DURING TODAY
+  `);
   const report = {
     generated_at: new Date().toISOString(),
     apply: APPLY,
-    reason: 'User requested all keyword bids at 0.50 EUR and PMax boost without increasing total daily budget above 25 EUR.',
-    target_search_cpc_eur: microsToEur(SEARCH_CPC_MICROS),
-    target_budgets_eur: TARGET_BUDGETS_EUR,
-    before: summarize(before),
-    plan_counts: countPlan(plan),
+    reason: 'Pull traffic toward high Quality Score Search terms while keeping all Search CPC at 0.50 EUR and total budget at 25 EUR.',
+    top_qs_keywords: topQsKeywords(keywords),
+    weak_qs_summary: weakQsSummary(keywords),
+    before_campaigns: summarizeCampaigns(campaigns),
     plan,
     mutations,
-    after: summarize(after),
-    verification: verify(after),
+    after_campaigns: summarizeCampaigns(afterCampaigns),
   };
-  const reportPath = path.join(REPORT_DIR, `search-050-pmax-boost-${stamp()}.json`);
+  const reportPath = path.join(REPORT_DIR, `top-qs-pull-${stamp()}.json`);
   fs.writeFileSync(reportPath, JSON.stringify(report, null, 2));
   console.log(JSON.stringify({
     ok: true,
     apply: APPLY,
     report: path.relative(ROOT, reportPath),
-    plan_counts: report.plan_counts,
-    verification: report.verification,
-    after: report.after,
+    plan_counts: {
+      budgets: plan.budgetOps.length,
+      keyword_cpc_repairs: plan.keywordOps.length,
+    },
+    top_qs_keywords: report.top_qs_keywords.slice(0, 10),
+    weak_qs_summary: report.weak_qs_summary,
+    after_campaigns: report.after_campaigns,
   }, null, 2));
 }
 
-async function snapshot(env, token, ids, searchIds) {
-  return {
-    campaigns: await q(env, token, `
-      SELECT campaign.id, campaign.name, campaign.primary_status, campaign.primary_status_reasons,
-        campaign.advertising_channel_type, campaign.bidding_strategy_type,
-        campaign.manual_cpc.enhanced_cpc_enabled,
-        campaign_budget.resource_name, campaign_budget.amount_micros,
-        metrics.impressions, metrics.clicks, metrics.cost_micros, metrics.conversions
-      FROM campaign
-      WHERE campaign.id IN (${ids})
-        AND segments.date DURING TODAY
-    `),
-    adGroups: await q(env, token, `
-      SELECT campaign.id, campaign.name, ad_group.id, ad_group.name,
-        ad_group.resource_name, ad_group.status, ad_group.cpc_bid_micros
-      FROM ad_group
-      WHERE campaign.id IN (${searchIds})
-        AND ad_group.status IN (ENABLED, PAUSED)
-    `),
-    keywords: await q(env, token, `
-      SELECT campaign.id, campaign.name, ad_group.id, ad_group.name,
-        ad_group_criterion.resource_name, ad_group_criterion.status,
-        ad_group_criterion.keyword.text, ad_group_criterion.keyword.match_type,
-        ad_group_criterion.cpc_bid_micros,
-        ad_group_criterion.effective_cpc_bid_micros
-      FROM keyword_view
-      WHERE campaign.id IN (${searchIds})
-        AND ad_group_criterion.status IN (ENABLED, PAUSED)
-    `),
-  };
-}
-
-function buildPlan(env, data) {
+function buildPlan(campaigns, keywords) {
   const budgetOps = [];
-  const adGroupOps = [];
   const keywordOps = [];
 
-  for (const row of data.campaigns) {
+  for (const row of campaigns) {
     const campaignId = String(row.campaign?.id || '');
     const target = TARGET_BUDGETS_EUR[campaignId];
     if (target === undefined) continue;
-    const currentMicros = Number(row.campaignBudget?.amountMicros || 0);
     const targetMicros = Math.round(target * 1_000_000);
-    if (currentMicros !== targetMicros) {
+    if (Number(row.campaignBudget?.amountMicros || 0) !== targetMicros) {
       budgetOps.push({
-        update: {
-          resourceName: row.campaignBudget.resourceName,
-          amountMicros: String(targetMicros),
-        },
+        update: { resourceName: row.campaignBudget.resourceName, amountMicros: String(targetMicros) },
         updateMask: 'amount_micros',
       });
     }
   }
 
-  for (const row of data.adGroups) {
-    if (Number(row.adGroup?.cpcBidMicros || 0) !== SEARCH_CPC_MICROS) {
-      adGroupOps.push({
-        update: {
-          resourceName: row.adGroup.resourceName,
-          cpcBidMicros: String(SEARCH_CPC_MICROS),
-        },
-        updateMask: 'cpc_bid_micros',
-      });
-    }
-  }
-
-  for (const row of data.keywords) {
+  for (const row of keywords) {
     const criterion = row.adGroupCriterion || {};
     const current = Number(criterion.cpcBidMicros || criterion.effectiveCpcBidMicros || 0);
     if (current !== SEARCH_CPC_MICROS) {
       keywordOps.push({
-        update: {
-          resourceName: criterion.resourceName,
-          cpcBidMicros: String(SEARCH_CPC_MICROS),
-        },
+        update: { resourceName: criterion.resourceName, cpcBidMicros: String(SEARCH_CPC_MICROS) },
         updateMask: 'cpc_bid_micros',
       });
     }
   }
 
   return {
+    budgets: TARGET_BUDGETS_EUR,
+    max_search_cpc_eur: 0.5,
     budgetOps: dedupe(budgetOps, (op) => op.update.resourceName),
-    adGroupOps: dedupe(adGroupOps, (op) => op.update.resourceName),
     keywordOps: dedupe(keywordOps, (op) => op.update.resourceName),
   };
 }
 
-async function executePlan(env, token, plan) {
+async function execute(env, token, plan) {
   return {
     budgets: await mutate(env, token, 'campaignBudgets', plan.budgetOps),
-    adGroups: await mutate(env, token, 'adGroups', plan.adGroupOps),
     keywords: await mutate(env, token, 'adGroupCriteria', plan.keywordOps),
   };
 }
 
 function dryRun(plan) {
-  return Object.fromEntries(Object.entries(plan).map(([key, value]) => [key, { ok: true, skipped: 'dry_run', planned: value.length }]));
-}
-
-function verify(data) {
-  const badKeywords = data.keywords.filter((row) => Number(row.adGroupCriterion?.cpcBidMicros || row.adGroupCriterion?.effectiveCpcBidMicros || 0) !== SEARCH_CPC_MICROS);
-  const badAdGroups = data.adGroups.filter((row) => Number(row.adGroup?.cpcBidMicros || 0) !== SEARCH_CPC_MICROS);
-  const budgets = {};
-  for (const row of data.campaigns) budgets[clean(row.campaign?.name)] = microsToEur(row.campaignBudget?.amountMicros);
   return {
-    keywords_not_050: badKeywords.length,
-    ad_groups_not_050: badAdGroups.length,
-    budgets,
-    total_budget_eur: Object.values(budgets).reduce((sum, value) => sum + Number(value || 0), 0),
+    budgets: { ok: true, skipped: 'dry_run', planned: plan.budgetOps.length },
+    keywords: { ok: true, skipped: 'dry_run', planned: plan.keywordOps.length },
   };
 }
 
-function summarize(data) {
+function topQsKeywords(keywords) {
+  return keywords
+    .map(keywordSummary)
+    .filter((item) => item.qs >= 7)
+    .sort((a, b) => b.qs - a.qs || b.impressions - a.impressions)
+    .slice(0, 25);
+}
+
+function weakQsSummary(keywords) {
+  const byCampaign = {};
+  for (const row of keywords.map(keywordSummary).filter((item) => item.qs && item.qs <= 4)) {
+    byCampaign[row.campaign] ||= { keywords: 0, impressions: 0, clicks: 0, cost_eur: 0 };
+    byCampaign[row.campaign].keywords += 1;
+    byCampaign[row.campaign].impressions += row.impressions;
+    byCampaign[row.campaign].clicks += row.clicks;
+    byCampaign[row.campaign].cost_eur = round(byCampaign[row.campaign].cost_eur + row.cost_eur);
+  }
+  return byCampaign;
+}
+
+function keywordSummary(row) {
   return {
-    campaigns: data.campaigns.map((row) => ({
-      campaign: clean(row.campaign?.name),
-      channel: row.campaign?.advertisingChannelType,
-      status: row.campaign?.primaryStatus,
-      reasons: row.campaign?.primaryStatusReasons || [],
-      strategy: row.campaign?.biddingStrategyType,
-      budget_eur: microsToEur(row.campaignBudget?.amountMicros),
-      impressions: num(row.metrics?.impressions),
-      clicks: num(row.metrics?.clicks),
-      cost_eur: microsToEur(row.metrics?.costMicros),
-      avg_cpc_eur: avgCpc(row.metrics),
-    })),
-    keyword_bid_distribution: distribution(data.keywords.map((row) => microsToEur(row.adGroupCriterion?.cpcBidMicros || row.adGroupCriterion?.effectiveCpcBidMicros))),
-    ad_group_bid_distribution: distribution(data.adGroups.map((row) => microsToEur(row.adGroup?.cpcBidMicros))),
+    campaign: clean(row.campaign?.name),
+    ad_group: clean(row.adGroup?.name),
+    text: clean(row.adGroupCriterion?.keyword?.text),
+    match: row.adGroupCriterion?.keyword?.matchType,
+    qs: Number(row.adGroupCriterion?.qualityInfo?.qualityScore || 0),
+    bid_eur: microsToEur(row.adGroupCriterion?.cpcBidMicros || row.adGroupCriterion?.effectiveCpcBidMicros),
+    impressions: num(row.metrics?.impressions),
+    clicks: num(row.metrics?.clicks),
+    cost_eur: microsToEur(row.metrics?.costMicros),
+    avg_cpc_eur: avgCpc(row.metrics),
+    conversions: Number(row.metrics?.conversions || 0),
   };
+}
+
+function summarizeCampaigns(rows) {
+  return rows.map((row) => ({
+    campaign: clean(row.campaign?.name),
+    channel: row.campaign?.advertisingChannelType,
+    status: row.campaign?.primaryStatus,
+    reasons: row.campaign?.primaryStatusReasons || [],
+    strategy: row.campaign?.biddingStrategyType,
+    budget_eur: microsToEur(row.campaignBudget?.amountMicros),
+    impressions: num(row.metrics?.impressions),
+    clicks: num(row.metrics?.clicks),
+    cost_eur: microsToEur(row.metrics?.costMicros),
+    avg_cpc_eur: avgCpc(row.metrics),
+    conversions: Number(row.metrics?.conversions || 0),
+    impression_share: pct(row.metrics?.searchImpressionShare),
+    rank_lost: pct(row.metrics?.searchRankLostImpressionShare),
+    budget_lost: pct(row.metrics?.searchBudgetLostImpressionShare),
+  }));
 }
 
 async function q(env, token, query) {
@@ -286,16 +303,6 @@ function readGoogleEnv() {
   return env;
 }
 
-function countPlan(plan) {
-  return Object.fromEntries(Object.entries(plan).map(([key, value]) => [key, value.length]));
-}
-
-function distribution(values) {
-  const out = {};
-  for (const value of values) out[String(value)] = (out[String(value)] || 0) + 1;
-  return out;
-}
-
 function dedupe(items, keyFn) {
   const seen = new Set();
   return items.filter((item) => {
@@ -317,6 +324,11 @@ function microsToEur(value) {
 
 function microsRaw(value) {
   return Number(value || 0) / 1_000_000;
+}
+
+function pct(value) {
+  if (value === undefined || value === null) return null;
+  return round(Number(value) * 100);
 }
 
 function num(value) {
