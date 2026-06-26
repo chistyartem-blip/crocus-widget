@@ -330,6 +330,7 @@ function serviceThumbFor(service) {
 }
 var KOMBI_SERVICE_ID = 13485762;
 var KOMBI_MANI_SERVICE_ID = 13485753;
+var KOMBI_MANI_PRICE_SERVICE_ID = 13485754; // Nagelkorrektur — для расчёта цены комби
 var KOMBI_PEDI_SERVICE_ID = 13485761;
 var KOMBI_STAFF_IDS = [3020185, 3020186, 3020187];
 var WIMPER_STAFF_IDS = [3047989];
@@ -1710,7 +1711,7 @@ function ensureSummaryPricingReady() {
   if (!loads.length) return Promise.resolve();
   return Promise.all(loads).then(function() {
     if (cw.service && cw.service.id === KOMBI_SERVICE_ID && cw.comboRoute) {
-      requireStaffServicePrice(cw.comboRoute.maniStaffId, KOMBI_MANI_SERVICE_ID);
+      requireStaffServicePrice(cw.comboRoute.maniStaffId, KOMBI_MANI_PRICE_SERVICE_ID);
       requireStaffServicePrice(cw.comboRoute.pediStaffId, KOMBI_PEDI_SERVICE_ID);
     } else if (cw.master && cw.master.id && cw.service) {
       requireStaffServicePrice(cw.master.id, cw.service.id);
@@ -2047,7 +2048,7 @@ function renderCategories(masterId) {
         var comboPrices = KOMBI_STAFF_IDS.map(function(staffId) {
           return (function(oldMasterId) {
             masterId = staffId;
-            var p = priceForStaff(KOMBI_MANI_SERVICE_ID) + priceForStaff(KOMBI_PEDI_SERVICE_ID);
+            var p = priceForStaff(KOMBI_MANI_PRICE_SERVICE_ID) + priceForStaff(KOMBI_PEDI_SERVICE_ID);
             masterId = oldMasterId;
             return p;
           })(masterId);
@@ -2071,7 +2072,7 @@ function renderCategories(masterId) {
       var directComboPrice = priceForStaff(KOMBI_SERVICE_ID);
       if (directComboPrice) return 'ab '+(directComboPrice-5)+' €';
       // Фолбэк: сумма отдельных услуг
-      var maniPrice = priceForStaff(KOMBI_MANI_SERVICE_ID);
+      var maniPrice = priceForStaff(KOMBI_MANI_PRICE_SERVICE_ID);
       var pediPrice = priceForStaff(KOMBI_PEDI_SERVICE_ID);
       var comboPrice = maniPrice != null && pediPrice != null ? maniPrice + pediPrice - 5 : 0;
       return comboPrice ? 'ab '+comboPrice+' €' : '';
@@ -3377,7 +3378,7 @@ function comboStaffComment(route) {
 
 function routeTotalPrice(route) {
   if (!route) return 0;
-  var maniPrice = servicePriceForStaff(route.maniStaffId, KOMBI_MANI_SERVICE_ID, true);
+  var maniPrice = servicePriceForStaff(route.maniStaffId, KOMBI_MANI_PRICE_SERVICE_ID, true);
   var pediPrice = servicePriceForStaff(route.pediStaffId, KOMBI_PEDI_SERVICE_ID, true);
   if (maniPrice == null || pediPrice == null) return null;
   return maniPrice + pediPrice - 5;
