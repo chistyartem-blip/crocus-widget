@@ -662,6 +662,7 @@ var css = `
 
   /* Times — 3 columns on very small screens */
   .cw-time-grid{grid-template-columns:repeat(3,1fr);gap:7px}
+  .cw-time-grid.has-master-labels{grid-template-columns:repeat(2,1fr)!important}
   .cw-time{padding:10px 4px;font-size:13px;min-height:42px;display:flex;align-items:center;justify-content:center}
 
   /* Service buttons */
@@ -870,7 +871,9 @@ var css = `
 .cw-time.sel{background:#7B2D4E;border-color:#7B2D4E;color:#fff;box-shadow:0 0 11px rgba(123,45,78,.42)}
 .cw-time.other-master{border-color:rgba(201,168,124,.28);background:rgba(201,168,124,.06);color:rgba(253,250,248,.70)}
 .cw-time.other-master:hover{border-color:rgba(201,168,124,.55);background:rgba(201,168,124,.12);color:#fdfaf8}
-.cw-time-masters{display:block;font-size:9px;color:rgba(253,250,248,.45);margin-top:2px;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cw-time-grid.has-master-labels{grid-template-columns:repeat(2,1fr)}
+.cw-time-masters{display:block;font-size:9px;color:rgba(253,250,248,.45);margin-top:2px;line-height:1.2;white-space:normal;word-break:break-word}
+.cw-time.has-label{flex-direction:column;align-items:center;justify-content:center;padding:8px 6px;min-height:52px}
 .cw-time.other-master .cw-time-masters{color:rgba(201,168,124,.70)}
 
 /* ── Step 6: Contact ── */
@@ -3617,6 +3620,14 @@ function renderTimesLoaded(slots) {
       return;
     }
   }
+  // Mark grid if any slot has a master label (2-column layout)
+  var hasMasterLabels = slots.some(function(s){
+    if (!s.comboRoute) return false;
+    return s.comboRoute.maniStaffId !== s.comboRoute.pediStaffId;
+  });
+  if (hasMasterLabels) grid.classList.add('has-master-labels');
+  else grid.classList.remove('has-master-labels');
+
   slots.forEach(function(slot){
     var isSel = cw.time === slot.time;
     // Determine if selected master covers only one of the two combo services
@@ -3636,7 +3647,7 @@ function renderTimesLoaded(slots) {
       }
     }
     var btn = document.createElement('button');
-    btn.className = 'cw-time free'+(isSel?' sel':'')+(isOtherMaster?' other-master':'');
+    btn.className = 'cw-time free'+(isSel?' sel':'')+(isOtherMaster?' other-master':'')+(masterLabel?' has-label':'');
     // Time text
     var timeSpan = document.createElement('span');
     timeSpan.textContent = slot.time;
