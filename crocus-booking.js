@@ -1625,7 +1625,9 @@ function fetchStaffServices(staffId) {
   }
   return apiGet('/book_services/'+CONFIG.locationId, { staff_id: staffId })
     .then(function(res) {
-      var list = res && res.success && res.data && res.data.services ? res.data.services : [];
+      var list = (res && res.success && res.data && res.data.services)
+        ? res.data.services
+        : (res && Array.isArray(res.services) ? res.services : []);
       var map = {};
       list.forEach(function(svc) {
         map[svc.id] = svc;
@@ -1918,12 +1920,14 @@ function openExpressNails() {
   var list = document.getElementById('cw-cats-list');
   list.innerHTML = '<div class="cw-loader"><div class="cw-spinner"></div><span class="cw-loader-text">Schnellste Termine werden geladen…</span></div>';
   goStep(2);
-  apiGet('/book_services/'+CONFIG.locationId)
-    .then(function(res) {
-      if (res.success && res.data && res.data.services) _allServices = res.data.services;
-      renderCategories(KOMBI_STAFF_IDS[0]);
-    })
-    .catch(function(){ renderCategories(KOMBI_STAFF_IDS[0]); });
+  // Загружаем персональные цены для каждого мастера комби, потом рендерим
+  Promise.all(KOMBI_STAFF_IDS.map(function(sid) {
+    return fetchStaffServices(sid).catch(function(){ return {}; });
+  })).then(function() {
+    renderCategories(KOMBI_STAFF_IDS[0]);
+  }).catch(function() {
+    renderCategories(KOMBI_STAFF_IDS[0]);
+  });
 }
 
 var _SLOT_SERVICE = { 3020185: 13485754, 3020186: 13485753, 3020187: 13485753, 3047989: 13485763 };
@@ -2003,28 +2007,28 @@ function selectMaster(m, meta) {
   list.innerHTML = '<div class="cw-loader"><div class="cw-spinner"></div><span class="cw-loader-text">Laden…</span></div>';
   apiGet('/book_services/'+CONFIG.locationId, { staff_id: m.id })
     .then(function(res) {
-      if (res.success && res.data && res.data.services && res.data.services.length) {
-        _allServices = res.data.services;
-        _serviceCacheByStaff[Number(m.id)] = {};
-        // Кэшируем seance_length per staff+service
-        _allServices.forEach(function(svc) {
-          _serviceCacheByStaff[Number(m.id)][svc.id] = svc;
-          if (svc.seance_length) {
-            _seanceCache[m.id + '_' + svc.id] = svc.seance_length;
-          }
-        });
-        // НЕ перезаписываем _addonObjs — у staff_id запроса аддоны могут не вернуться
-        // Используем _globalAddonObjs из начального запроса без staff_id
-        if (_globalAddonObjs.length) {
-          _addonObjs = _globalAddonObjs;
-        } else {
-          // fallback: если глобальный кэш пустой — берём из текущего ответа
-          var fromCurrent = _allServices.filter(function(s){ return ADDON_IDS.indexOf(s.id) !== -1; });
-          _addonObjs = mergeAddonCatalog(fromCurrent);
-          _globalAddonObjs = _addonObjs.slice();
+      var svcs = (res && res.success && res.data && res.data.services && res.data.services.length)
+        ? res.data.services
+        : (res && Array.isArray(res.services) && res.services.length ? res.services : null);
+      if (!svcs) throw new Error('staff_services_load_failed_' + m.id);
+      _allServices = svcs;
+      _serviceCacheByStaff[Number(m.id)] = {};
+      // Кэшируем seance_length per staff+service
+      _allServices.forEach(function(svc) {
+        _serviceCacheByStaff[Number(m.id)][svc.id] = svc;
+        if (svc.seance_length) {
+          _seanceCache[m.id + '_' + svc.id] = svc.seance_length;
         }
+      });
+      // НЕ перезаписываем _addonObjs — у staff_id запроса аддоны могут не вернуться
+      // Используем _globalAddonObjs из начального запроса без staff_id
+      if (_globalAddonObjs.length) {
+        _addonObjs = _globalAddonObjs;
       } else {
-        throw new Error('staff_services_load_failed_' + m.id);
+        // fallback: если глобальный кэш пустой — берём из текущего ответа
+        var fromCurrent = _allServices.filter(function(s){ return ADDON_IDS.indexOf(s.id) !== -1; });
+        _addonObjs = mergeAddonCatalog(fromCurrent);
+        _globalAddonObjs = _addonObjs.slice();
       }
       if (cw.direction === 'wimpern') {
         var wimpernCat = categoryByKey('wimpern');
@@ -2086,14 +2090,16 @@ function renderCategories(masterId) {
       return allPrices.length ? 'ab '+Math.min.apply(Math, allPrices)+' €' : '';
     }
     if (cat.key === 'kombi') {
-      // Сначала пробуем прямую цену комби-сервиса (13485762) у мастера
-      var directComboPrice = priceForStaff(KOMBI_SERVICE_ID);
-      if (directComboPrice) return 'ab '+(directComboPrice-5)+' €';
-      // Фолбэк: сумма отдельных услуг
+      // Цена = Nagelkorrektur (13485754) + Pediküre+Gellack (13485761) - 5€ скидка
+      // Данные берутся из кэша конкретного мастера (загружен через book_services?staff_id=X)
       var maniPrice = priceForStaff(KOMBI_MANI_PRICE_SERVICE_ID);
       var pediPrice = priceForStaff(KOMBI_PEDI_SERVICE_ID);
-      var comboPrice = maniPrice != null && pediPrice != null ? maniPrice + pediPrice - 5 : 0;
-      return comboPrice ? 'ab '+comboPrice+' €' : '';
+      if (maniPrice != null && maniPrice > 0 && pediPrice != null && pediPrice > 0) {
+        return 'ab '+(maniPrice + pediPrice - 5)+' €';
+      }
+      // Фолбэк: прямая цена комби-сервиса из Altegio
+      var directComboPrice = priceForStaff(KOMBI_SERVICE_ID);
+      return directComboPrice ? 'ab '+directComboPrice+' €' : '';
     }
     var prices = cat.serviceIds.map(priceForStaff).filter(function(p){ return p > 0; });
     if (!prices.length) return '';
