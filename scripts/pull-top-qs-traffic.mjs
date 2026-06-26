@@ -8,7 +8,7 @@ const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const TRANSFER_MD = 'C:/Users/akaza/Downloads/CROCUS_TRANSFER_FULL.md';
 const API_VERSION = 'v22';
 const APPLY = process.env.TOP_QS_PULL_APPLY === 'true';
-const SEARCH_CPC_MICROS = 500_000;
+const DEFAULT_SEARCH_CPC_MICROS = 500_000;
 
 const CAMPAIGNS = {
   pmax: '23833205018',
@@ -24,6 +24,14 @@ const TARGET_BUDGETS_EUR = {
   [CAMPAIGNS.pedikuere]: 5,
   [CAMPAIGNS.manikuere]: 5,
 };
+
+const TOP_QS_BIDS = [
+  { campaignId: CAMPAIGNS.pedikuere, text: 'pediküre göppingen', matchType: 'EXACT', bidEur: 0.75 },
+  { campaignId: CAMPAIGNS.pedikuere, text: 'pediküre termin göppingen', matchType: 'EXACT', bidEur: 0.65 },
+  { campaignId: CAMPAIGNS.manikuere, text: 'maniküre göppingen', matchType: 'EXACT', bidEur: 0.85 },
+  { campaignId: CAMPAIGNS.manikuere, text: 'russische maniküre göppingen', matchType: 'EXACT', bidEur: 0.75 },
+  { campaignId: CAMPAIGNS.manikuere, text: 'gelnägel göppingen', matchType: 'EXACT', bidEur: 0.70 },
+];
 
 const REPORT_DIR = path.join(ROOT, 'reports');
 fs.mkdirSync(REPORT_DIR, { recursive: true });
@@ -86,7 +94,7 @@ async function main() {
   const report = {
     generated_at: new Date().toISOString(),
     apply: APPLY,
-    reason: 'Pull traffic toward high Quality Score Search terms while keeping all Search CPC at 0.50 EUR and total budget at 25 EUR.',
+    reason: 'Pull traffic toward high Quality Score Search terms: weak/default Search stays at 0.50 EUR; only QS 7-10 local exact terms get enough bid to actually enter auctions.',
     top_qs_keywords: topQsKeywords(keywords),
     weak_qs_summary: weakQsSummary(keywords),
     before_campaigns: summarizeCampaigns(campaigns),
@@ -113,6 +121,7 @@ async function main() {
 function buildPlan(campaigns, keywords) {
   const budgetOps = [];
   const keywordOps = [];
+  const topBidByKey = new Map(TOP_QS_BIDS.map((item) => [keywordKey(item.campaignId, item.text, item.matchType), Math.round(item.bidEur * 1_000_000)]));
 
   for (const row of campaigns) {
     const campaignId = String(row.campaign?.id || '');
@@ -130,9 +139,10 @@ function buildPlan(campaigns, keywords) {
   for (const row of keywords) {
     const criterion = row.adGroupCriterion || {};
     const current = Number(criterion.cpcBidMicros || criterion.effectiveCpcBidMicros || 0);
-    if (current !== SEARCH_CPC_MICROS) {
+    const target = topBidByKey.get(keywordKey(row.campaign?.id, criterion.keyword?.text, criterion.keyword?.matchType)) || DEFAULT_SEARCH_CPC_MICROS;
+    if (current !== target) {
       keywordOps.push({
-        update: { resourceName: criterion.resourceName, cpcBidMicros: String(SEARCH_CPC_MICROS) },
+        update: { resourceName: criterion.resourceName, cpcBidMicros: String(target) },
         updateMask: 'cpc_bid_micros',
       });
     }
@@ -140,7 +150,8 @@ function buildPlan(campaigns, keywords) {
 
   return {
     budgets: TARGET_BUDGETS_EUR,
-    max_search_cpc_eur: 0.5,
+    default_search_cpc_eur: 0.5,
+    top_qs_bids: TOP_QS_BIDS,
     budgetOps: dedupe(budgetOps, (op) => op.update.resourceName),
     keywordOps: dedupe(keywordOps, (op) => op.update.resourceName),
   };
@@ -194,6 +205,24 @@ function keywordSummary(row) {
     avg_cpc_eur: avgCpc(row.metrics),
     conversions: Number(row.metrics?.conversions || 0),
   };
+}
+
+function keywordKey(campaignId, text, matchType) {
+  return `${campaignId}:${matchType}:${normalize(text)}`;
+}
+
+function normalize(value) {
+  return String(value || '')
+    .toLowerCase()
+    .normalize('NFKD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/\u00df/g, 'ss')
+    .replace(/oe/g, 'o')
+    .replace(/ae/g, 'a')
+    .replace(/ue/g, 'u')
+    .replace(/[^a-z0-9 ]+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
 }
 
 function summarizeCampaigns(rows) {
