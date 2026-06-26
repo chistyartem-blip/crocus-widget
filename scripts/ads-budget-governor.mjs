@@ -16,6 +16,8 @@ const CONFIG = {
   reportMode: env('ADS_GOVERNOR_REPORT_MODE', ''),
   budgetOverrides: envJson('ADS_GOVERNOR_BUDGET_OVERRIDE_JSON', {}),
   manualBudgetOnly: envBool('ADS_GOVERNOR_MANUAL_BUDGET_ONLY', false),
+  allowBudgetChanges: envBool('ADS_GOVERNOR_ALLOW_BUDGET_CHANGES', false),
+  allowBidChanges: envBool('ADS_GOVERNOR_ALLOW_BID_CHANGES', false),
   altegioProxyBase: env('ALTEGIO_PROXY_BASE', 'https://crocus-proxy.crocusbeautystudio.workers.dev/api/proxy'),
   altegioLocationId: env('ALTEGIO_LOCATION_ID', '1357963'),
   telegram: {
@@ -553,11 +555,28 @@ async function collectHourlyPerformance(accessToken, campaignIds, start, end) {
     ctr: ctr(item),
     conversion_rate: conversionRate(item),
   }));
+  const totals = hours.reduce((acc, item) => {
+    addMetrics(acc, item);
+    return acc;
+  }, emptyMetrics());
+  const reliableBest = hours
+    .filter((h) => h.clicks >= 3 && h.conversions >= 2)
+    .sort((a, b) => (a.cpl_eur ?? 9999) - (b.cpl_eur ?? 9999))
+    .slice(0, 5);
+  const reliableWaste = hours
+    .filter((h) => h.clicks >= 3 && h.cost_eur >= 5 && h.conversions === 0)
+    .sort((a, b) => b.cost_eur - a.cost_eur)
+    .slice(0, 5);
   return {
     start,
     end,
-    best: hours.filter((h) => h.conversions > 0).sort((a, b) => (a.cpl_eur ?? 9999) - (b.cpl_eur ?? 9999)).slice(0, 5),
-    waste: hours.filter((h) => h.clicks >= 3 && h.conversions === 0).sort((a, b) => b.cost_eur - a.cost_eur).slice(0, 5),
+    totals: {
+      clicks: totals.clicks,
+      cost_eur: round2(totals.cost_eur),
+      conversions: round2(totals.conversions),
+    },
+    best: reliableBest,
+    waste: reliableWaste,
   };
 }
 
@@ -749,16 +768,19 @@ function buildPlan({ ads, decisions, guard, performance }) {
     };
   });
   enforcePlannedBudgetCap(allBudgets, manualBudgetOverrides);
-  const budgets = allBudgets
-    .filter((b) => b.budget_resource_name && Math.abs(b.current_eur - b.target_eur) >= 0.01);
+  const budgets = CONFIG.allowBudgetChanges
+    ? allBudgets.filter((b) => b.budget_resource_name && Math.abs(b.current_eur - b.target_eur) >= 0.01)
+    : [];
 
   const broadUnsafe = ads.broadKeywords.length > 0;
-  const keywordBidUpdates = (broadUnsafe || CONFIG.manualBudgetOnly) ? [] : ads.keywords
+  const keywordBidUpdates = (!CONFIG.allowBidChanges || broadUnsafe || CONFIG.manualBudgetOnly) ? [] : ads.keywords
     .map((row) => desiredKeywordBid(row, byCategory, performanceRisk))
     .filter(Boolean);
 
   return {
-    reason: CONFIG.manualBudgetOnly
+    reason: !CONFIG.allowBudgetChanges && !CONFIG.allowBidChanges
+      ? 'report only: budget and bid changes disabled'
+      : CONFIG.manualBudgetOnly
       ? 'manual budget override only'
       : broadUnsafe ? 'broad keywords present: budget only' : 'capacity-based budget and bid adjustment',
     budgets,
@@ -1317,11 +1339,15 @@ function winnerTermLines(terms) {
 
 function hourInsightLines(hourly) {
   const lines = [];
+  const totalConversions = Number(hourly?.totals?.conversions || 0);
+  if (totalConversions < 5) {
+    return ['По часам пока мало настоящего сигнала: не режем расписание на базе шума, ждем больше primary-записей.'];
+  }
   if (hourly?.best?.length) {
-    lines.push(`${R('best_hours')}: ${hourly.best.map((h) => `${padHour(h.hour)} (${h.conversions} conv, CPL ${h.cpl_eur} EUR)`).join(', ')}.`);
+    lines.push(`${R('best_hours')} 30d, только направление: ${hourly.best.map((h) => `${padHour(h.hour)} (${round2(h.conversions)} conv, CPL ${h.cpl_eur} EUR)`).join(', ')}.`);
   }
   if (hourly?.waste?.length) {
-    lines.push(`${R('waste_hours')}: ${hourly.waste.map((h) => `${padHour(h.hour)} (${round2(h.cost_eur)} EUR, 0 conv)`).join(', ')}.`);
+    lines.push(`${R('waste_hours')} 30d, не авто-стоп: ${hourly.waste.map((h) => `${padHour(h.hour)} (${round2(h.cost_eur)} EUR, 0 conv)`).join(', ')}.`);
   }
   return lines;
 }
