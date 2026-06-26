@@ -2064,6 +2064,10 @@ function renderCategories(masterId) {
       return allPrices.length ? 'ab '+Math.min.apply(Math, allPrices)+' €' : '';
     }
     if (cat.key === 'kombi') {
+      // Сначала пробуем прямую цену комби-сервиса (13485762) у мастера
+      var directComboPrice = priceForStaff(KOMBI_SERVICE_ID);
+      if (directComboPrice) return 'ab '+directComboPrice+' €';
+      // Фолбэк: сумма отдельных услуг
       var maniPrice = priceForStaff(KOMBI_MANI_SERVICE_ID);
       var pediPrice = priceForStaff(KOMBI_PEDI_SERVICE_ID);
       var comboPrice = maniPrice != null && pediPrice != null ? maniPrice + pediPrice : 0;
