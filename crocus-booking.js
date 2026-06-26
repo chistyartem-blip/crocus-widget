@@ -2796,6 +2796,9 @@ function loadComboAvailDates() {
 
   Promise.all(serviceLoads.concat(dateLoads)).then(function(results) {
     var offset = serviceLoads.length;
+    // Per-staff date maps
+    var maniDatesByStaff = {};
+    var pediDatesByStaff = {};
     var maniDates = {};
     var pediDates = {};
     KOMBI_STAFF_IDS.forEach(function(staffId, idx) {
@@ -2803,10 +2806,35 @@ function loadComboAvailDates() {
       var pediRes = results[offset + idx * 2 + 1];
       var maniList = maniRes && maniRes.data && maniRes.data.booking_dates ? maniRes.data.booking_dates : (maniRes && maniRes.booking_dates || []);
       var pediList = pediRes && pediRes.data && pediRes.data.booking_dates ? pediRes.data.booking_dates : (pediRes && pediRes.booking_dates || []);
-      maniList.forEach(function(ds){ maniDates[ds] = true; });
-      pediList.forEach(function(ds){ pediDates[ds] = true; });
+      maniDatesByStaff[staffId] = {};
+      pediDatesByStaff[staffId] = {};
+      maniList.forEach(function(ds){ maniDates[ds] = true; maniDatesByStaff[staffId][ds] = true; });
+      pediList.forEach(function(ds){ pediDates[ds] = true; pediDatesByStaff[staffId][ds] = true; });
     });
-    var dates = Object.keys(maniDates).filter(function(ds){ return !!pediDates[ds]; }).sort();
+    var allDates = Object.keys(maniDates).filter(function(ds){ return !!pediDates[ds]; }).sort();
+    var dates;
+    // Если выбран конкретный мастер — оставляем только даты где он участвует хотя бы в одной услуге,
+    // и есть другой мастер для второй услуги
+    if (cw.master && !cw.express) {
+      var selId = Number(cw.master.id);
+      dates = allDates.filter(function(ds) {
+        var selMani = maniDatesByStaff[selId] && maniDatesByStaff[selId][ds];
+        var selPedi = pediDatesByStaff[selId] && pediDatesByStaff[selId][ds];
+        if (!selMani && !selPedi) return false; // мастер вообще не работает
+        // нужен второй мастер для второй услуги
+        if (selMani && !selPedi) {
+          // ищем кого-то для педи
+          return KOMBI_STAFF_IDS.some(function(id){ return id !== selId && pediDatesByStaff[id] && pediDatesByStaff[id][ds]; });
+        }
+        if (selPedi && !selMani) {
+          // ищем кого-то для мани
+          return KOMBI_STAFF_IDS.some(function(id){ return id !== selId && maniDatesByStaff[id] && maniDatesByStaff[id][ds]; });
+        }
+        return true; // мастер может и мани и педи
+      });
+    } else {
+      dates = allDates;
+    }
     if (cw.express) {
       cw.availDates = dates;
       console.log('[crocus] loadComboAvailDates quick: '+cw.availDates.length+' dates: '+JSON.stringify(cw.availDates.slice(0,5)));
