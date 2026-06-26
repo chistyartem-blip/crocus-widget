@@ -874,6 +874,10 @@ var css = `
 .cw-time{padding:8px 4px;border-radius:9px;border:1px solid rgba(255,255,255,.20);background:rgba(255,255,255,.08);color:rgba(253,250,248,.90);font-family:'DM Sans',sans-serif;font-size:12px;cursor:pointer;transition:all .15s;text-align:center;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
 .cw-time.free:hover{border-color:rgba(123,45,78,.42);background:rgba(123,45,78,.14);color:#fdfaf8}
 .cw-time.sel{background:#7B2D4E;border-color:#7B2D4E;color:#fff;box-shadow:0 0 11px rgba(123,45,78,.42)}
+.cw-time.other-master{border-color:rgba(201,168,124,.28);background:rgba(201,168,124,.06);color:rgba(253,250,248,.70)}
+.cw-time.other-master:hover{border-color:rgba(201,168,124,.55);background:rgba(201,168,124,.12);color:#fdfaf8}
+.cw-time-masters{display:block;font-size:9px;color:rgba(253,250,248,.45);margin-top:2px;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cw-time.other-master .cw-time-masters{color:rgba(201,168,124,.70)}
 
 /* ── Step 6: Contact ── */
 .cw-summary{background:rgba(255,255,255,.03);border:1px solid rgba(201,168,124,.12);border-radius:13px;padding:12px 14px;margin-bottom:16px;display:flex;flex-direction:column;gap:8px}
@@ -3461,11 +3465,49 @@ function renderTimesLoaded(slots) {
     return;
   }
   grid.innerHTML = '';
+  // For combo: filter slots where selected master doesn't participate at all
+  if (cw.service && cw.service.id === KOMBI_SERVICE_ID && cw.master && !cw.express) {
+    var selMId = Number(cw.master.id);
+    slots = slots.filter(function(slot) {
+      if (!slot.comboRoute) return true;
+      return Number(slot.comboRoute.maniStaffId) === selMId || Number(slot.comboRoute.pediStaffId) === selMId;
+    });
+    if (!slots.length) {
+      grid.innerHTML = '<div class="cw-error" style="grid-column:span 4">Keine freien Zeiten für '+cw.master.name+' an diesem Tag.</div>';
+      return;
+    }
+  }
   slots.forEach(function(slot){
     var isSel = cw.time === slot.time;
+    // Determine if selected master covers only one of the two combo services
+    var isOtherMaster = false;
+    var masterLabel = '';
+    if (cw.service && cw.service.id === KOMBI_SERVICE_ID && slot.comboRoute && cw.master && !cw.express) {
+      var mId = Number(slot.comboRoute.maniStaffId);
+      var pId = Number(slot.comboRoute.pediStaffId);
+      var sId = Number(cw.master.id);
+      if (mId !== pId) {
+        isOtherMaster = true; // two different masters
+        masterLabel = comboRouteLabel(slot.comboRoute);
+      }
+    } else if (cw.service && cw.service.id === KOMBI_SERVICE_ID && slot.comboRoute && !cw.master) {
+      if (slot.comboRoute.maniStaffId !== slot.comboRoute.pediStaffId) {
+        masterLabel = comboRouteLabel(slot.comboRoute);
+      }
+    }
     var btn = document.createElement('button');
-    btn.className = 'cw-time free'+(isSel?' sel':'');
-    btn.textContent = slot.time;
+    btn.className = 'cw-time free'+(isSel?' sel':'')+(isOtherMaster?' other-master':'');
+    // Time text
+    var timeSpan = document.createElement('span');
+    timeSpan.textContent = slot.time;
+    btn.appendChild(timeSpan);
+    // Masters label under time (for combo with 2 masters)
+    if (masterLabel) {
+      var lbl = document.createElement('span');
+      lbl.className = 'cw-time-masters';
+      lbl.textContent = masterLabel;
+      btn.appendChild(lbl);
+    }
     btn.addEventListener('click', function(){
       chooseTimeSlot(slot, slots);
       return;
