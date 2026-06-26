@@ -2811,9 +2811,10 @@ function loadComboAvailDates() {
   var serviceLoads = KOMBI_STAFF_IDS.map(function(staffId){ return fetchStaffServices(staffId); });
   var dateLoads = [];
   KOMBI_STAFF_IDS.forEach(function(staffId) {
+    var _maniSvcIdDate = _SLOT_SERVICE[staffId] || KOMBI_MANI_SERVICE_ID;
     dateLoads.push(apiGet('/book_dates/'+CONFIG.locationId, {
       staff_id: staffId,
-      service_ids: [KOMBI_MANI_SERVICE_ID],
+      service_ids: [_maniSvcIdDate],
       date: firstDay,
     }).catch(function(){ return null; }));
     dateLoads.push(apiGet('/book_dates/'+CONFIG.locationId, {
@@ -3284,7 +3285,8 @@ function loadComboSlotsForDate(ds) {
   var timeLoads = [];
   KOMBI_STAFF_IDS.forEach(function(staffId) {
     timeLoads.push(fetchStaffServices(staffId));
-    timeLoads.push(apiGet('/book_times/'+CONFIG.locationId+'/'+staffId+'/'+ds, { service_ids: [KOMBI_MANI_SERVICE_ID] }).catch(function(){ return null; }));
+    var _maniSvcId = _SLOT_SERVICE[staffId] || KOMBI_MANI_SERVICE_ID;
+    timeLoads.push(apiGet('/book_times/'+CONFIG.locationId+'/'+staffId+'/'+ds, { service_ids: [_maniSvcId] }).catch(function(){ return null; }));
     timeLoads.push(apiGet('/book_times/'+CONFIG.locationId+'/'+staffId+'/'+ds, { service_ids: [KOMBI_PEDI_SERVICE_ID] }).catch(function(){ return null; }));
   });
 
@@ -3453,8 +3455,9 @@ function buildComboPairCandidates(byStaff, maniStaffId, pediStaffId, candidates)
   var pediData = byStaff[pediStaffId];
   if (!maniData || !pediData) return;
 
+  var maniSvcId = _SLOT_SERVICE[maniStaffId] || KOMBI_MANI_SERVICE_ID;
   maniData.mani.forEach(function(maniSlot) {
-    var maniDuration = serviceDurationForStaff(maniStaffId, KOMBI_MANI_SERVICE_ID, maniSlot, 0);
+    var maniDuration = serviceDurationForStaff(maniStaffId, maniSvcId, maniSlot, 0);
     if (!maniDuration) return;
     var pediStart = addSecondsToAltegioDatetime(maniSlot.datetime, maniDuration);
     var pediSlot = pediData.pediMap[pediStart];
@@ -3470,6 +3473,7 @@ function buildComboPairCandidates(byStaff, maniStaffId, pediStaffId, candidates)
       pediDatetime: pediStart,
       maniDuration: maniDuration,
       pediDuration: pediDuration,
+      maniServiceId: maniSvcId,
     }));
   });
 
@@ -3479,7 +3483,7 @@ function buildComboPairCandidates(byStaff, maniStaffId, pediStaffId, candidates)
     var maniStart = addSecondsToAltegioDatetime(pediSlot.datetime, pediDuration);
     var maniSlot = maniData.maniMap[maniStart];
     if (!maniSlot) return;
-    var maniDuration = serviceDurationForStaff(maniStaffId, KOMBI_MANI_SERVICE_ID, maniSlot, 0);
+    var maniDuration = serviceDurationForStaff(maniStaffId, maniSvcId, maniSlot, 0);
     if (!maniDuration) return;
     addComboCandidate(candidates, makeComboCandidate({
       startSlot: pediSlot,
@@ -3490,11 +3494,13 @@ function buildComboPairCandidates(byStaff, maniStaffId, pediStaffId, candidates)
       pediDatetime: pediSlot.datetime,
       maniDuration: maniDuration,
       pediDuration: pediDuration,
+      maniServiceId: maniSvcId,
     }));
   });
 }
 
 function makeComboCandidate(opts) {
+  var maniSvc = opts.maniServiceId || _SLOT_SERVICE[opts.maniStaffId] || KOMBI_MANI_SERVICE_ID;
   var route = {
     order: opts.order,
     maniStaffId: Number(opts.maniStaffId),
@@ -3503,6 +3509,7 @@ function makeComboCandidate(opts) {
     pediDatetime: opts.pediDatetime,
     maniDuration: opts.maniDuration,
     pediDuration: opts.pediDuration,
+    maniServiceId: maniSvc,
     priority: comboPriority(opts.maniStaffId, opts.pediStaffId),
   };
   route.endDatetime = addSecondsToAltegioDatetime(
@@ -3512,12 +3519,12 @@ function makeComboCandidate(opts) {
   var candidate = Object.assign({}, opts.startSlot);
   candidate.comboAppointments = opts.order === 'mani_first'
     ? [
-        comboAppointment(KOMBI_MANI_SERVICE_ID, opts.maniStaffId, opts.maniDatetime),
+        comboAppointment(maniSvc, opts.maniStaffId, opts.maniDatetime),
         comboAppointment(KOMBI_PEDI_SERVICE_ID, opts.pediStaffId, opts.pediDatetime),
       ]
     : [
         comboAppointment(KOMBI_PEDI_SERVICE_ID, opts.pediStaffId, opts.pediDatetime),
-        comboAppointment(KOMBI_MANI_SERVICE_ID, opts.maniStaffId, opts.maniDatetime),
+        comboAppointment(maniSvc, opts.maniStaffId, opts.maniDatetime),
       ];
   candidate.comboRoute = route;
   return candidate;
